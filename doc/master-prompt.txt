@@ -1,0 +1,566 @@
+You are a senior software architect and product engineer.
+
+I want to design and build a developer-first CLI tool called KirokuForge.
+
+KirokuForge is a local-first, Git-native AI knowledge assistant that converts AI-assisted project conversations into structured, reviewed, versioned Markdown documentation.
+
+The product must NOT save or push raw conversations. Its purpose is not to archive chats, but to transform useful conversation outcomes into curated project knowledge.
+
+Core concept:
+- The user works with an AI assistant inside the CLI.
+- The assistant helps reason about a project.
+- When the user decides to save the useful outcome, KirokuForge generates a structured summary.
+- The user reviews/edits the summary.
+- KirokuForge writes the approved knowledge into Markdown files.
+- The files are stored in a Git repository.
+- The Git repository becomes the source of truth for project knowledge.
+
+Product name:
+- Product: KirokuForge
+- CLI binary: kiroku
+- Standard knowledge repository name: kirokuforge-knowledge
+
+Meaning:
+- “Kiroku” comes from Japanese 記録, meaning record/documentation.
+- “Forge” represents the act of shaping raw conversation into structured knowledge.
+
+Main positioning:
+KirokuForge turns AI conversations into versioned project knowledge.
+
+Tagline:
+KirokuForge — Turn AI conversations into versioned project knowledge.
+
+Important product rule:
+KirokuForge never commits raw conversations.
+Only reviewed, structured knowledge artifacts are saved.
+
+Repository model:
+- KirokuForge uses one standard Git repository named `kirokuforge-knowledge`.
+- This repository contains all projects.
+- Each project is stored as a subdirectory.
+- The repository is provider-agnostic.
+- It must work with GitHub, GitLab, Gitea, Bitbucket or any Git server supported by standard Git remote URLs.
+- KirokuForge must use pure Git operations for clone, fetch, pull, commit and push.
+- It should not depend on GitHub CLI for the core workflow.
+
+Standard repository structure:
+
+kirokuforge-knowledge/
+├── README.md
+├── kirokuforge.yml
+├── projects/
+│   ├── sealforge/
+│   │   ├── overview.md
+│   │   ├── architecture/
+│   │   ├── decisions/
+│   │   ├── notes/
+│   │   ├── open-questions/
+│   │   └── todo/
+│   └── taskete/
+│       ├── overview.md
+│       ├── architecture/
+│       ├── decisions/
+│       ├── notes/
+│       ├── open-questions/
+│       └── todo/
+└── templates/
+    ├── decision.md
+    ├── architecture.md
+    ├── note.md
+    ├── todo.md
+    └── open-question.md
+
+Repository manifest file:
+
+kirokuforge.yml
+
+Example:
+
+version: 1
+
+repository:
+  type: kirokuforge-knowledge
+  default_branch: main
+
+layout:
+  projects_dir: projects
+  templates_dir: templates
+
+rules:
+  raw_conversations_allowed: false
+  pull_before_write: true
+  require_user_review_before_commit: true
+  conflict_resolution: human_in_the_loop
+
+Repository initialization behavior:
+- When the user runs `kiroku init`, KirokuForge should ask for a remote Git URL or allow local-only mode.
+- The expected remote repository name is `kirokuforge-knowledge`.
+- KirokuForge checks if the remote repository is reachable using pure Git, for example `git ls-remote <remote-url>`.
+- If the repository is reachable, KirokuForge clones it.
+- If the repository is not reachable, KirokuForge must not assume the reason. It should say: “Repository not found or inaccessible.”
+- KirokuForge then asks the user to create a repository named `kirokuforge-knowledge` manually on their Git provider.
+- After the user confirms creation, KirokuForge checks the remote again.
+- If the remote is now reachable, KirokuForge clones it.
+- If the repository is empty or does not contain `kirokuforge.yml`, KirokuForge asks whether to initialize the KirokuForge structure.
+- If confirmed, it creates the base structure, commits it and pushes it.
+
+Example init UX:
+
+kiroku init
+
+KirokuForge knowledge repository setup
+
+Default repository name:
+  kirokuforge-knowledge
+
+Select mode:
+[1] Use remote Git repository
+[2] Local-only
+
+Remote URL:
+> git@github.com:Jok98/kirokuforge-knowledge.git
+
+Checking remote repository...
+Repository not found or inaccessible.
+
+Create a repository named:
+
+  kirokuforge-knowledge
+
+on your Git provider, then press ENTER to retry.
+
+After user confirmation:
+- run git ls-remote again
+- if reachable, clone
+- initialize structure if needed
+- commit and push initial files
+
+Git workflow:
+- Use Git CLI as the primary implementation because it respects the user’s existing SSH configuration, SSH agent and credential helpers.
+- JGit can be used only as a secondary utility for status/diff/parsing if useful.
+- Git operations must be provider-agnostic.
+- Git supports common transport protocols such as Local, HTTP/HTTPS, SSH and Git protocol, so using Git directly allows the tool to work across multiple providers.
+- `git clone` should be used to clone existing repositories.
+- `git ls-remote` should be used to check remote reachability.
+- Before writing knowledge, KirokuForge must pull/rebase from origin/main.
+- Before pushing, KirokuForge must check the working tree status.
+- The tool should never silently overwrite remote content.
+
+Required Git commands:
+- git ls-remote <remote-url>
+- git clone <remote-url> <local-path>
+- git fetch origin
+- git pull --rebase origin main
+- git status --porcelain
+- git diff
+- git add <files>
+- git commit -m "<message>"
+- git push origin main
+
+Commit message style:
+Use semantic commit messages, for example:
+- docs(sealforge): add git sync workflow
+- docs(taskete): update points service decisions
+- adr(kirokuforge): define human-in-the-loop conflict resolution
+- chore: initialize KirokuForge knowledge base
+
+Conflict resolution:
+- If Git detects a merge conflict, KirokuForge enters an interactive conflict resolution flow.
+- The AI may analyze the local version, remote version and base version.
+- The AI may propose a reconciled version.
+- The user must review and approve/edit the result.
+- KirokuForge must not silently resolve semantic conflicts.
+- Human-in-the-loop resolution is mandatory for conflicts.
+- The user must be able to:
+  1. view local version
+  2. view remote version
+  3. view AI suggestion
+  4. manually edit final version
+  5. accept AI suggestion
+  6. abort the rebase/merge
+
+Example commands:
+- kiroku conflict list
+- kiroku conflict resolve
+
+Core CLI commands:
+- kiroku init
+- kiroku repo status
+- kiroku sync
+- kiroku project create <project-name>
+- kiroku project list
+- kiroku chat <project-name>
+- kiroku save <project-name>
+- kiroku diff [project-name]
+- kiroku conflict list
+- kiroku conflict resolve
+- kiroku auth login
+- kiroku auth list
+- kiroku auth logout
+- kiroku models list
+- kiroku models use <provider:model>
+
+Project creation:
+When the user runs:
+
+kiroku project create sealforge
+
+KirokuForge creates:
+
+projects/sealforge/
+├── overview.md
+├── architecture/
+├── decisions/
+├── notes/
+├── open-questions/
+└── todo/
+
+Then it commits and pushes:
+
+docs(sealforge): initialize project knowledge base
+
+Knowledge artifact types:
+- overview
+- architecture
+- decision
+- note
+- open question
+- todo
+
+Markdown format:
+Use Markdown with YAML frontmatter.
+
+Example:
+
+---
+project: sealforge
+type: decision
+status: accepted
+created_at: 2026-04-26
+updated_at: 2026-04-26
+tags:
+  - git
+  - sync
+  - conflict-resolution
+---
+
+# ADR-003 - Human-in-the-loop merge resolution
+
+## Context
+The system may face Git merge conflicts when multiple clients update the same project knowledge base.
+
+## Decision
+The system must not silently resolve semantic conflicts. It must involve the user.
+
+## Consequences
+- Safer knowledge base
+- Slower conflict resolution
+- Better trust
+
+Summary generation:
+The AI must transform a conversation into structured documentation.
+The summary must:
+- be concise
+- be technical
+- be readable by someone who did not see the original chat
+- extract decisions, TODOs, open questions and technical notes
+- avoid conversational noise
+- avoid phrases such as “the user said” or “the assistant replied”
+- avoid personal information unless explicitly relevant
+- avoid saving raw chat content
+
+Default summary sections:
+# Title
+
+## Summary
+
+## Key Points
+
+## Decisions
+
+## Alternatives Considered
+
+## Open Questions
+
+## TODO
+
+## Related Files
+
+LLM provider support:
+KirokuForge must support multiple LLM providers.
+The provider system must be pluggable.
+
+MVP providers:
+1. openai-codex
+   - uses ChatGPT subscription login through the official Codex CLI
+   - no OpenAI API key required
+2. openai-api
+   - uses OpenAI API key
+3. ollama
+   - local provider
+   - no cloud account required
+
+Future providers:
+- anthropic-api
+- openrouter
+- google-gemini
+- openai-compatible
+- lmstudio
+
+Important OpenAI requirement:
+The user may not have an OpenAI API key, so KirokuForge must support ChatGPT subscription login through Codex CLI integration.
+KirokuForge should not scrape ChatGPT, steal cookies, reverse-engineer private tokens or read undocumented session files.
+It should delegate authentication to official Codex CLI flows.
+
+OpenAI provider design:
+- openai-api: API key based
+- openai-codex: ChatGPT subscription based through Codex CLI
+
+Commands:
+- kiroku auth login --provider codex
+- kiroku auth login --provider openai
+- kiroku auth login --provider ollama
+- kiroku auth list
+- kiroku models list
+- kiroku models use openai-codex:<model>
+
+Provider architecture:
+Define an interface:
+
+public interface LlmProvider {
+    ProviderId id();
+    AuthStatus authStatus();
+    List<ModelDescriptor> listModels();
+    LlmResponse complete(LlmRequest request);
+    Stream<LlmChunk> stream(LlmRequest request);
+}
+
+Codex provider:
+public final class CodexCliProvider implements LlmProvider {
+    private final CodexCliClient codexCliClient;
+
+    @Override
+    public ProviderId id() {
+        return ProviderId.of("openai-codex");
+    }
+
+    @Override
+    public AuthStatus authStatus() {
+        return codexCliClient.checkAuth();
+    }
+
+    @Override
+    public LlmResponse complete(LlmRequest request) {
+        return codexCliClient.runPrompt(request);
+    }
+}
+
+Credential handling:
+- Credentials must be local-first.
+- No KirokuForge cloud account is required in the MVP.
+- API keys should be stored securely if possible.
+- Preferred storage:
+  - Linux: Secret Service / libsecret / KWallet / GNOME Keyring
+  - macOS: Keychain
+  - Windows: Credential Manager
+- Fallback:
+  - ~/.local/share/kirokuforge/auth.json
+  - file permissions must be restricted, for example chmod 600
+
+Local config:
+Use XDG-style paths on Linux.
+
+Suggested paths:
+~/.config/kirokuforge/config.yml
+~/.local/share/kirokuforge/auth.json
+~/.local/share/kirokuforge/kirokuforge.db
+~/.cache/kirokuforge/
+~/KirokuForge/kirokuforge-knowledge/
+
+Technical stack:
+Use Java-first CLI stack.
+
+Recommended MVP stack:
+- Java 21
+- Picocli for CLI commands
+- JLine for interactive terminal UX
+- SQLite for local metadata
+- Flyway for DB migrations
+- Git CLI through ProcessBuilder as primary Git engine
+- JGit only as optional utility
+- LangChain4j or custom provider abstraction for LLM providers
+- Markdown + YAML frontmatter
+- commonmark-java or flexmark-java for Markdown processing
+- Jackson YAML for config/frontmatter
+- JUnit 5, AssertJ, Mockito for tests
+- temporary local Git repositories for integration tests
+
+Prefer Picocli over Spring Shell for the CLI MVP.
+The CLI should feel like git, docker or kubectl:
+- command-oriented
+- scriptable
+- interactive when needed
+- non-interactive flags available
+
+Picocli should be used because it is a mature Java CLI framework with support for subcommands, help generation and ANSI styling.
+
+JLine should be used for:
+- interactive chat
+- multiline editing
+- prompts
+- terminal capabilities
+- conflict resolution UX
+
+Do not use microservices, Kubernetes, PostgreSQL or Kafka in the MVP.
+This is a local-first CLI tool.
+Use a modular monolith architecture.
+
+Suggested Maven modules:
+kirokuforge/
+├── README.md
+├── LICENSE
+├── docs/
+├── kirokuforge-cli/
+├── kirokuforge-core/
+├── kirokuforge-git/
+├── kirokuforge-ai/
+├── kirokuforge-knowledge/
+├── kirokuforge-persistence/
+├── kirokuforge-terminal/
+└── pom.xml
+
+Module responsibilities:
+
+kirokuforge-cli:
+- Picocli commands
+- command wiring
+- exit codes
+
+kirokuforge-terminal:
+- JLine prompts
+- interactive chat
+- interactive conflict resolution
+- terminal output formatting
+
+kirokuforge-core:
+- use cases
+- business rules
+- orchestration
+- project workflow
+- save workflow
+- conflict workflow
+
+kirokuforge-git:
+- GitCommandExecutor
+- GitSyncService
+- RemoteRepositoryChecker
+- ConflictDetector
+- GitStatusParser
+
+kirokuforge-ai:
+- LlmProvider abstraction
+- OpenAiApiProvider
+- CodexCliProvider
+- OllamaProvider
+- SummaryGenerator
+- MergeAssistant
+- ArtifactRouter
+
+kirokuforge-knowledge:
+- MarkdownArtifactWriter
+- MarkdownArtifactReader
+- FrontmatterParser
+- ProjectTreeService
+- TemplateService
+
+kirokuforge-persistence:
+- SQLite repositories
+- Flyway migrations
+- settings
+- session metadata
+- provider config references
+
+Exit codes:
+0  success
+1  generic error
+2  invalid command/input
+3  git not configured
+4  repository dirty
+5  sync conflict
+6  AI provider error
+7  user aborted
+8  authentication error
+9  repository not found or inaccessible
+
+Business rules:
+BR-001: Raw conversations must never be committed.
+BR-002: Only reviewed structured knowledge artifacts can be saved.
+BR-003: Every generated artifact must belong to a project.
+BR-004: KirokuForge must pull/rebase before writing.
+BR-005: KirokuForge must check repo status before push.
+BR-006: The working tree must be clean before sync unless the user explicitly handles changes.
+BR-007: Merge conflicts must be resolved human-in-the-loop.
+BR-008: The standard repository name is kirokuforge-knowledge.
+BR-009: The repository is valid only if it contains kirokuforge.yml.
+BR-010: Git operations must be provider-agnostic and use pure Git.
+BR-011: Remote repository creation is manual in MVP.
+BR-012: LLM provider authentication must be pluggable.
+BR-013: ChatGPT subscription login must be supported via official Codex CLI integration.
+BR-014: API keys must be stored locally and securely.
+BR-015: User review is required before committing AI-generated knowledge.
+
+MVP scope:
+- CLI application
+- init flow
+- remote Git URL setup
+- local-only mode
+- standard repository name: kirokuforge-knowledge
+- Git remote check via git ls-remote
+- manual remote creation flow
+- clone existing repo
+- initialize KirokuForge structure
+- project create/list
+- interactive chat
+- generate structured summary
+- user review before save
+- write Markdown artifacts
+- pull before save
+- commit and push
+- detect merge conflicts
+- interactive AI-assisted conflict resolution
+- LLM provider auth:
+  - Codex CLI subscription login
+  - OpenAI API key
+  - Ollama local
+
+Out of MVP:
+- web app
+- desktop app
+- SaaS account
+- automatic GitHub/GitLab repo creation
+- OAuth implementation inside KirokuForge
+- cloud sync outside Git
+- raw conversation backup
+- multi-user permissions
+- full semantic search
+- vector DB
+- plugin marketplace
+
+Please produce a complete technical specification for KirokuForge, including:
+1. product definition
+2. business rules
+3. CLI command design
+4. repository layout
+5. Git workflow
+6. init workflow
+7. conflict resolution workflow
+8. LLM provider architecture
+9. authentication strategy
+10. Java module architecture
+11. key interfaces/classes
+12. SQLite schema proposal
+13. Markdown templates
+14. error handling
+15. testing strategy
+16. MVP roadmap
+17. future roadmap
