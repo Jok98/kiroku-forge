@@ -10,13 +10,17 @@ The CLI binary is:
 kiroku
 ```
 
-The standard knowledge repository name is:
+Macro project repositories use this naming convention:
 
 ```text
-kirokuforge-knowledge
+KirokuFM-<macro-project-slug>
 ```
 
-The published source of truth is a Git repository containing reviewed Markdown artifacts. Raw conversations may exist only as local transient/session state and must never be committed.
+`KirokuFM` means `KirokuForgeMemory`.
+
+A macro project is a high-level knowledge container that can contain multiple projects. A project is a specific codebase, app, or technical initiative inside a macro project. Example: macro project `work` can contain projects `sealforge`, `taskete`, and `kirokuforge`.
+
+Each macro project is its own local Git repository. The published source of truth is the macro project Git repository containing reviewed Markdown artifacts. Raw conversations may exist only as temporary local drafts outside the Git repository and must never be committed or pushed.
 
 The core product flow is:
 
@@ -27,12 +31,12 @@ User starts a project session
 -> Knowledge Processing Agent extracts useful knowledge
 -> KirokuForge proposes Markdown artifacts
 -> user reviews/edits them
--> KirokuForge pulls latest main
+-> KirokuForge pulls latest main when a remote is configured
 -> KirokuForge writes files
 -> KirokuForge shows diff
 -> user confirms
 -> KirokuForge commits
--> KirokuForge pushes
+-> KirokuForge pushes when a remote is configured
 ```
 
 The architecture distinguishes two AI roles:
@@ -40,30 +44,39 @@ The architecture distinguishes two AI roles:
 - Chat Assistant: helps during the interactive session with reasoning, writing, debugging, design, and analysis.
 - Knowledge Processing Agent: post-processes the session into durable project knowledge.
 
-The Knowledge Processing Agent is intentionally separate from the Chat Assistant. It may propose artifacts and commit messages, but it must not commit, push, silently overwrite files, save raw conversation, invent decisions, or resolve semantic conflicts without the user.
+The Knowledge Processing Agent is intentionally separate from the Chat Assistant. It may propose artifacts and commit messages, but it must not commit, push, silently overwrite files, save raw conversation into Git, invent decisions, or resolve semantic conflicts.
 
 ## 2. Business Rules
 
 - KirokuForge must not require a SaaS backend.
-- Git is the source of truth for published project knowledge.
-- Raw conversations must never be committed to Git.
-- Only reviewed, structured Markdown artifacts may be written to the knowledge repository.
+- Git is the source of truth for published macro project knowledge.
+- Each macro project must be stored in its own Git repository named `KirokuFM-<macro-project-slug>`.
+- `kiroku macro create` must always create the local Git repository first, even if no remote is configured.
+- After local macro project creation, KirokuForge must show the exact remote repository name to create, for example `KirokuFM-work`.
+- The default macro project path is `~/KirokuForge/KirokuFM-<macro-project-slug>/`.
+- The default macro project path may be overridden by config or `--path`.
+- Raw conversations must never be committed or pushed to Git.
+- Raw chat drafts may be saved temporarily only in local application storage outside the macro project Git repository.
+- Summary generation from a raw draft must happen only after an explicit user command.
+- Only reviewed, structured Markdown artifacts may be written to the macro project repository.
 - Every generated artifact requires explicit user review before writing.
 - Every commit requires explicit user confirmation.
-- Every remote write must be preceded by `git pull --rebase origin main`.
+- Every remote write must be preceded by `git pull --rebase origin main` when a remote is configured.
 - Git remotes are provider-agnostic and must work with GitHub, GitLab, Gitea, Bitbucket, and any remote supported by Git.
 - KirokuForge must use the user's local Git, SSH agent, and credential helpers.
 - KirokuForge must use pure Git CLI operations as the primary Git implementation.
 - KirokuForge must not depend on GitHub CLI.
 - If `git ls-remote <remote-url>` fails, KirokuForge must print exactly: `Repository not found or inaccessible.`
 - KirokuForge must not infer whether a failed remote check is caused by a missing repository, missing permissions, broken SSH, or network failure.
-- If the remote is unreachable, the user must manually create a repository named `kirokuforge-knowledge` on their Git provider.
+- If the remote is unreachable, the user must manually create a repository with the exact suggested `KirokuFM-<macro-project-slug>` name on their Git provider.
 - After user confirmation, KirokuForge must re-run `git ls-remote`.
-- If the repository is empty or missing `kirokuforge.yml`, KirokuForge must ask whether to initialize the repository structure.
+- If a cloned or local repository is empty or missing `kirokuforge.yml`, KirokuForge must ask whether to initialize the repository structure.
 - KirokuForge must never silently overwrite remote content.
-- Git conflicts require human-in-the-loop resolution.
+- In the MVP, Git conflicts must be detected and the workflow must stop with manual resolution instructions.
+- KirokuForge must not provide `kiroku conflict resolve` in the MVP.
 - Secrets, API keys, tokens, and private credentials must be redacted before artifact review.
 - Artifact target paths must stay under `projects/<project-slug>/`.
+- Generated artifacts must be integrated into the project's single Markdown files, not written as separate per-artifact files.
 - No file write is allowed without user approval.
 - No commit is allowed without user approval.
 - No push is allowed while unresolved conflicts exist.
@@ -74,15 +87,21 @@ The first working version provides these commands:
 
 ```bash
 kiroku init
-kiroku repo status
-kiroku sync
-kiroku project create <project-name>
-kiroku project list
-kiroku chat <project-name>
-kiroku save <project-name>
-kiroku diff [project-name]
+kiroku macro create <macro-project-name> [--path <path>]
+kiroku macro clone <remote-url> [--path <path>]
+kiroku macro list
+kiroku macro use <macro-project-name>
+kiroku macro remote add <macro-project-name> <remote-url>
+kiroku repo status [--macro <macro-project-name>]
+kiroku sync [--macro <macro-project-name>]
+kiroku project create <project-name> [--macro <macro-project-name>]
+kiroku project list [--macro <macro-project-name>]
+kiroku chat <project-name> [--macro <macro-project-name>]
+kiroku save <project-name> [--macro <macro-project-name>]
+kiroku diff [project-name] [--macro <macro-project-name>]
 kiroku conflict list
-kiroku conflict resolve
+kiroku draft list
+kiroku draft delete <draft-id>
 kiroku auth login
 kiroku auth list
 kiroku models list
@@ -94,7 +113,7 @@ Interactive flows should use JLine. Prompts must make destructive or publishing 
 Examples:
 
 ```text
-Write these 3 artifacts to the knowledge repository? [y/N]
+Integrate these 3 artifacts into the project Markdown files? [y/N]
 Commit changes with message "docs(api): record retry strategy decision"? [y/N]
 Push commit to origin/main? [y/N]
 ```
@@ -127,27 +146,34 @@ Exit codes:
 
 ## 4. Repository Layout
 
-The standard knowledge repository layout is:
+Each macro project is a Git repository. The repository name uses `KirokuFM-<macro-project-slug>`.
 
 ```text
-kirokuforge-knowledge/
+KirokuFM-work/
 ├── README.md
 ├── kirokuforge.yml
 ├── projects/
-│   ├── example-project/
+│   ├── sealforge/
 │   │   ├── overview.md
-│   │   ├── architecture/
-│   │   ├── decisions/
-│   │   ├── notes/
-│   │   ├── open-questions/
-│   │   └── todo/
-│   └── another-project/
+│   │   ├── architecture.md
+│   │   ├── decisions.md
+│   │   ├── notes.md
+│   │   ├── open-questions.md
+│   │   └── todo.md
+│   └── taskete/
+│       ├── overview.md
+│       ├── architecture.md
+│       ├── decisions.md
+│       ├── notes.md
+│       ├── open-questions.md
+│       └── todo.md
 └── templates/
-    ├── decision.md
     ├── architecture.md
-    ├── note.md
+    ├── decisions.md
+    ├── notes.md
+    ├── open-questions.md
     ├── todo.md
-    └── open-question.md
+    └── overview.md
 ```
 
 Repository manifest:
@@ -156,7 +182,10 @@ Repository manifest:
 version: 1
 
 repository:
-  type: kirokuforge-knowledge
+  type: kirokuforge-macro-project
+  name: KirokuFM-work
+  macro_project: work
+  remote_name: KirokuFM-work
   default_branch: main
 
 layout:
@@ -164,10 +193,13 @@ layout:
   templates_dir: templates
 
 rules:
-  raw_conversations_allowed: false
+  raw_conversations_commit_allowed: false
+  temporary_raw_drafts_allowed: true
+  raw_drafts_storage: local_app_data_only
+  summary_generation_requires_user_command: true
   pull_before_write: true
   require_user_review_before_commit: true
-  conflict_resolution: human_in_the_loop
+  conflict_resolution: detect_and_stop_mvp
 ```
 
 ## 5. Git Workflow
@@ -177,8 +209,10 @@ KirokuForge uses Git CLI through `ProcessBuilder`.
 Required Git commands:
 
 ```bash
+git init
 git ls-remote <remote-url>
 git clone <remote-url> <local-path>
+git remote add origin <remote-url>
 git fetch origin
 git pull --rebase origin main
 git status --porcelain
@@ -190,10 +224,12 @@ git push origin main
 
 Remote mode rules:
 
+- `kiroku macro create` creates the local repository first.
+- `kiroku macro remote add` checks remote reachability and then configures `origin`.
 - Check remote reachability before clone.
 - Clone only after `git ls-remote <remote-url>` succeeds.
 - Run `git fetch origin` and `git pull --rebase origin main` before every write.
-- Stop on conflicts and tell the user to run `kiroku conflict resolve`.
+- Stop on conflicts and print manual resolution instructions.
 - Do not write generated files into a conflicted working tree.
 - Do not commit if validation fails.
 - Do not push until the user confirms.
@@ -205,9 +241,9 @@ Local-only mode rules:
 - Use the same validation, review, diff, and commit flow.
 - Skip remote reachability, fetch, pull, and push.
 
-## 6. Init Workflow
+## 6. Init And Macro Project Workflow
 
-`kiroku init` initializes local KirokuForge configuration and the knowledge repository.
+`kiroku init` initializes local KirokuForge configuration and may guide the user into creating or cloning a macro project.
 
 Local config paths on Linux:
 
@@ -215,42 +251,53 @@ Local config paths on Linux:
 ~/.config/kirokuforge/config.yml
 ~/.local/share/kirokuforge/kirokuforge.db
 ~/.local/share/kirokuforge/auth.json
+~/.local/share/kirokuforge/drafts/
 ~/.cache/kirokuforge/
-~/KirokuForge/kirokuforge-knowledge/
+~/KirokuForge/KirokuFM-<macro-project-slug>/
 ```
 
-Remote Git mode:
+`kiroku macro create <macro-project-name> [--path <path>]`:
 
-1. Create local config directory.
-2. Ask whether to use remote Git mode or local-only mode.
-3. Ask for remote URL.
-4. Run `git ls-remote <remote-url>`.
-5. If unreachable, print `Repository not found or inaccessible.`
-6. Ask the user to manually create a repository named `kirokuforge-knowledge`.
-7. After confirmation, retry `git ls-remote <remote-url>`.
-8. Clone with `git clone <remote-url> <local-path>`.
-9. If `kirokuforge.yml` is missing, ask whether to initialize KirokuForge structure.
-10. Create `README.md`, `kirokuforge.yml`, `projects/`, and `templates/`.
-11. Commit the initial structure.
-12. Push to `origin main`.
+1. Create local config directory if missing.
+2. Convert the macro project name into a slug, for example `Work Projects` -> `work-projects`.
+3. Resolve the local path from `--path`, config, or `~/KirokuForge/KirokuFM-<slug>/`.
+4. Create the local directory.
+5. Run `git init`.
+6. Create `README.md`, `kirokuforge.yml`, `projects/`, and `templates/`.
+7. Commit the initial structure locally.
+8. Print the exact remote repository name the user should create, for example `KirokuFM-work-projects`.
+9. Do not require or configure a remote.
 
-Local-only mode:
+`kiroku macro remote add <macro-project-name> <remote-url>`:
 
-1. Create local config directory.
-2. Create `~/KirokuForge/kirokuforge-knowledge/`.
-3. Run `git init`.
-4. Create the KirokuForge structure.
-5. Create the initial commit.
-6. Do not require or configure a remote.
+1. Resolve the macro project.
+2. Run `git ls-remote <remote-url>`.
+3. If unreachable, print `Repository not found or inaccessible.`
+4. Tell the user to manually create a remote repository with the exact `KirokuFM-<slug>` name.
+5. After confirmation, retry `git ls-remote <remote-url>`.
+6. Run `git remote add origin <remote-url>`.
+7. Push the current branch to `origin main`.
+
+`kiroku macro list` lists locally registered macro projects.
+
+`kiroku macro use <macro-project-name>` sets the active macro project.
+
+`kiroku macro clone <remote-url> [--path <path>]`:
+
+1. Run `git ls-remote <remote-url>`.
+2. If unreachable, print `Repository not found or inaccessible.`
+3. Clone with `git clone <remote-url> <local-path>`.
+4. Validate that `kirokuforge.yml` exists and has repository type `kirokuforge-macro-project`.
+5. Register the macro project locally.
 
 ## 7. Project Workflow
 
-`kiroku project create <project-name>` creates a project knowledge area.
+`kiroku project create <project-name>` creates a project knowledge area inside the active macro project repository. A `--macro <macro-project-name>` option may override the active macro project.
 
 Slug rules:
 
 - Lowercase.
-- Replace spaces and separators with `-`.
+- Replace spaces and separators with `-`, for example `Seal Forge` -> `seal-forge`.
 - Remove unsafe path characters.
 - Reject empty slugs.
 - Reject `.` and `..`.
@@ -261,11 +308,11 @@ Generated structure:
 ```text
 projects/<project-slug>/
 ├── overview.md
-├── architecture/
-├── decisions/
-├── notes/
-├── open-questions/
-└── todo/
+├── architecture.md
+├── decisions.md
+├── notes.md
+├── open-questions.md
+└── todo.md
 ```
 
 Commit message:
@@ -290,7 +337,7 @@ Local-only behavior:
 3. Ask for confirmation.
 4. Commit locally.
 
-`kiroku project list` lists available projects under `projects/`.
+`kiroku project list` lists available projects under `projects/` for the active macro project, or for the macro project selected with `--macro`.
 
 ## 8. Chat Workflow
 
@@ -307,9 +354,14 @@ Responsibilities:
 - Support slash commands.
 - Keep raw messages local only.
 
-The session may be stored in SQLite for resumability, but session data must not be written into the knowledge repository.
+The session may be stored as a temporary local raw draft for resumability, but session data must not be written into the macro project repository. Drafts are stored under local application data, for example `~/.local/share/kirokuforge/drafts/`, and are managed by:
 
-The Chat Assistant helps the user work. It does not decide what durable knowledge is saved. Durable knowledge is produced only by the Knowledge Processing Agent during `kiroku save` or `/save`.
+```bash
+kiroku draft list
+kiroku draft delete <draft-id>
+```
+
+The Chat Assistant helps the user work. It does not decide what durable knowledge is saved. Durable knowledge is produced only by the Knowledge Processing Agent during the explicit `kiroku save` or `/save` command.
 
 ## 9. Save Workflow
 
@@ -327,7 +379,7 @@ Pipeline:
 8. Allow edit, regenerate, discard, or approve.
 9. Validate approved artifacts.
 10. Run `git fetch origin` and `git pull --rebase origin main` in remote mode.
-11. Write approved Markdown files.
+11. Integrate approved artifacts into the project's single Markdown files.
 12. Show `git diff`.
 13. Ask for commit confirmation.
 14. Run `git add <files>`.
@@ -372,7 +424,7 @@ Responsibilities:
 - Extract alternatives considered.
 - Extract architecture notes.
 - Classify artifact types.
-- Route content to target files.
+- Route content to the target project Markdown file.
 - Generate Markdown.
 - Propose commit messages.
 - Validate that raw conversation is not being saved.
@@ -383,9 +435,9 @@ The agent must not:
 - Commit directly.
 - Push directly.
 - Silently overwrite files.
-- Save raw conversation.
+- Save raw conversation into Git.
 - Invent decisions.
-- Resolve semantic conflicts without the user.
+- Resolve semantic conflicts.
 
 Prompt rules:
 
@@ -398,7 +450,7 @@ Preserve decisions, tradeoffs, TODOs and open questions.
 If information is uncertain, put it under Open Questions.
 Never invent decisions.
 Never expose secrets, API keys, tokens or private credentials.
-Route each artifact to the correct project folder.
+Route each artifact to the correct project Markdown file.
 Output must be structured and machine-parseable.
 ```
 
@@ -409,11 +461,11 @@ Recommended structured output:
   "artifacts": [
     {
       "type": "decision",
-      "targetPath": "projects/example-project/decisions/2026-04-26-use-git-as-source-of-truth.md",
+      "targetPath": "projects/example-project/decisions.md",
       "title": "Use Git as the source of truth for knowledge",
       "markdownContent": "...",
       "confidence": 0.91,
-      "operation": "CREATE"
+      "operation": "APPEND_SECTION"
     }
   ],
   "commitMessage": "docs(example-project): record Git-backed knowledge decisions",
@@ -425,6 +477,7 @@ Recommended structured output:
 Validation rules:
 
 - Target path must be under `projects/<project-slug>/`.
+- Target path must be one of the standard project Markdown files.
 - Raw conversation phrases must be rejected.
 - Secrets must be redacted.
 - Required frontmatter must exist.
@@ -496,21 +549,33 @@ SQLite stores local operational state. It is not the published knowledge store.
 
 Core entities:
 
+- `MacroProject`
 - `Project`
 - `KnowledgeRepository`
 - `ChatSession`
+- `RawDraft`
 - `KnowledgeSignal`
 - `SummaryCandidate`
 - `ArtifactCandidate`
 - `MergeConflict`
 
-Raw messages may be persisted locally for resumability, but must be marked as local-only and excluded from Git.
+Raw messages may be persisted locally as temporary drafts for resumability, but must be marked as local-only and excluded from Git.
 
 Domain entity summaries:
 
 ```text
+MacroProject
+- id
+- name
+- slug
+- repositoryName
+- localPath
+- active
+- createdAt
+
 Project
 - id
+- macroProjectId
 - name
 - slug
 - description
@@ -518,6 +583,10 @@ Project
 - createdAt
 
 KnowledgeRepository
+- macroProjectId
+- name
+- slug
+- prefix
 - localPath
 - remoteUrl
 - defaultBranch
@@ -525,11 +594,22 @@ KnowledgeRepository
 
 ChatSession
 - id
+- macroProjectId
 - projectId
 - startedAt
 - endedAt
 - status
 - transient messages or local-only session data
+
+RawDraft
+- id
+- macroProjectId
+- projectId
+- sessionId
+- localPath
+- status
+- createdAt
+- expiresAt
 
 KnowledgeSignal
 - type
@@ -539,6 +619,7 @@ KnowledgeSignal
 
 SummaryCandidate
 - id
+- macroProjectId
 - projectId
 - artifacts
 - commitMessage
@@ -551,27 +632,27 @@ ArtifactCandidate
 - title
 - markdownContent
 - confidence
-- operation: CREATE, UPDATE, APPEND
+- operation: APPEND_SECTION, UPDATE_SECTION
 
 MergeConflict
 - id
+- macroProjectId
 - projectId
 - filePath
 - localVersion
 - remoteVersion
 - baseVersion
-- aiSuggestion
 - status
 ```
 
 ## 13. Markdown Templates
 
-Default artifact format:
+Default project file frontmatter:
 
 ```markdown
 ---
 project: <project-slug>
-type: <architecture|decision|note|todo|open-question>
+type: <overview|architecture|decisions|notes|open-questions|todo>
 status: draft
 created_at: <yyyy-mm-dd>
 updated_at: <yyyy-mm-dd>
@@ -579,7 +660,13 @@ tags:
   - <tag>
 ---
 
-# <Title>
+# <Project Title> - <File Purpose>
+```
+
+Default generated section format:
+
+```markdown
+## <yyyy-mm-dd> - <Title>
 
 ## Summary
 
@@ -599,34 +686,36 @@ tags:
 Template files:
 
 ```text
-templates/decision.md
 templates/architecture.md
-templates/note.md
+templates/decisions.md
+templates/notes.md
+templates/open-questions.md
 templates/todo.md
-templates/open-question.md
+templates/overview.md
 ```
 
-Recommended file naming:
+Project files:
 
 ```text
-yyyy-mm-dd-short-title.md
+projects/<project-slug>/overview.md
+projects/<project-slug>/architecture.md
+projects/<project-slug>/decisions.md
+projects/<project-slug>/notes.md
+projects/<project-slug>/open-questions.md
+projects/<project-slug>/todo.md
 ```
 
-Example:
-
-```text
-projects/payments/decisions/2026-04-26-use-git-as-knowledge-source.md
-```
+Artifacts are integrated into these project files as reviewed sections. KirokuForge should append or update clearly delimited sections inside the target file rather than creating one file per artifact.
 
 Artifact type routing:
 
-- `architecture` -> `projects/<slug>/architecture/`
-- `decision` -> `projects/<slug>/decisions/`
-- `note` -> `projects/<slug>/notes/`
-- `open-question` -> `projects/<slug>/open-questions/`
-- `todo` -> `projects/<slug>/todo/`
+- `architecture` -> `projects/<slug>/architecture.md`
+- `decision` -> `projects/<slug>/decisions.md`
+- `note` -> `projects/<slug>/notes.md`
+- `open-question` -> `projects/<slug>/open-questions.md`
+- `todo` -> `projects/<slug>/todo.md`
 
-## 14. Conflict Resolution Flow
+## 14. Conflict Detection Flow
 
 `kiroku conflict list` shows conflicted files.
 
@@ -637,22 +726,17 @@ Implementation:
 - Show conflicted files.
 - Group by project when the path is under `projects/<project-slug>/`.
 
-`kiroku conflict resolve` guides human-in-the-loop resolution.
+MVP behavior:
 
-Flow:
+1. Detect conflicted files.
+2. Stop the current workflow.
+3. Print the conflicted file list.
+4. Print manual Git resolution instructions.
+5. Do not write files.
+6. Do not generate AI merge suggestions.
+7. Do not provide `kiroku conflict resolve` in the MVP.
 
-1. List conflicted files.
-2. For each file, show local version, remote version, and base version when available.
-3. Offer actions: accept local, accept remote, edit manually, generate AI suggestion, abort.
-4. If AI suggestion is requested, generate a merge suggestion from local/base/remote file content only.
-5. Show the suggested merged content.
-6. Ask the user to accept or edit.
-7. Write resolved content only after confirmation.
-8. Run `git add <resolved-files>`.
-9. Continue rebase if a rebase is in progress.
-10. Push after successful resolution and explicit confirmation.
-
-AI conflict suggestions are advisory only. KirokuForge must not auto-resolve semantic conflicts.
+Future versions may add AI-assisted conflict resolution, but it is explicitly out of MVP.
 
 ## 15. Java Package And Module Architecture
 
@@ -677,13 +761,13 @@ kirokuforge/
 Module responsibilities:
 
 - `kirokuforge-cli`: Picocli entrypoint, command definitions, exit codes, command wiring.
-- `kirokuforge-terminal`: JLine prompts, interactive chat, interactive review, interactive conflict resolution, colored terminal output.
-- `kirokuforge-core`: use cases, business rules, project workflow, init workflow, save workflow, sync workflow, conflict workflow.
+- `kirokuforge-terminal`: JLine prompts, interactive chat, interactive review, conflict detection instructions, colored terminal output.
+- `kirokuforge-core`: use cases, business rules, macro project workflow, project workflow, init workflow, save workflow, sync workflow, conflict detection workflow.
 - `kirokuforge-agent`: Knowledge Processing Agent, signal extractor, classifier, artifact router, Markdown generator, validator, commit planner, prompt templates, structured output schemas.
 - `kirokuforge-ai`: LLM provider abstraction, Codex CLI provider, OpenAI API provider, Ollama provider, model registry, auth status checking.
 - `kirokuforge-git`: Git command executor, repository service, remote checker, sync service, status parser, diff service, conflict detector.
 - `kirokuforge-knowledge`: knowledge tree service, Markdown reader/writer, frontmatter parser, template service, project structure service.
-- `kirokuforge-persistence`: SQLite connection, Flyway migrations, settings repository, project repository, session repository, summary candidate repository, provider config repository.
+- `kirokuforge-persistence`: SQLite connection, Flyway migrations, settings repository, macro project repository, project repository, draft repository, session repository, summary candidate repository, provider config repository.
 
 Suggested base packages:
 
@@ -704,6 +788,10 @@ Use cases:
 
 ```java
 public final class InitKirokuForgeUseCase {}
+public final class CreateMacroProjectUseCase {}
+public final class ListMacroProjectsUseCase {}
+public final class UseMacroProjectUseCase {}
+public final class AddMacroProjectRemoteUseCase {}
 public final class RepositoryStatusUseCase {}
 public final class SyncRepositoryUseCase {}
 public final class CreateProjectUseCase {}
@@ -712,7 +800,8 @@ public final class StartChatUseCase {}
 public final class SaveSessionUseCase {}
 public final class ShowDiffUseCase {}
 public final class ListConflictsUseCase {}
-public final class ResolveConflictsUseCase {}
+public final class ListDraftsUseCase {}
+public final class DeleteDraftUseCase {}
 public final class ConfigureAuthUseCase {}
 public final class ListModelsUseCase {}
 public final class UseModelUseCase {}
@@ -722,8 +811,10 @@ Git interface:
 
 ```java
 public interface GitService {
+    void initRepository(Path localPath);
     RemoteCheckResult checkRemote(String remoteUrl);
     void cloneRepository(String remoteUrl, Path localPath);
+    void addRemote(Path repoPath, String name, String remoteUrl);
     void fetch(Path repoPath);
     void pullRebase(Path repoPath, String branch);
     GitStatus status(Path repoPath);
@@ -807,30 +898,50 @@ create table settings (
   updated_at text not null
 );
 
+create table macro_projects (
+  id text primary key,
+  name text not null,
+  slug text not null unique,
+  repository_name text not null unique,
+  local_path text not null unique,
+  active integer not null,
+  created_at text not null
+);
+
 create table knowledge_repositories (
   id text primary key,
+  macro_project_id text not null,
+  name text not null,
+  slug text not null,
+  prefix text not null,
   local_path text not null,
   remote_url text,
   default_branch text not null,
   mode text not null,
-  created_at text not null
+  created_at text not null,
+  foreign key (macro_project_id) references macro_projects(id)
 );
 
 create table projects (
   id text primary key,
+  macro_project_id text not null,
   name text not null,
-  slug text not null unique,
+  slug text not null,
   description text,
   local_path text not null,
-  created_at text not null
+  created_at text not null,
+  unique (macro_project_id, slug),
+  foreign key (macro_project_id) references macro_projects(id)
 );
 
 create table chat_sessions (
   id text primary key,
+  macro_project_id text not null,
   project_id text not null,
   started_at text not null,
   ended_at text,
   status text not null,
+  foreign key (macro_project_id) references macro_projects(id),
   foreign key (project_id) references projects(id)
 );
 
@@ -843,8 +954,23 @@ create table chat_messages (
   foreign key (session_id) references chat_sessions(id)
 );
 
+create table raw_drafts (
+  id text primary key,
+  macro_project_id text not null,
+  project_id text,
+  session_id text,
+  local_path text not null,
+  status text not null,
+  created_at text not null,
+  expires_at text,
+  foreign key (macro_project_id) references macro_projects(id),
+  foreign key (project_id) references projects(id),
+  foreign key (session_id) references chat_sessions(id)
+);
+
 create table summary_candidates (
   id text primary key,
+  macro_project_id text not null,
   project_id text not null,
   session_id text not null,
   commit_message text,
@@ -852,6 +978,7 @@ create table summary_candidates (
   requires_review integer not null,
   status text not null,
   created_at text not null,
+  foreign key (macro_project_id) references macro_projects(id),
   foreign key (project_id) references projects(id),
   foreign key (session_id) references chat_sessions(id)
 );
@@ -885,14 +1012,15 @@ create table model_preferences (
 
 create table merge_conflicts (
   id text primary key,
+  macro_project_id text,
   project_id text,
   file_path text not null,
   local_version text,
   remote_version text,
   base_version text,
-  ai_suggestion text,
   status text not null,
   created_at text not null,
+  foreign key (macro_project_id) references macro_projects(id),
   foreign key (project_id) references projects(id)
 );
 ```
@@ -900,8 +1028,11 @@ create table merge_conflicts (
 Indexes:
 
 ```sql
+create index idx_projects_macro_project_id on projects(macro_project_id);
+create index idx_chat_sessions_macro_project_id on chat_sessions(macro_project_id);
 create index idx_chat_sessions_project_id on chat_sessions(project_id);
 create index idx_chat_messages_session_id on chat_messages(session_id);
+create index idx_raw_drafts_status on raw_drafts(status);
 create index idx_summary_candidates_session_id on summary_candidates(session_id);
 create index idx_artifact_candidates_summary_id on artifact_candidates(summary_candidate_id);
 create index idx_merge_conflicts_status on merge_conflicts(status);
@@ -916,7 +1047,7 @@ Examples:
 ```text
 Repository not found or inaccessible.
 Working tree is dirty. Commit, stash, or discard unrelated changes before continuing.
-Sync conflict detected. Run: kiroku conflict resolve
+Sync conflict detected. Resolve the conflicts manually with Git, then rerun the command.
 No authenticated provider is configured. Run: kiroku auth login
 Artifact target path escapes the project knowledge directory.
 Raw conversation detected in generated artifact. Regenerate or edit before saving.
@@ -951,6 +1082,8 @@ Unit tests:
 - Git command construction.
 - Git status parsing.
 - Manifest parsing.
+- Macro project slug and repository name generation.
+- Draft metadata handling.
 
 Integration tests:
 
@@ -963,7 +1096,6 @@ Integration tests:
 - Commit.
 - Push.
 - Conflict detection.
-- Conflict resolution.
 - Local-only initialization.
 
 AI tests:
@@ -996,7 +1128,11 @@ Phase 1: Foundation
 Phase 2: Repository And Project Flows
 
 - Implement `kiroku init`.
-- Implement remote/local repository setup.
+- Implement `kiroku macro create`.
+- Implement `kiroku macro list`.
+- Implement `kiroku macro use`.
+- Implement `kiroku macro remote add`.
+- Implement local-first macro project repository setup.
 - Generate manifest and templates.
 - Implement `kiroku repo status`.
 - Implement `kiroku sync`.
@@ -1024,7 +1160,9 @@ Phase 5: Chat And Save
 
 - Implement JLine chat session.
 - Add slash commands.
-- Add local session persistence.
+- Add temporary raw draft persistence outside Git.
+- Implement `kiroku draft list`.
+- Implement `kiroku draft delete`.
 - Implement Knowledge Processing Agent.
 - Add review/edit/discard flow.
 - Add diff, commit, and push flow.
@@ -1033,7 +1171,6 @@ Phase 6: Conflicts And Hardening
 
 - Add conflict detection.
 - Implement `kiroku conflict list`.
-- Implement `kiroku conflict resolve`.
 - Add integration tests with temporary Git repositories.
 - Add packaging and release artifacts.
 
@@ -1041,9 +1178,16 @@ Recommended first open-source cut:
 
 - Fully working local-only mode.
 - Remote Git mode using plain Git.
+- Macro project repositories named `KirokuFM-<slug>`.
 - Project creation.
 - Ollama-backed Knowledge Processing Agent.
 - Codex CLI provider adapter.
 - Review-before-write save flow.
 - Commit and push.
-- Conflict detection with guided manual resolution.
+- Conflict detection with manual resolution instructions.
+
+Post-MVP:
+
+- Add `kiroku conflict resolve`.
+- Add human-in-the-loop conflict resolution UX.
+- Add optional AI-assisted merge suggestions.
