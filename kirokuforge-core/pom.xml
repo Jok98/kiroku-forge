@@ -10,4 +10,16 @@
     </parent>
 
     <artifactId>kirokuforge-core</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>dev.kirokuforge</groupId>
+            <artifactId>kirokuforge-git</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.kirokuforge</groupId>
+            <artifactId>kirokuforge-knowledge</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>

@@ -22,6 +22,16 @@
             <artifactId>kirokuforge-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>dev.kirokuforge</groupId>
+            <artifactId>kirokuforge-git</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.kirokuforge</groupId>
+            <artifactId>kirokuforge-knowledge</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

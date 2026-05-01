@@ -1,8 +1,9 @@
 package dev.kirokuforge.cli;
 
-import dev.kirokuforge.core.macro.MacroProjectPlanner;
-import dev.kirokuforge.core.macro.MacroProjectPreview;
-import dev.kirokuforge.core.macro.MacroProjectSlugGenerator;
+import dev.kirokuforge.core.macro.*;
+import dev.kirokuforge.git.GitCommandExecutor;
+import dev.kirokuforge.git.GitRepositoryService;
+import dev.kirokuforge.knowledge.MacroProjectStructureWriter;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -67,17 +68,13 @@ public final class KirokuForgeCli implements Runnable {
 
         @Override
         public Integer call() {
-            MacroProjectPlanner planner = new MacroProjectPlanner(new MacroProjectSlugGenerator());
-            MacroProjectPreview preview = planner.plan(name, path);
+            CreateMacroProjectUseCase useCase = new CreateMacroProjectUseCase(
+                    new MacroProjectPlanner(new MacroProjectSlugGenerator()),
+                    new MacroProjectStructureWriter(),
+                    new GitRepositoryService(new GitCommandExecutor())
+            );
 
-            System.out.println("Macro project:");
-            System.out.println("  name: " + preview.name());
-            System.out.println("  slug: " + preview.slug());
-            System.out.println("  repository: " + preview.repositoryName());
-            System.out.println("  local path: " + preview.localPath());
-            System.out.println();
-            System.out.println("Remote repository name to create:");
-            System.out.println("  " + preview.repositoryName());
+            MacroProjectPreview preview = useCase.create(new CreateMacroProjectRequest(name, path));
 
             return 0;
         }
