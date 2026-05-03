@@ -9,19 +9,22 @@ public class CreateMacroProjectUseCase {
     private final MacroProjectPlanner planner;
     private final MacroProjectStructureWriter structureWriter;
     private final GitRepositoryService gitRepositoryService;
+    private final MacroProjectPathPolicy pathPolicy;
 
     public CreateMacroProjectUseCase(
             MacroProjectPlanner planner,
             MacroProjectStructureWriter structureWriter,
-            GitRepositoryService gitRepositoryService
+            GitRepositoryService gitRepositoryService, MacroProjectPathPolicy pathPolicy
     ) {
         this.planner = planner;
         this.structureWriter = structureWriter;
         this.gitRepositoryService = gitRepositoryService;
+        this.pathPolicy = pathPolicy;
     }
 
     public MacroProjectPreview create(CreateMacroProjectRequest request) {
         MacroProjectPreview preview = planner.plan(request.name(), request.path());
+        pathPolicy.ensureCreatable(preview.localPath());
 
         structureWriter.createBaseStructure(
                 preview.localPath(),

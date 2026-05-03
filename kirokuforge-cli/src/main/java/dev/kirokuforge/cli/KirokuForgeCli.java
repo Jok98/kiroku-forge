@@ -4,6 +4,7 @@ import dev.kirokuforge.core.macro.*;
 import dev.kirokuforge.git.GitCommandExecutor;
 import dev.kirokuforge.git.GitRepositoryService;
 import dev.kirokuforge.knowledge.MacroProjectStructureWriter;
+import dev.kirokuforge.core.macro.MacroProjectPathPolicy;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -71,7 +72,8 @@ public final class KirokuForgeCli implements Runnable {
             CreateMacroProjectUseCase useCase = new CreateMacroProjectUseCase(
                     new MacroProjectPlanner(new MacroProjectSlugGenerator()),
                     new MacroProjectStructureWriter(),
-                    new GitRepositoryService(new GitCommandExecutor())
+                    new GitRepositoryService(new GitCommandExecutor()),
+                    new MacroProjectPathPolicy()
             );
 
             MacroProjectPreview preview = useCase.create(new CreateMacroProjectRequest(name, path));
