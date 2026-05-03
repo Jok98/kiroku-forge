@@ -30,7 +30,7 @@ public class MacroProjectStructureWriter {
             writeIfMissing(repositoryPath.resolve("templates").resolve("todo.md"), template("todo"));
 
         } catch (IOException e) {
-
+            throw new IllegalStateException("Unable to create macro project structure at " + repositoryPath, e);
         }
 
     }

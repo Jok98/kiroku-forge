@@ -13,10 +13,12 @@ import picocli.CommandLine.Parameters;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 
+import static java.lang.IO.println;
+
 @Command(
-        name="kiroku",
+        name = "kiroku",
         mixinStandardHelpOptions = true,
-        version="kiroku 0.1.0-SNAPSHOT",
+        version = "kiroku 0.1.0-SNAPSHOT",
         description = "Turn AI work sessions into versioned project knowledge.",
         subcommands = {
                 KirokuForgeCli.MacroCommand.class
@@ -29,7 +31,7 @@ public final class KirokuForgeCli implements Runnable {
     }
 
     @Override
-    public void run(){
+    public void run() {
         CommandLine.usage(this, System.out);
     }
 
@@ -43,7 +45,7 @@ public final class KirokuForgeCli implements Runnable {
     )
     static final class MacroCommand implements Runnable {
         @Override
-        public void run(){
+        public void run() {
             CommandLine.usage(this, System.out);
         }
     }
@@ -75,11 +77,24 @@ public final class KirokuForgeCli implements Runnable {
                     new GitRepositoryService(new GitCommandExecutor()),
                     new MacroProjectPathPolicy()
             );
+            try {
 
-            MacroProjectPreview preview = useCase.create(new CreateMacroProjectRequest(name, path));
+                MacroProjectPreview preview = useCase.create(new CreateMacroProjectRequest(name, path));
+                println("Macro project created at: ");
+                println("  name: " + preview.name());
+                println("  slug: " + preview.slug());
+                println("  repository: " + preview.repositoryName());
+                println("  local path: " + preview.localPath());
+                println();
+                println("Remote repository name to create:");
+                println("  " + preview.repositoryName());
 
-            return 0;
+                return 0;
+            } catch (MacroProjectCreationException e) {
+                System.err.println("Error: " + e.getMessage());
+                return 2;
+            }
+
         }
-
     }
 }

@@ -332,7 +332,7 @@ Technical stack:
 Use Java-first CLI stack.
 
 Recommended:
-- Java 21
+- Java 25
 - Maven multi-module
 - Picocli for CLI commands
 - JLine for interactive terminal UX
