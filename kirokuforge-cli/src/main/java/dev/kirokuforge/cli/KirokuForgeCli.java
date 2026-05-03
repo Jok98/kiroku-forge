@@ -13,8 +13,6 @@ import picocli.CommandLine.Parameters;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 
-import static java.lang.IO.println;
-
 @Command(
         name = "kiroku",
         mixinStandardHelpOptions = true,
@@ -25,6 +23,7 @@ import static java.lang.IO.println;
         }
 )
 public final class KirokuForgeCli implements Runnable {
+
     public static void main(String[] args) {
         int exitCode = new CommandLine(new KirokuForgeCli()).execute(args);
         System.exit(exitCode);
@@ -80,14 +79,15 @@ public final class KirokuForgeCli implements Runnable {
             try {
 
                 MacroProjectPreview preview = useCase.create(new CreateMacroProjectRequest(name, path));
-                println("Macro project created at: ");
-                println("  name: " + preview.name());
-                println("  slug: " + preview.slug());
-                println("  repository: " + preview.repositoryName());
-                println("  local path: " + preview.localPath());
-                println();
-                println("Remote repository name to create:");
-                println("  " + preview.repositoryName());
+
+                System.out.println("Macro project created at: ");
+                System.out.println("  name: " + preview.name());
+                System.out.println("  slug: " + preview.slug());
+                System.out.println("  repository: " + preview.repositoryName());
+                System.out.println("  local path: " + preview.localPath());
+                System.out.println();
+                System.out.println("Remote repository name to create:");
+                System.out.println("  " + preview.repositoryName());
 
                 return 0;
             } catch (MacroProjectCreationException e) {
