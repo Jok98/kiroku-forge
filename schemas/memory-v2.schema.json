@@ -1,0 +1,1015 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kiroku-forge.local/schemas/memory-v2.schema.json",
+  "title": "Kiroku Memory",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "memory_id",
+    "project",
+    "sources",
+    "runs",
+    "records"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "2.0.0"
+    },
+    "memory_id": {
+      "$ref": "#/$defs/memoryId"
+    },
+    "project": {
+      "$ref": "#/$defs/project"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "runs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/run"
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/record"
+      }
+    },
+    "extensions": {
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "memoryId": {
+      "type": "string",
+      "pattern": "^mem_[a-z0-9][a-z0-9_-]{2,127}$"
+    },
+    "projectId": {
+      "type": "string",
+      "pattern": "^project_[a-z0-9][a-z0-9_-]{2,127}$"
+    },
+    "sourceId": {
+      "type": "string",
+      "pattern": "^src_[a-z0-9][a-z0-9_-]{2,127}$"
+    },
+    "runId": {
+      "type": "string",
+      "pattern": "^run_[a-z0-9][a-z0-9_-]{2,127}$"
+    },
+    "recordId": {
+      "type": "string",
+      "pattern": "^rec_[a-z0-9][a-z0-9_-]{2,127}$"
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "description",
+        "domain",
+        "status",
+        "goal",
+        "scope",
+        "created_at",
+        "updated_at"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/projectId"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "active",
+            "paused",
+            "completed",
+            "archived"
+          ]
+        },
+        "goal": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "extensions": {
+          "type": "object"
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "uri",
+        "integrity",
+        "captured_at"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "kind": {
+          "enum": [
+            "conversation",
+            "user_input",
+            "repository_file",
+            "document",
+            "command_output",
+            "url",
+            "test_result",
+            "agent_observation"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "integrity": {
+          "enum": [
+            "verified",
+            "unavailable"
+          ]
+        },
+        "content_hash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "captured_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "metadata": {
+          "type": "object"
+        },
+        "extensions": {
+          "type": "object"
+        }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "name"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "agent",
+            "user",
+            "tool"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "operation",
+        "actor",
+        "inputs",
+        "started_at",
+        "completed_at",
+        "summary",
+        "warnings"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/runId"
+        },
+        "operation": {
+          "enum": [
+            "create",
+            "update",
+            "review",
+            "import"
+          ]
+        },
+        "actor": {
+          "$ref": "#/$defs/actor"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sourceId"
+          },
+          "uniqueItems": true
+        },
+        "started_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "completed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "warnings": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "extensions": {
+          "type": "object"
+        }
+      }
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "locator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "lines",
+            "message",
+            "section",
+            "selector",
+            "command",
+            "url_fragment",
+            "whole_source"
+          ]
+        },
+        "start_line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "end_line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "message_id": {
+          "type": "string"
+        },
+        "section": {
+          "type": "string"
+        },
+        "selector": {
+          "type": "string"
+        },
+        "command": {
+          "type": "string"
+        },
+        "fragment": {
+          "type": "string"
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "relation",
+        "method",
+        "locator",
+        "observed_at"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "relation": {
+          "enum": [
+            "supports",
+            "refutes",
+            "context",
+            "supersedes"
+          ]
+        },
+        "method": {
+          "enum": [
+            "user_statement",
+            "direct_observation",
+            "test_result",
+            "inference"
+          ]
+        },
+        "target": {
+          "type": "string",
+          "pattern": "^(/.*)?$"
+        },
+        "locator": {
+          "$ref": "#/$defs/locator"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "target_id"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "depends_on",
+            "blocks",
+            "supersedes",
+            "contradicts",
+            "implements",
+            "mitigates",
+            "answers",
+            "derived_from",
+            "related_to"
+          ]
+        },
+        "target_id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "priority": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "status",
+        "title",
+        "summary",
+        "scope",
+        "tags",
+        "confidence",
+        "verification_status",
+        "evidence",
+        "relations",
+        "payload",
+        "created_at",
+        "updated_at",
+        "generated_by",
+        "content_hash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "type": {
+          "enum": [
+            "fact",
+            "decision",
+            "assumption",
+            "idea",
+            "rejected_idea",
+            "task",
+            "question",
+            "risk",
+            "preference",
+            "constraint",
+            "implementation_detail",
+            "roadmap_item",
+            "conflict",
+            "event"
+          ]
+        },
+        "status": {
+          "enum": [
+            "proposed",
+            "active",
+            "resolved",
+            "superseded",
+            "obsolete",
+            "completed",
+            "cancelled"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "tags": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "confidence": {
+          "enum": [
+            "confirmed",
+            "high",
+            "medium",
+            "low",
+            "unknown"
+          ]
+        },
+        "verification_status": {
+          "enum": [
+            "verified",
+            "partially_verified",
+            "unverified",
+            "contradicted"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relation"
+          }
+        },
+        "payload": {
+          "type": "object"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "generated_by": {
+          "$ref": "#/$defs/runId"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "extensions": {
+          "type": "object"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "const": "fact"
+            },
+            "payload": {
+              "$ref": "#/$defs/factPayload"
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "decision"
+            },
+            "payload": {
+              "$ref": "#/$defs/decisionPayload"
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "assumption"
+            },
+            "payload": {
+              "$ref": "#/$defs/assumptionPayload"
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "idea"
+            },
+            "payload": {
+              "$ref": "#/$defs/ideaPayload"
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "rejected_idea"
+            },
+            "payload": {
+              "$ref": "#/$defs/rejectedIdeaPayload"
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "task"
+            },
+            "payload": {
+              "$ref": "#/$defs/taskPayload"
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "question"
+            },
+            "payload": {
+              "$ref": "#/$defs/questionPayload"
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "risk"
+            },
+            "payload": {
+              "$ref": "#/$defs/riskPayload"
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "preference"
+            },
+            "payload": {
+              "$ref": "#/$defs/preferencePayload"
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "constraint"
+            },
+            "payload": {
+              "$ref": "#/$defs/constraintPayload"
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "implementation_detail"
+            },
+            "payload": {
+              "$ref": "#/$defs/implementationPayload"
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "roadmap_item"
+            },
+            "payload": {
+              "$ref": "#/$defs/roadmapPayload"
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "conflict"
+            },
+            "payload": {
+              "$ref": "#/$defs/conflictPayload"
+            }
+          }
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "event"
+            },
+            "payload": {
+              "$ref": "#/$defs/eventPayload"
+            }
+          }
+        }
+      ]
+    },
+    "factPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "statement"
+      ],
+      "properties": {
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "decisionPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "context",
+        "implications"
+      ],
+      "properties": {
+        "decision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context": {
+          "type": "string",
+          "minLength": 1
+        },
+        "implications": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    },
+    "assumptionPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "basis",
+        "risk",
+        "validation_needed"
+      ],
+      "properties": {
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "risk": {
+          "type": "string",
+          "minLength": 1
+        },
+        "validation_needed": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "ideaPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description"
+      ],
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_value": {
+          "type": "string"
+        }
+      }
+    },
+    "rejectedIdeaPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "idea",
+        "reason"
+      ],
+      "properties": {
+        "idea": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reconsider_when": {
+          "type": "string"
+        }
+      }
+    },
+    "taskPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "owner",
+        "priority",
+        "blocked_by",
+        "acceptance_criteria"
+      ],
+      "properties": {
+        "action": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "priority": {
+          "$ref": "#/$defs/priority"
+        },
+        "blocked_by": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recordId"
+          },
+          "uniqueItems": true
+        },
+        "acceptance_criteria": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    },
+    "questionPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "question",
+        "category",
+        "why_matters",
+        "known_options",
+        "required_input"
+      ],
+      "properties": {
+        "question": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "enum": [
+            "product",
+            "architecture",
+            "implementation",
+            "data",
+            "security",
+            "ux",
+            "business",
+            "other"
+          ]
+        },
+        "why_matters": {
+          "type": "string",
+          "minLength": 1
+        },
+        "known_options": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "required_input": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "riskPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "category",
+        "impact",
+        "likelihood",
+        "mitigations"
+      ],
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "enum": [
+            "technical",
+            "product",
+            "security",
+            "cost",
+            "legal",
+            "operational",
+            "unknown"
+          ]
+        },
+        "impact": {
+          "$ref": "#/$defs/priority"
+        },
+        "likelihood": {
+          "$ref": "#/$defs/priority"
+        },
+        "mitigations": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    },
+    "preferencePayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preference",
+        "applies_to"
+      ],
+      "properties": {
+        "preference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "applies_to": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "constraintPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "constraint",
+        "consequences"
+      ],
+      "properties": {
+        "constraint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "consequences": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    },
+    "implementationPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "detail",
+        "components"
+      ],
+      "properties": {
+        "detail": {
+          "type": "string",
+          "minLength": 1
+        },
+        "components": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    },
+    "roadmapPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "horizon",
+        "priority"
+      ],
+      "properties": {
+        "outcome": {
+          "type": "string",
+          "minLength": 1
+        },
+        "horizon": {
+          "enum": [
+            "now",
+            "next",
+            "later",
+            "maybe"
+          ]
+        },
+        "priority": {
+          "$ref": "#/$defs/priority"
+        }
+      }
+    },
+    "conflictClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "statement"
+      ],
+      "properties": {
+        "record_id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "conflictPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claims",
+        "recommended_action"
+      ],
+      "properties": {
+        "claims": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/conflictClaim"
+          }
+        },
+        "resolution": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recommended_action": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "eventPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "occurred_at"
+      ],
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      }
+    }
+  }
+}

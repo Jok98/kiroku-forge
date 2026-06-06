@@ -1,0 +1,171 @@
+{
+  "schema_version": "2.0.0",
+  "memory_id": "mem_example_project",
+  "project": {
+    "id": "project_example",
+    "name": "Example Project",
+    "description": "A fixture used to verify KirokuForge.",
+    "domain": "software engineering",
+    "status": "active",
+    "goal": "Preserve verified project knowledge.",
+    "scope": [
+      "example"
+    ],
+    "created_at": "2026-06-07T10:00:00Z",
+    "updated_at": "2026-06-07T10:00:00Z"
+  },
+  "sources": [
+    {
+      "id": "src_user_message",
+      "kind": "user_input",
+      "title": "Initial project decision",
+      "uri": "conversation://example/message-1",
+      "revision": "1",
+      "integrity": "unavailable",
+      "content_hash": null,
+      "captured_at": "2026-06-07T10:00:00Z",
+      "metadata": {}
+    }
+  ],
+  "runs": [
+    {
+      "id": "run_initial_extract",
+      "operation": "create",
+      "actor": {
+        "type": "agent",
+        "name": "test-agent",
+        "version": "1"
+      },
+      "inputs": [
+        "src_user_message"
+      ],
+      "started_at": "2026-06-07T10:00:00Z",
+      "completed_at": "2026-06-07T10:01:00Z",
+      "summary": "Extracted fixture records.",
+      "warnings": []
+    }
+  ],
+  "records": [
+    {
+      "id": "rec_decision_canonical_json",
+      "type": "decision",
+      "status": "active",
+      "title": "Canonical JSON memory",
+      "summary": "JSON is the editable source of truth.",
+      "scope": [
+        "example"
+      ],
+      "tags": [
+        "architecture"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "evidence": [
+        {
+          "source_id": "src_user_message",
+          "relation": "supports",
+          "method": "user_statement",
+          "target": "/payload/decision",
+          "locator": {
+            "kind": "message",
+            "message_id": "message-1"
+          },
+          "observed_at": "2026-06-07T10:00:00Z",
+          "note": "The user selected JSON as canonical."
+        }
+      ],
+      "relations": [],
+      "payload": {
+        "decision": "Use memory.json as the only editable source.",
+        "context": "Generated views must not become competing sources.",
+        "implications": [
+          "Markdown is generated.",
+          "Validation runs before rendering."
+        ]
+      },
+      "created_at": "2026-06-07T10:00:00Z",
+      "updated_at": "2026-06-07T10:00:00Z",
+      "generated_by": "run_initial_extract",
+      "content_hash": "sha256:a05dc6ab3a06dbe4973fca9eb0abd345c2c1066b88a5ea12e6ff43b0debd4e04"
+    },
+    {
+      "id": "rec_task_add_validation",
+      "type": "task",
+      "status": "active",
+      "title": "Add semantic validation",
+      "summary": "Validate references and evidence rules.",
+      "scope": [
+        "example"
+      ],
+      "tags": [
+        "validation"
+      ],
+      "confidence": "high",
+      "verification_status": "partially_verified",
+      "evidence": [
+        {
+          "source_id": "src_user_message",
+          "relation": "context",
+          "method": "inference",
+          "target": "/payload/action",
+          "locator": {
+            "kind": "message",
+            "message_id": "message-1"
+          },
+          "observed_at": "2026-06-07T10:00:00Z",
+          "note": "Validation follows from the canonical format decision."
+        }
+      ],
+      "relations": [
+        {
+          "type": "implements",
+          "target_id": "rec_decision_canonical_json",
+          "note": "Validation protects the canonical format."
+        }
+      ],
+      "payload": {
+        "action": "Implement semantic validation.",
+        "owner": "developer",
+        "priority": "high",
+        "blocked_by": [],
+        "acceptance_criteria": [
+          "Unknown references fail validation."
+        ]
+      },
+      "created_at": "2026-06-07T10:00:00Z",
+      "updated_at": "2026-06-07T10:00:00Z",
+      "generated_by": "run_initial_extract",
+      "content_hash": "sha256:ff6f99a889ec38f7eecdf6d902250f9124b82dcad6ff7479cdbd0afe4887f03e"
+    },
+    {
+      "id": "rec_risk_missing_evidence",
+      "type": "risk",
+      "status": "active",
+      "title": "Unsupported claims",
+      "summary": "Claims without evidence can become stale or misleading.",
+      "scope": [
+        "example"
+      ],
+      "tags": [
+        "quality"
+      ],
+      "confidence": "medium",
+      "verification_status": "unverified",
+      "evidence": [],
+      "relations": [],
+      "payload": {
+        "description": "An agent may create unsupported claims.",
+        "category": "operational",
+        "impact": "high",
+        "likelihood": "medium",
+        "mitigations": [
+          "Require evidence for verified records."
+        ]
+      },
+      "created_at": "2026-06-07T10:00:00Z",
+      "updated_at": "2026-06-07T10:00:00Z",
+      "generated_by": "run_initial_extract",
+      "content_hash": "sha256:c0e76e67d586e53a58be9f3b413e8894618a4e2c4735728ad0093e92ffa2c4e7"
+    }
+  ]
+}
