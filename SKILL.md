@@ -26,8 +26,15 @@ KirokuForge is being rebuilt as a project-memory compiler.
 
 Only `COMPILE` may modify canonical memory.
 
+## Normative Contract
+
+Read [references/contracts-v3.md](references/contracts-v3.md) before designing
+schemas, commands, validators, storage, projections, or viewer behavior. It is
+the semantic source of truth for v3.
+
 ## Current State
 
 The previous v2 implementation has been removed. No executable command or data
-contract is currently defined. Specify and validate the v3 contracts before
-adding implementation code.
+contract is currently implemented. The normative v3 contract is defined, but
+its JSON Schemas and executable behavior still need to be implemented and
+validated.
