@@ -446,7 +446,8 @@ page numbers are one-based positive integers. Range ends MUST be greater than
 or equal to range starts.
 
 An excerpt is a retrieval aid, not a replacement for the source. It MUST remain
-short and MUST NOT contain an unnecessary copy of raw source content.
+within 500 Unicode characters and MUST NOT contain an unnecessary copy of raw
+source content.
 
 ## 9. Canonical Records
 
@@ -683,6 +684,8 @@ Content:
 
 An accepted proposal SHOULD have an incoming `adopts` relation from a decision.
 Acceptance does not itself create a decision.
+`rejection_reason` MUST appear only while rejected. `cancellation_reason` MUST
+appear only while cancelled.
 
 ### 10.7 Task
 
@@ -719,6 +722,9 @@ A blocked task MUST have at least one incoming `blocks` relation.
 
 A done task requires direct completion evidence. Reopening a done or cancelled
 task requires an explicit transition reason in the compilation receipt.
+State-specific fields such as `outcome` and `cancellation_reason` MUST be
+removed when a transition leaves the state that defines them. Their previous
+values remain recoverable from the compilation receipt and prior record hash.
 
 Derived views:
 
@@ -748,6 +754,7 @@ Content:
 
 An answered question requires direct supporting evidence or an incoming
 `answers` relation. Reopening requires a transition reason.
+`answer` MUST appear only while the question is answered.
 
 ### 10.9 Risk
 
@@ -775,6 +782,8 @@ Content:
 
 A mitigated risk SHOULD have an incoming `mitigates` relation. Closing or
 reopening a risk requires direct evidence and an explicit transition reason.
+`acceptance_rationale` MUST appear only while accepted. `resolution` MUST
+appear only while closed.
 
 ### 10.10 Event
 
@@ -957,7 +966,9 @@ An operation receipt records:
 - transition reason where applicable.
 
 Receipt hashes form a linear chain. The first receipt has no previous receipt
-hash. Receipt content MUST NOT duplicate complete records.
+hash. It records base revision `0`, base state hash `null`, and previous receipt
+hash `null`. Later receipts require non-null base and previous receipt hashes.
+Receipt content MUST NOT duplicate complete records.
 
 Completed receipts are immutable. Canonical memory MUST NOT contain a running
 or incomplete compilation.

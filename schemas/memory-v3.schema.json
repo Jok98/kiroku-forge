@@ -1,0 +1,1693 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kiroku-forge.local/schemas/memory-v3.schema.json",
+  "title": "KirokuForge Canonical Memory V3",
+  "description": "Canonical project-memory contract for KirokuForge v3.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "schema_version",
+    "memory_id",
+    "revision",
+    "state_hash",
+    "project",
+    "sources",
+    "records",
+    "compilations"
+  ],
+  "properties": {
+    "artifact_type": {
+      "const": "memory"
+    },
+    "schema_version": {
+      "const": "3.0.0"
+    },
+    "memory_id": {
+      "$ref": "common-v1.schema.json#/$defs/memoryId"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "state_hash": {
+      "$ref": "common-v1.schema.json#/$defs/sha256"
+    },
+    "project": {
+      "$ref": "#/$defs/project"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/record"
+      }
+    },
+    "compilations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/compilationReceipt"
+      }
+    }
+  },
+  "$defs": {
+    "nullableHash": {
+      "oneOf": [
+        {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nonEmptyStringArray": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+      }
+    },
+    "slugArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common-v1.schema.json#/$defs/slug"
+      }
+    },
+    "nonEmptySlugArray": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common-v1.schema.json#/$defs/slug"
+      }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "description",
+        "goal",
+        "status",
+        "boundaries",
+        "created_at",
+        "updated_at"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "description": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "goal": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "paused",
+            "completed",
+            "archived"
+          ]
+        },
+        "boundaries": {
+          "$ref": "#/$defs/projectBoundaries"
+        },
+        "created_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "updated_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        }
+      }
+    },
+    "projectBoundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "included",
+        "excluded"
+      ],
+      "properties": {
+        "included": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+          }
+        },
+        "excluded": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+          }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "uri",
+        "integrity",
+        "captured_at",
+        "created_by"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common-v1.schema.json#/$defs/sourceId"
+        },
+        "kind": {
+          "enum": [
+            "conversation",
+            "repository_file",
+            "document",
+            "web_page",
+            "user_statement",
+            "tool_output",
+            "observation",
+            "other"
+          ]
+        },
+        "title": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "uri": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "revision": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "integrity": {
+          "enum": [
+            "verified",
+            "unverified"
+          ]
+        },
+        "content_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "captured_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "media_type": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "created_by": {
+          "$ref": "common-v1.schema.json#/$defs/compilationId"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "integrity": {
+                "const": "verified"
+              }
+            },
+            "required": [
+              "integrity"
+            ]
+          },
+          "then": {
+            "required": [
+              "content_hash"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "integrity": {
+                "const": "unverified"
+              }
+            },
+            "required": [
+              "integrity"
+            ]
+          },
+          "then": {
+            "required": [
+              "metadata"
+            ],
+            "properties": {
+              "metadata": {
+                "minProperties": 1
+              }
+            },
+            "not": {
+              "required": [
+                "content_hash"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "unverified",
+            "partially_verified",
+            "verified",
+            "contradicted"
+          ]
+        },
+        "note": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "relation",
+        "method",
+        "locator",
+        "observed_at"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "common-v1.schema.json#/$defs/sourceId"
+        },
+        "relation": {
+          "enum": [
+            "supports",
+            "refutes",
+            "contextualizes"
+          ]
+        },
+        "method": {
+          "enum": [
+            "user_statement",
+            "direct_observation",
+            "document_read",
+            "code_inspection",
+            "test_result",
+            "tool_result",
+            "inference"
+          ]
+        },
+        "locator": {
+          "$ref": "common-v1.schema.json#/$defs/locator"
+        },
+        "observed_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "excerpt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "pattern": "\\S"
+        },
+        "note": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "directSupportingEvidence": {
+      "type": "object",
+      "required": [
+        "relation",
+        "method"
+      ],
+      "properties": {
+        "relation": {
+          "const": "supports"
+        },
+        "method": {
+          "enum": [
+            "user_statement",
+            "direct_observation",
+            "document_read",
+            "code_inspection",
+            "test_result",
+            "tool_result"
+          ]
+        }
+      }
+    },
+    "directRefutingEvidence": {
+      "type": "object",
+      "required": [
+        "relation",
+        "method"
+      ],
+      "properties": {
+        "relation": {
+          "const": "refutes"
+        },
+        "method": {
+          "enum": [
+            "user_statement",
+            "direct_observation",
+            "document_read",
+            "code_inspection",
+            "test_result",
+            "tool_result"
+          ]
+        }
+      }
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "target_id"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "supersedes",
+            "depends_on",
+            "blocks",
+            "answers",
+            "mitigates",
+            "implements",
+            "adopts",
+            "contradicts",
+            "related_to"
+          ]
+        },
+        "target_id": {
+          "$ref": "common-v1.schema.json#/$defs/recordId"
+        },
+        "note": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "kind",
+        "state",
+        "title",
+        "summary",
+        "scope",
+        "tags",
+        "verification",
+        "evidence",
+        "relations",
+        "content",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "updated_by",
+        "content_hash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common-v1.schema.json#/$defs/recordId"
+        },
+        "key": {
+          "$ref": "common-v1.schema.json#/$defs/slug"
+        },
+        "kind": {
+          "enum": [
+            "fact",
+            "decision",
+            "assumption",
+            "constraint",
+            "preference",
+            "proposal",
+            "task",
+            "question",
+            "risk",
+            "event"
+          ]
+        },
+        "state": {
+          "type": "string"
+        },
+        "title": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "summary": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "scope": {
+          "$ref": "#/$defs/nonEmptySlugArray"
+        },
+        "tags": {
+          "$ref": "#/$defs/slugArray"
+        },
+        "verification": {
+          "$ref": "#/$defs/verification"
+        },
+        "evidence": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "relations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/relation"
+          }
+        },
+        "content": {
+          "type": "object"
+        },
+        "created_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "updated_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "created_by": {
+          "$ref": "common-v1.schema.json#/$defs/compilationId"
+        },
+        "updated_by": {
+          "$ref": "common-v1.schema.json#/$defs/compilationId"
+        },
+        "content_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "fact"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "active",
+                  "obsolete"
+                ]
+              },
+              "content": {
+                "$ref": "#/$defs/factContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "decision"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "active",
+                  "obsolete"
+                ]
+              },
+              "content": {
+                "$ref": "#/$defs/decisionContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "assumption"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "active",
+                  "invalidated",
+                  "obsolete"
+                ]
+              },
+              "content": {
+                "$ref": "#/$defs/assumptionContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "constraint"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "active",
+                  "obsolete"
+                ]
+              },
+              "content": {
+                "$ref": "#/$defs/constraintContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "preference"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "active",
+                  "obsolete"
+                ]
+              },
+              "content": {
+                "$ref": "#/$defs/preferenceContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "proposal"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "proposed",
+                      "accepted"
+                    ]
+                  },
+                  "content": {
+                    "$ref": "#/$defs/proposalContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "state": {
+                    "const": "rejected"
+                  },
+                  "content": {
+                    "$ref": "#/$defs/rejectedProposalContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "state": {
+                    "const": "cancelled"
+                  },
+                  "content": {
+                    "$ref": "#/$defs/cancelledProposalContent"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "task"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "todo",
+                      "in_progress",
+                      "blocked"
+                    ]
+                  },
+                  "content": {
+                    "$ref": "#/$defs/taskContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "state": {
+                    "const": "done"
+                  },
+                  "content": {
+                    "$ref": "#/$defs/doneTaskContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "state": {
+                    "const": "cancelled"
+                  },
+                  "content": {
+                    "$ref": "#/$defs/cancelledTaskContent"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "question"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "open",
+                      "obsolete"
+                    ]
+                  },
+                  "content": {
+                    "$ref": "#/$defs/questionContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "state": {
+                    "const": "answered"
+                  },
+                  "content": {
+                    "$ref": "#/$defs/answeredQuestionContent"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "risk"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "open",
+                      "mitigated"
+                    ]
+                  },
+                  "content": {
+                    "$ref": "#/$defs/riskContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "state": {
+                    "const": "accepted"
+                  },
+                  "content": {
+                    "$ref": "#/$defs/acceptedRiskContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "state": {
+                    "const": "closed"
+                  },
+                  "content": {
+                    "$ref": "#/$defs/closedRiskContent"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "event"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "const": "occurred"
+              },
+              "content": {
+                "$ref": "#/$defs/eventContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verification": {
+                "properties": {
+                  "status": {
+                    "const": "verified"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            },
+            "required": [
+              "verification"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "contains": {
+                  "$ref": "#/$defs/directSupportingEvidence"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verification": {
+                "properties": {
+                  "status": {
+                    "const": "partially_verified"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            },
+            "required": [
+              "verification"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verification": {
+                "properties": {
+                  "status": {
+                    "const": "contradicted"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            },
+            "required": [
+              "verification"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "contains": {
+                  "$ref": "#/$defs/directRefutingEvidence"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "assumption"
+              },
+              "state": {
+                "const": "invalidated"
+              }
+            },
+            "required": [
+              "kind",
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "contains": {
+                  "$ref": "#/$defs/directRefutingEvidence"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "task"
+              },
+              "state": {
+                "const": "done"
+              }
+            },
+            "required": [
+              "kind",
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "contains": {
+                  "$ref": "#/$defs/directSupportingEvidence"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "risk"
+              },
+              "state": {
+                "const": "closed"
+              }
+            },
+            "required": [
+              "kind",
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "contains": {
+                  "$ref": "#/$defs/directSupportingEvidence"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "factContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "statement"
+      ],
+      "properties": {
+        "statement": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "context": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "implications": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        }
+      }
+    },
+    "decisionContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "rationale"
+      ],
+      "properties": {
+        "decision": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "rationale": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "context": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "alternatives": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "consequences": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        }
+      }
+    },
+    "assumptionContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assumption",
+        "basis",
+        "impact_if_false",
+        "validation_plan"
+      ],
+      "properties": {
+        "assumption": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "basis": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "impact_if_false": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "validation_plan": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "constraintContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "constraint"
+      ],
+      "properties": {
+        "constraint": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "rationale": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "consequences": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        }
+      }
+    },
+    "preferenceContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preference"
+      ],
+      "properties": {
+        "preference": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "rationale": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "applies_to": {
+          "$ref": "#/$defs/nonEmptySlugArray"
+        }
+      }
+    },
+    "proposalContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proposal",
+        "motivation"
+      ],
+      "properties": {
+        "proposal": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "motivation": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "expected_value": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "tradeoffs": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "horizon": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "rejectedProposalContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proposal",
+        "motivation",
+        "rejection_reason"
+      ],
+      "properties": {
+        "proposal": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "motivation": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "expected_value": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "tradeoffs": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "horizon": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "rejection_reason": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "cancelledProposalContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proposal",
+        "motivation",
+        "cancellation_reason"
+      ],
+      "properties": {
+        "proposal": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "motivation": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "expected_value": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "tradeoffs": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "horizon": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "cancellation_reason": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "taskContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objective",
+        "priority",
+        "acceptance_criteria"
+      ],
+      "properties": {
+        "objective": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "priority": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "acceptance_criteria": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "owner": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "horizon": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "doneTaskContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objective",
+        "priority",
+        "acceptance_criteria",
+        "outcome"
+      ],
+      "properties": {
+        "objective": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "priority": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "acceptance_criteria": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "owner": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "horizon": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "outcome": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "cancelledTaskContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objective",
+        "priority",
+        "acceptance_criteria",
+        "cancellation_reason"
+      ],
+      "properties": {
+        "objective": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "priority": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "acceptance_criteria": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "owner": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "horizon": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "cancellation_reason": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "questionContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "question",
+        "why_it_matters"
+      ],
+      "properties": {
+        "question": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "why_it_matters": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "options": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        }
+      }
+    },
+    "answeredQuestionContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "question",
+        "why_it_matters",
+        "answer"
+      ],
+      "properties": {
+        "question": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "why_it_matters": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "options": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "answer": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "riskContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "impact",
+        "likelihood"
+      ],
+      "properties": {
+        "description": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "impact": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "likelihood": {
+          "enum": [
+            "high",
+            "medium",
+            "low",
+            "unknown"
+          ]
+        },
+        "mitigations": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        }
+      }
+    },
+    "acceptedRiskContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "impact",
+        "likelihood",
+        "acceptance_rationale"
+      ],
+      "properties": {
+        "description": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "impact": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "likelihood": {
+          "enum": [
+            "high",
+            "medium",
+            "low",
+            "unknown"
+          ]
+        },
+        "mitigations": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "acceptance_rationale": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "closedRiskContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "impact",
+        "likelihood",
+        "resolution"
+      ],
+      "properties": {
+        "description": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "impact": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "likelihood": {
+          "enum": [
+            "high",
+            "medium",
+            "low",
+            "unknown"
+          ]
+        },
+        "mitigations": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "resolution": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "eventContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "occurred_at",
+        "significance"
+      ],
+      "properties": {
+        "description": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "occurred_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "significance": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "compilationReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "base_revision",
+        "result_revision",
+        "base_state_hash",
+        "result_state_hash",
+        "change_set_id",
+        "change_set_hash",
+        "actor",
+        "compiler",
+        "input_source_ids",
+        "operations",
+        "compiled_at",
+        "warnings",
+        "previous_receipt_hash",
+        "receipt_hash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common-v1.schema.json#/$defs/compilationId"
+        },
+        "base_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "result_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "base_state_hash": {
+          "$ref": "#/$defs/nullableHash"
+        },
+        "result_state_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "change_set_id": {
+          "$ref": "common-v1.schema.json#/$defs/changeSetId"
+        },
+        "change_set_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "actor": {
+          "$ref": "common-v1.schema.json#/$defs/actor"
+        },
+        "compiler": {
+          "$ref": "#/$defs/compilerIdentity"
+        },
+        "input_source_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/sourceId"
+          }
+        },
+        "operations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/operationReceipt"
+          }
+        },
+        "compiled_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "warnings": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+          }
+        },
+        "previous_receipt_hash": {
+          "$ref": "#/$defs/nullableHash"
+        },
+        "receipt_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "base_revision": {
+                "const": 0
+              }
+            },
+            "required": [
+              "base_revision"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result_revision": {
+                "const": 1
+              },
+              "base_state_hash": {
+                "type": "null"
+              },
+              "previous_receipt_hash": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "base_revision": {
+                "minimum": 1
+              },
+              "base_state_hash": {
+                "$ref": "common-v1.schema.json#/$defs/sha256"
+              },
+              "previous_receipt_hash": {
+                "$ref": "common-v1.schema.json#/$defs/sha256"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "compilerIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "version": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "operationReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "operation_type",
+        "affected_ids",
+        "hash_changes"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common-v1.schema.json#/$defs/operationId"
+        },
+        "operation_type": {
+          "enum": [
+            "initialize_memory",
+            "update_project",
+            "add_source",
+            "create_record",
+            "amend_record",
+            "add_evidence",
+            "remove_evidence",
+            "set_verification",
+            "add_relation",
+            "remove_relation",
+            "transition_record",
+            "supersede_record"
+          ]
+        },
+        "affected_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/canonicalEntityId"
+          }
+        },
+        "hash_changes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/hashChange"
+          }
+        },
+        "transition_reason": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "operation_type": {
+                "const": "transition_record"
+              }
+            },
+            "required": [
+              "operation_type"
+            ]
+          },
+          "then": {
+            "required": [
+              "transition_reason"
+            ]
+          }
+        }
+      ]
+    },
+    "hashChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "previous_hash",
+        "result_hash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common-v1.schema.json#/$defs/canonicalEntityId"
+        },
+        "previous_hash": {
+          "$ref": "#/$defs/nullableHash"
+        },
+        "result_hash": {
+          "$ref": "#/$defs/nullableHash"
+        }
+      },
+      "not": {
+        "properties": {
+          "previous_hash": {
+            "type": "null"
+          },
+          "result_hash": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "previous_hash",
+          "result_hash"
+        ]
+      }
+    }
+  }
+}

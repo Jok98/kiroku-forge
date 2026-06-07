@@ -32,10 +32,12 @@ Read [references/contracts-v3.md](references/contracts-v3.md) before designing
 schemas, commands, validators, storage, projections, or viewer behavior. It is
 the semantic source of truth for v3. Reuse
 [schemas/common-v1.schema.json](schemas/common-v1.schema.json) for shared IDs,
-hashes, timestamps, actors, and evidence locators.
+hashes, timestamps, actors, and evidence locators. Validate canonical
+`memory.json` shape with
+[schemas/memory-v3.schema.json](schemas/memory-v3.schema.json).
 
 ## Current State
 
 The previous v2 implementation has been removed. The normative v3 contract and
-shared primitive schema are defined. Complete artifact schemas and executable
-behavior still need to be implemented and validated.
+canonical memory schema are defined. Pipeline artifact schemas, integrity
+validation, and executable behavior still need to be implemented and validated.
