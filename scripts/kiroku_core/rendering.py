@@ -21,6 +21,7 @@ def _record_header(record: dict[str, Any]) -> str:
         f"<!-- record:{record['id']} -->\n"
         f"## {record['title']}\n\n"
         f"**ID:** `{record['id']}`  \n"
+        f"**Key:** `{record['key']}`  \n"
         f"**Type:** `{record['type']}` | **Status:** `{record['status']}` | "
         f"**Verification:** `{record['verification_status']}`  \n\n"
         f"{record['summary']}\n\n"

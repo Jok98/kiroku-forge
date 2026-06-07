@@ -46,6 +46,7 @@ class ProjectionTests(unittest.TestCase):
         bootstrap = build_bootstrap(memory, scope="example")
         ids = {record["id"] for record in bootstrap["records"]}
         self.assertNotIn("rec_risk_missing_evidence", ids)
+        self.assertTrue(all(record["key"] for record in bootstrap["records"]))
 
     def test_unchanged_projection_is_not_rewritten(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

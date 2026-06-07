@@ -49,6 +49,7 @@
   "records": [
     {
       "id": "rec_decision_canonical_json",
+      "key": "decision_canonical_json",
       "type": "decision",
       "status": "active",
       "title": "Canonical JSON memory",
@@ -91,6 +92,7 @@
     },
     {
       "id": "rec_task_add_validation",
+      "key": "task_add_validation",
       "type": "task",
       "status": "active",
       "title": "Add semantic validation",
@@ -140,6 +142,7 @@
     },
     {
       "id": "rec_risk_missing_evidence",
+      "key": "risk_missing_evidence",
       "type": "risk",
       "status": "active",
       "title": "Unsupported claims",

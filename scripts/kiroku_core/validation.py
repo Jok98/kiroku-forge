@@ -63,7 +63,11 @@ def validate_memory(
 
     source_ids = {source["id"] for source in sources}
     run_ids = {run["id"] for run in runs}
+    runs_by_id = {run["id"]: run for run in runs}
     record_ids = {record["id"] for record in records}
+
+    for duplicate in sorted(_duplicates([record["key"] for record in records])):
+        result.errors.append(f"duplicate record key: {duplicate}")
 
     project = memory["project"]
     if _timestamp(project["updated_at"]) < _timestamp(project["created_at"]):
@@ -122,6 +126,15 @@ def validate_memory(
             if evidence["source_id"] not in source_ids:
                 result.errors.append(
                     f"{record_id}: unknown evidence source {evidence['source_id']}"
+                )
+            generated_by = runs_by_id.get(record["generated_by"])
+            if (
+                generated_by is not None
+                and evidence["source_id"] not in generated_by["inputs"]
+            ):
+                result.errors.append(
+                    f"{record_id}: evidence source {evidence['source_id']} "
+                    f"is not an input of run {record['generated_by']}"
                 )
             locator = evidence["locator"]
             if (

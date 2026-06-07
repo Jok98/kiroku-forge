@@ -43,6 +43,29 @@ class ValidationTests(unittest.TestCase):
         result = validate_memory(data, SCHEMA)
         self.assertTrue(any("duplicate ID" in error for error in result.errors))
 
+    def test_duplicate_record_keys_are_rejected(self) -> None:
+        data = fixture()
+        data["records"][1]["key"] = data["records"][0]["key"]
+        data["records"][1]["content_hash"] = record_hash(data["records"][1])
+        result = validate_memory(data, SCHEMA)
+        self.assertTrue(
+            any("duplicate record key" in error for error in result.errors)
+        )
+
+    def test_evidence_source_must_be_a_run_input(self) -> None:
+        data = fixture()
+        source = copy.deepcopy(data["sources"][0])
+        source["id"] = "src_unlisted_input"
+        source["uri"] = "conversation://example/message-2"
+        data["sources"].append(source)
+        record = data["records"][0]
+        record["evidence"][0]["source_id"] = source["id"]
+        record["content_hash"] = record_hash(record)
+        result = validate_memory(data, SCHEMA)
+        self.assertTrue(
+            any("is not an input of run" in error for error in result.errors)
+        )
+
     def test_verified_record_requires_direct_evidence(self) -> None:
         data = fixture()
         record = data["records"][0]

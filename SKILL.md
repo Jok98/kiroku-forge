@@ -20,6 +20,8 @@ bootstrap are generated projections and must never be edited as sources.
   changing records.
 - Read [references/provenance.md](references/provenance.md) when collecting
   evidence or assigning confidence.
+- Read [references/record-draft.md](references/record-draft.md) before using
+  `add-record`.
 - The normative machine contract is
   [schemas/memory-v2.schema.json](schemas/memory-v2.schema.json).
 
@@ -36,7 +38,7 @@ bootstrap are generated projections and must never be edited as sources.
 2. Read existing `kiroku/memory.json` when present.
 3. Register every input with `add-source`.
 4. Start the extraction or update with `start-run`.
-5. Extract only durable information into atomic `records`.
+5. Extract durable information into atomic records with `add-record`.
 6. Attach evidence to each claim and distinguish observation from inference.
 7. Preserve existing IDs during updates.
 8. Use relations for dependencies, contradictions, and supersession.
@@ -65,7 +67,8 @@ python <skill-dir>/scripts/kiroku.py init \
   --goal "Durable project goal"
 ```
 
-Then populate `sources`, `runs`, and `records` before running `build`.
+Then register sources, start a run, add records, and finish the run before
+running `build`.
 
 Register a source from a local file:
 
@@ -93,6 +96,19 @@ python <skill-dir>/scripts/kiroku.py start-run \
 ```
 
 Use the returned run ID for generated records, then complete the run:
+
+```bash
+python <skill-dir>/scripts/kiroku.py add-record \
+  --dir ./kiroku \
+  --run-id run_update_example \
+  --file ./record-draft.json
+```
+
+The draft contract is documented in
+[references/record-draft.md](references/record-draft.md). Use `--stdin` to avoid
+temporary files when the agent already has the JSON payload.
+
+Complete the run after all records have been added:
 
 ```bash
 python <skill-dir>/scripts/kiroku.py finish-run \
@@ -169,6 +185,7 @@ Available commands:
 python <skill-dir>/scripts/kiroku.py validate --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py add-source --help
 python <skill-dir>/scripts/kiroku.py start-run --help
+python <skill-dir>/scripts/kiroku.py add-record --help
 python <skill-dir>/scripts/kiroku.py finish-run --help
 python <skill-dir>/scripts/kiroku.py render --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py bootstrap --dir ./kiroku

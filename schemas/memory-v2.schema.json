@@ -428,6 +428,7 @@
       "additionalProperties": false,
       "required": [
         "id",
+        "key",
         "type",
         "status",
         "title",
@@ -447,6 +448,10 @@
       "properties": {
         "id": {
           "$ref": "#/$defs/recordId"
+        },
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,79}$"
         },
         "type": {
           "enum": [

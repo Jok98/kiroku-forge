@@ -24,6 +24,7 @@ from kiroku_core.io import (
     write_text_if_changed,
 )
 from kiroku_core.rendering import render_views
+from kiroku_core.records import build_record, record_semantics
 from kiroku_core.validation import ValidationResult, validate_memory
 
 
@@ -124,6 +125,24 @@ def _source_content(
     if not args.uri:
         raise ValueError("--uri is required when no content input is provided")
     return args.uri, None, metadata
+
+
+def _record_draft(args: argparse.Namespace) -> dict[str, Any]:
+    if args.file:
+        path = Path(args.file)
+        if not path.is_absolute():
+            path = (Path.cwd() / path).resolve()
+        if not path.is_file():
+            raise ValueError(f"record draft file not found: {path}")
+        return load_json(path)
+
+    try:
+        draft = json.loads(sys.stdin.buffer.read())
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"invalid record draft JSON from stdin: {exc}") from exc
+    if not isinstance(draft, dict):
+        raise ValueError("record draft from stdin must be a JSON object")
+    return draft
 
 
 def _print_result(result: ValidationResult) -> None:
@@ -370,6 +389,79 @@ def command_add_source(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_add_record(args: argparse.Namespace) -> int:
+    directory = Path(args.dir).resolve()
+    memory = _load(directory)
+    baseline = validate_memory(memory, SCHEMA_PATH)
+    if not baseline.ok:
+        print("[ERROR] canonical memory is invalid; record was not added")
+        _print_result(baseline)
+        return 2
+
+    run = next((item for item in memory["runs"] if item["id"] == args.run_id), None)
+    if run is None:
+        print(f"[ERROR] unknown run: {args.run_id}")
+        return 2
+    if run["status"] != "running":
+        print(f"[ERROR] run {args.run_id} is not running")
+        return 2
+
+    draft = _record_draft(args)
+    record = build_record(
+        draft,
+        run_id=args.run_id,
+        project_scope=memory["project"]["scope"],
+        now=_now(),
+    )
+
+    existing = next(
+        (item for item in memory["records"] if item["key"] == record["key"]),
+        None,
+    )
+    if existing:
+        if record_semantics(existing) == record_semantics(record):
+            print(f"[SAME] Record already registered: {existing['id']}")
+            return 0
+        print(
+            f"[ERROR] record key {record['key']!r} already exists with "
+            f"different content: {existing['id']}; use update-record"
+        )
+        return 2
+
+    duplicate = next(
+        (
+            item
+            for item in memory["records"]
+            if record_semantics(item, include_key=False)
+            == record_semantics(record, include_key=False)
+        ),
+        None,
+    )
+    if duplicate:
+        print(f"[SAME] Equivalent record already registered: {duplicate['id']}")
+        return 0
+
+    if any(item["id"] == record["id"] for item in memory["records"]):
+        print(f"[ERROR] generated record ID collision: {record['id']}")
+        return 2
+
+    candidate = copy.deepcopy(memory)
+    candidate["records"].append(record)
+    result = validate_memory(candidate, SCHEMA_PATH)
+    if not result.ok:
+        print("[ERROR] record would make canonical memory invalid; no changes written")
+        _print_result(result)
+        return 2
+
+    write_json_if_changed(_memory_path(directory), candidate)
+    print(f"[OK] Added record {record['id']}")
+    print(f"     Key: {record['key']}")
+    print(f"     Type: {record['type']}")
+    for warning in result.warnings:
+        print(f"[WARN]  {warning}")
+    return 0
+
+
 def _render(directory: Path, memory: dict[str, Any]) -> int:
     changed = 0
     view_dir = directory / "views"
@@ -519,6 +611,17 @@ def build_parser() -> argparse.ArgumentParser:
     finish_run.add_argument("--summary", required=True)
     finish_run.add_argument("--warning", action="append", default=[])
     finish_run.set_defaults(func=command_finish_run)
+
+    add_record = subparsers.add_parser(
+        "add-record",
+        help="Add a validated record to a running run",
+    )
+    add_record.add_argument("--dir", default="./kiroku")
+    add_record.add_argument("--run-id", required=True)
+    draft_input = add_record.add_mutually_exclusive_group(required=True)
+    draft_input.add_argument("--file")
+    draft_input.add_argument("--stdin", action="store_true")
+    add_record.set_defaults(func=command_add_record)
 
     render = subparsers.add_parser("render", help="Generate Markdown views")
     render.add_argument("--dir", default="./kiroku")

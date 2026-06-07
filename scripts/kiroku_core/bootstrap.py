@@ -76,6 +76,7 @@ def build_bootstrap(
         compact_records.append(
             {
                 "id": record["id"],
+                "key": record["key"],
                 "type": record["type"],
                 "status": record["status"],
                 "title": record["title"],
