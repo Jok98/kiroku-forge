@@ -35,21 +35,22 @@ bootstrap are generated projections and must never be edited as sources.
 1. Determine project scope, goal, current phase, and requested mode.
 2. Read existing `kiroku/memory.json` when present.
 3. Register every input with `add-source`.
-4. Register the extraction or update under `runs`.
+4. Start the extraction or update with `start-run`.
 5. Extract only durable information into atomic `records`.
 6. Attach evidence to each claim and distinguish observation from inference.
 7. Preserve existing IDs during updates.
 8. Use relations for dependencies, contradictions, and supersession.
-9. Write only the canonical `memory.json`.
-10. Run:
+9. Finish the operation with `finish-run`.
+10. Write only the canonical `memory.json`.
+11. Run:
 
 ```bash
 python <skill-dir>/scripts/kiroku.py build --dir ./kiroku
 ```
 
-11. Fix all validation errors. Warnings may remain only when they represent
+12. Fix all validation errors. Warnings may remain only when they represent
     explicit uncertainty.
-12. Report the canonical file, generated views, important changes, and remaining
+13. Report the canonical file, generated views, important changes, and remaining
     uncertainty.
 
 ## Initializing Memory
@@ -80,6 +81,27 @@ python <skill-dir>/scripts/kiroku.py add-source \
 For conversations, URLs, or tool output, provide a stable `--uri`. Use `--text`
 or `--stdin` when captured content is available; otherwise the source is
 registered with unavailable integrity.
+
+Start a run after registering its sources:
+
+```bash
+python <skill-dir>/scripts/kiroku.py start-run \
+  --dir ./kiroku \
+  --operation update \
+  --input src_example \
+  --actor-name codex
+```
+
+Use the returned run ID for generated records, then complete the run:
+
+```bash
+python <skill-dir>/scripts/kiroku.py finish-run \
+  --dir ./kiroku \
+  --run-id run_update_example \
+  --summary "Updated project decisions and tasks."
+```
+
+`build` refuses to generate projections while a run is still active.
 
 ## Record Rules
 
@@ -146,6 +168,8 @@ Available commands:
 ```bash
 python <skill-dir>/scripts/kiroku.py validate --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py add-source --help
+python <skill-dir>/scripts/kiroku.py start-run --help
+python <skill-dir>/scripts/kiroku.py finish-run --help
 python <skill-dir>/scripts/kiroku.py render --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py bootstrap --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py build --dir ./kiroku

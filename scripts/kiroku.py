@@ -39,6 +39,8 @@ SOURCE_KINDS = (
     "test_result",
     "agent_observation",
 )
+RUN_OPERATIONS = ("create", "update", "review", "import")
+ACTOR_TYPES = ("agent", "user", "tool")
 
 
 def _now() -> str:
@@ -64,6 +66,11 @@ def _source_id(kind: str, uri: str, revision: str | None) -> str:
     identity = f"{kind}\0{uri}\0{revision or ''}".encode("utf-8")
     suffix = hashlib.sha256(identity).hexdigest()[:12]
     return f"src_{_slug(Path(uri).name or kind)[:48]}_{suffix}"
+
+
+def _run_id(operation: str, started_at: str) -> str:
+    timestamp = re.sub(r"[^0-9a-z]+", "", started_at.lower())
+    return f"run_{operation}_{timestamp}_{uuid.uuid4().hex[:8]}"
 
 
 def _metadata(values: list[str]) -> dict[str, Any]:
@@ -165,6 +172,7 @@ def command_init(args: argparse.Namespace) -> int:
             {
                 "id": f"run_initialize_{suffix}",
                 "operation": "create",
+                "status": "completed",
                 "actor": {
                     "type": "tool",
                     "name": "kiroku-forge",
@@ -194,6 +202,110 @@ def command_validate(args: argparse.Namespace) -> int:
     result = validate_memory(memory, SCHEMA_PATH)
     _print_result(result)
     return 0 if result.ok else 2
+
+
+def command_start_run(args: argparse.Namespace) -> int:
+    directory = Path(args.dir).resolve()
+    memory = _load(directory)
+    baseline = validate_memory(memory, SCHEMA_PATH)
+    if not baseline.ok:
+        print("[ERROR] canonical memory is invalid; run was not started")
+        _print_result(baseline)
+        return 2
+
+    running = next(
+        (run for run in memory["runs"] if run["status"] == "running"),
+        None,
+    )
+    if running:
+        print(
+            f"[ERROR] run {running['id']} is already running; "
+            "finish it before starting another"
+        )
+        return 2
+
+    inputs = list(dict.fromkeys(args.input))
+    source_ids = {source["id"] for source in memory["sources"]}
+    missing = sorted(set(inputs) - source_ids)
+    if missing:
+        print(f"[ERROR] unknown input source(s): {', '.join(missing)}")
+        return 2
+
+    started_at = _now()
+    run_id = _run_id(args.operation, started_at)
+    candidate = copy.deepcopy(memory)
+    candidate["runs"].append(
+        {
+            "id": run_id,
+            "operation": args.operation,
+            "status": "running",
+            "actor": {
+                "type": args.actor_type,
+                "name": args.actor_name,
+                "version": args.actor_version,
+            },
+            "inputs": inputs,
+            "started_at": started_at,
+            "completed_at": None,
+            "summary": None,
+            "warnings": [],
+        }
+    )
+    result = validate_memory(candidate, SCHEMA_PATH)
+    if not result.ok:
+        print("[ERROR] run would make canonical memory invalid; no changes written")
+        _print_result(result)
+        return 2
+
+    write_json_if_changed(_memory_path(directory), candidate)
+    print(f"[OK] Started run {run_id}")
+    print(f"     Operation: {args.operation}")
+    print(f"     Inputs: {len(inputs)}")
+    return 0
+
+
+def command_finish_run(args: argparse.Namespace) -> int:
+    directory = Path(args.dir).resolve()
+    memory = _load(directory)
+    baseline = validate_memory(memory, SCHEMA_PATH)
+    if not baseline.ok:
+        print("[ERROR] canonical memory is invalid; run was not finished")
+        _print_result(baseline)
+        return 2
+
+    run = next((item for item in memory["runs"] if item["id"] == args.run_id), None)
+    if run is None:
+        print(f"[ERROR] unknown run: {args.run_id}")
+        return 2
+
+    warnings = list(dict.fromkeys(args.warning))
+    if run["status"] == "completed":
+        if run["summary"] == args.summary and run["warnings"] == warnings:
+            print(f"[SAME] Run already completed: {args.run_id}")
+            return 0
+        print(
+            f"[ERROR] run {args.run_id} is already completed; "
+            "completed runs are immutable"
+        )
+        return 2
+
+    candidate = copy.deepcopy(memory)
+    target = next(item for item in candidate["runs"] if item["id"] == args.run_id)
+    target["status"] = "completed"
+    target["completed_at"] = _now()
+    target["summary"] = args.summary
+    target["warnings"] = warnings
+
+    result = validate_memory(candidate, SCHEMA_PATH)
+    if not result.ok:
+        print("[ERROR] completion would make canonical memory invalid; no changes written")
+        _print_result(result)
+        return 2
+
+    write_json_if_changed(_memory_path(directory), candidate)
+    print(f"[OK] Finished run {args.run_id}")
+    print(f"     Warnings: {len(warnings)}")
+    return 0
 
 
 def command_add_source(args: argparse.Namespace) -> int:
@@ -315,6 +427,17 @@ def command_bootstrap(args: argparse.Namespace) -> int:
 def command_build(args: argparse.Namespace) -> int:
     directory = Path(args.dir).resolve()
     memory = _load(directory)
+    running = next(
+        (run for run in memory["runs"] if run["status"] == "running"),
+        None,
+    )
+    if running:
+        print(
+            f"[ERROR] cannot build while run {running['id']} is running; "
+            "finish the run first"
+        )
+        return 2
+
     for record in memory.get("records", []):
         record["content_hash"] = record_hash(record)
 
@@ -374,6 +497,28 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="KEY=JSON",
     )
     add_source.set_defaults(func=command_add_source)
+
+    start_run = subparsers.add_parser(
+        "start-run",
+        help="Start an extraction or update run",
+    )
+    start_run.add_argument("--dir", default="./kiroku")
+    start_run.add_argument("--operation", choices=RUN_OPERATIONS, required=True)
+    start_run.add_argument("--input", action="append", default=[])
+    start_run.add_argument("--actor-type", choices=ACTOR_TYPES, default="agent")
+    start_run.add_argument("--actor-name", default="kiroku-forge-agent")
+    start_run.add_argument("--actor-version")
+    start_run.set_defaults(func=command_start_run)
+
+    finish_run = subparsers.add_parser(
+        "finish-run",
+        help="Complete a running extraction or update run",
+    )
+    finish_run.add_argument("--dir", default="./kiroku")
+    finish_run.add_argument("--run-id", required=True)
+    finish_run.add_argument("--summary", required=True)
+    finish_run.add_argument("--warning", action="append", default=[])
+    finish_run.set_defaults(func=command_finish_run)
 
     render = subparsers.add_parser("render", help="Generate Markdown views")
     render.add_argument("--dir", default="./kiroku")

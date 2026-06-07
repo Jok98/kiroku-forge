@@ -79,12 +79,35 @@ def validate_memory(
                 f"{source['id']}: unavailable integrity has a content_hash"
             )
 
+    running_runs = [run for run in runs if run["status"] == "running"]
+    if len(running_runs) > 1:
+        result.errors.append("multiple running runs are not allowed")
+
     for run in runs:
         missing = sorted(set(run["inputs"]) - source_ids)
         for source_id in missing:
             result.errors.append(f"{run['id']}: unknown input source {source_id}")
-        if _timestamp(run["completed_at"]) < _timestamp(run["started_at"]):
-            result.errors.append(f"{run['id']}: completed_at precedes started_at")
+        if run["status"] == "running":
+            if run["completed_at"] is not None:
+                result.errors.append(
+                    f"{run['id']}: running run cannot have completed_at"
+                )
+            if run["summary"] is not None:
+                result.errors.append(f"{run['id']}: running run cannot have summary")
+        else:
+            if run["completed_at"] is None:
+                result.errors.append(
+                    f"{run['id']}: completed run requires completed_at"
+                )
+            if run["summary"] is None:
+                result.errors.append(f"{run['id']}: completed run requires summary")
+            if (
+                run["completed_at"] is not None
+                and _timestamp(run["completed_at"]) < _timestamp(run["started_at"])
+            ):
+                result.errors.append(
+                    f"{run['id']}: completed_at precedes started_at"
+                )
 
     for record in records:
         record_id = record["id"]

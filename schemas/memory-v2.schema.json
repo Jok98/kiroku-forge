@@ -227,6 +227,7 @@
       "required": [
         "id",
         "operation",
+        "status",
         "actor",
         "inputs",
         "started_at",
@@ -246,6 +247,12 @@
             "import"
           ]
         },
+        "status": {
+          "enum": [
+            "running",
+            "completed"
+          ]
+        },
         "actor": {
           "$ref": "#/$defs/actor"
         },
@@ -260,10 +267,20 @@
           "$ref": "#/$defs/timestamp"
         },
         "completed_at": {
-          "$ref": "#/$defs/timestamp"
+          "oneOf": [
+            {
+              "$ref": "#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "summary": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "minLength": 1
         },
         "warnings": {

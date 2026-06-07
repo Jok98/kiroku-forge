@@ -86,6 +86,7 @@ provide a new revision or URI.
 A run records one create, update, review, or import operation:
 
 - stable run ID;
+- lifecycle status: `running` or `completed`;
 - actor type and name;
 - input source IDs;
 - start and completion timestamps;
@@ -93,6 +94,26 @@ A run records one create, update, review, or import operation:
 - warnings.
 
 Every record references the run that most recently generated or changed it.
+
+Create and complete runs through the CLI:
+
+```bash
+python <skill-dir>/scripts/kiroku.py start-run \
+  --dir ./kiroku \
+  --operation update \
+  --input src_planning_notes \
+  --actor-name codex
+
+python <skill-dir>/scripts/kiroku.py finish-run \
+  --dir ./kiroku \
+  --run-id run_update_example \
+  --summary "Extracted current decisions and open work." \
+  --warning "One assumption remains unverified."
+```
+
+Only one run may be `running`. A running run has null `completed_at` and
+`summary`; a completed run requires both fields and is immutable. `build`
+requires all runs to be completed.
 
 ## Records
 

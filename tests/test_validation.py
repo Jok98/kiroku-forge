@@ -99,6 +99,45 @@ class ValidationTests(unittest.TestCase):
             any("end_line precedes start_line" in error for error in result.errors)
         )
 
+    def test_running_run_rejects_completion_fields(self) -> None:
+        data = fixture()
+        run = data["runs"][0]
+        run["status"] = "running"
+        result = validate_memory(data, SCHEMA)
+        self.assertTrue(
+            any("running run cannot have completed_at" in error for error in result.errors)
+        )
+        self.assertTrue(
+            any("running run cannot have summary" in error for error in result.errors)
+        )
+
+    def test_completed_run_requires_completion_fields(self) -> None:
+        data = fixture()
+        run = data["runs"][0]
+        run["completed_at"] = None
+        run["summary"] = None
+        result = validate_memory(data, SCHEMA)
+        self.assertTrue(
+            any("completed run requires completed_at" in error for error in result.errors)
+        )
+        self.assertTrue(
+            any("completed run requires summary" in error for error in result.errors)
+        )
+
+    def test_multiple_running_runs_are_rejected(self) -> None:
+        data = fixture()
+        first = data["runs"][0]
+        first["status"] = "running"
+        first["completed_at"] = None
+        first["summary"] = None
+        second = copy.deepcopy(first)
+        second["id"] = "run_second"
+        data["runs"].append(second)
+        result = validate_memory(data, SCHEMA)
+        self.assertTrue(
+            any("multiple running runs" in error for error in result.errors)
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
