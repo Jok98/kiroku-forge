@@ -136,6 +136,129 @@ def _source_content(
     return args.uri, None, metadata
 
 
+def _source_status_candidates(
+    args: argparse.Namespace,
+) -> list[tuple[str, str, Path]]:
+    candidates: list[tuple[str, str, Path]] = []
+
+    if args.file:
+        for raw_path in args.file:
+            candidates.append(
+                (
+                    Path(raw_path).as_posix(),
+                    raw_path,
+                    Path(raw_path),
+                )
+            )
+    else:
+        for mapping in args.map:
+            if "=" not in mapping:
+                raise ValueError(
+                    f"invalid source mapping {mapping!r}; expected URI=PATH"
+                )
+            uri, raw_path = mapping.split("=", 1)
+            uri = uri.strip()
+            raw_path = raw_path.strip()
+            if not uri or not raw_path:
+                raise ValueError(
+                    f"invalid source mapping {mapping!r}; expected URI=PATH"
+                )
+            candidates.append((uri, raw_path, Path(raw_path)))
+
+    seen_uris: set[str] = set()
+    duplicate_uris: set[str] = set()
+    for uri, _, _ in candidates:
+        if uri in seen_uris:
+            duplicate_uris.add(uri)
+        seen_uris.add(uri)
+    if duplicate_uris:
+        raise ValueError(
+            f"duplicate source URI candidate(s): "
+            f"{', '.join(sorted(duplicate_uris))}"
+        )
+
+    resolved: list[tuple[str, str, Path]] = []
+    for uri, raw_path, path in candidates:
+        if not path.is_absolute():
+            path = (Path.cwd() / path).resolve()
+        if not path.is_file():
+            raise ValueError(f"source file not found: {path}")
+        resolved.append((uri, raw_path, path))
+    return resolved
+
+
+def command_source_status(args: argparse.Namespace) -> int:
+    directory = Path(args.dir).resolve()
+    memory = _load(directory)
+    result = validate_memory(memory, SCHEMA_PATH)
+    if not result.ok:
+        _print_result(result)
+        return 2
+
+    candidates = _source_status_candidates(args)
+    latest_by_uri: dict[str, tuple[int, dict[str, Any]]] = {}
+    for index, source in enumerate(memory["sources"]):
+        current = latest_by_uri.get(source["uri"])
+        source_key = (
+            datetime.fromisoformat(source["captured_at"].replace("Z", "+00:00")),
+            index,
+        )
+        if current is None:
+            latest_by_uri[source["uri"]] = (index, source)
+            continue
+        current_index, current_source = current
+        current_key = (
+            datetime.fromisoformat(
+                current_source["captured_at"].replace("Z", "+00:00")
+            ),
+            current_index,
+        )
+        if source_key > current_key:
+            latest_by_uri[source["uri"]] = (index, source)
+
+    statuses: list[dict[str, Any]] = []
+    counts = {"unchanged": 0, "changed": 0, "new": 0}
+    for uri, raw_path, path in candidates:
+        current_hash = sha256_file(path)
+        stored_entry = latest_by_uri.get(uri)
+        stored = stored_entry[1] if stored_entry is not None else None
+        if stored is None:
+            status = "new"
+        elif stored.get("content_hash") == current_hash:
+            status = "unchanged"
+        else:
+            status = "changed"
+        counts[status] += 1
+        statuses.append(
+            {
+                "uri": uri,
+                "path": raw_path,
+                "status": status,
+                "current_hash": current_hash,
+                "source_id": stored["id"] if stored else None,
+                "stored_hash": stored.get("content_hash") if stored else None,
+                "revision": stored.get("revision") if stored else None,
+            }
+        )
+
+    statuses.sort(key=lambda item: item["uri"])
+    actionable = [
+        item for item in statuses if item["status"] in {"changed", "new"}
+    ]
+    visible = actionable if args.changed_only else statuses
+    output = {
+        "summary": {
+            **counts,
+            "total": len(statuses),
+            "actionable": len(actionable),
+            "returned": len(visible),
+        },
+        "sources": visible,
+    }
+    print(json.dumps(output, indent=2, ensure_ascii=False))
+    return 0
+
+
 def _record_draft(args: argparse.Namespace) -> dict[str, Any]:
     if args.file:
         path = Path(args.file)
@@ -980,6 +1103,30 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="KEY=JSON",
     )
     add_source.set_defaults(func=command_add_source)
+
+    source_status = subparsers.add_parser(
+        "source-status",
+        help="Compare local source files with their latest stored hashes",
+    )
+    source_status.add_argument("--dir", default="./kiroku")
+    source_input = source_status.add_mutually_exclusive_group(required=True)
+    source_input.add_argument(
+        "--file",
+        action="append",
+        help="Local file whose path is also its source URI; repeat as needed",
+    )
+    source_input.add_argument(
+        "--map",
+        action="append",
+        metavar="URI=PATH",
+        help="Map a stored source URI to a local file; repeat as needed",
+    )
+    source_status.add_argument(
+        "--changed-only",
+        action="store_true",
+        help="Return only changed and new source candidates",
+    )
+    source_status.set_defaults(func=command_source_status)
 
     start_run = subparsers.add_parser(
         "start-run",

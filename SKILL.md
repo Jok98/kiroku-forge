@@ -36,23 +36,25 @@ bootstrap are generated projections and must never be edited as sources.
 
 1. Determine project scope, goal, current phase, and requested mode.
 2. Read existing `kiroku/memory.json` when present.
-3. Register every input with `add-source`.
-4. Start the extraction or update with `start-run`.
-5. Create, replace, or supersede durable information with the record commands.
-6. Attach evidence to each claim and distinguish observation from inference.
-7. Preserve existing IDs during updates.
-8. Use relations for dependencies, contradictions, and supersession.
-9. Finish the operation with `finish-run`.
-10. Write only the canonical `memory.json`.
-11. Run:
+3. For updates, compare local candidate files with `source-status` and skip
+   unchanged inputs.
+4. Register new or changed inputs with `add-source`.
+5. Start the extraction or update with `start-run`.
+6. Create, replace, or supersede durable information with the record commands.
+7. Attach evidence to each claim and distinguish observation from inference.
+8. Preserve existing IDs during updates.
+9. Use relations for dependencies, contradictions, and supersession.
+10. Finish the operation with `finish-run`.
+11. Write only the canonical `memory.json`.
+12. Run:
 
 ```bash
 python <skill-dir>/scripts/kiroku.py build --dir ./kiroku
 ```
 
-12. Fix all validation errors. Warnings may remain only when they represent
+13. Fix all validation errors. Warnings may remain only when they represent
     explicit uncertainty.
-13. Report the canonical file, generated views, important changes, and remaining
+14. Report the canonical file, generated views, important changes, and remaining
     uncertainty.
 
 ## Initializing Memory
@@ -84,6 +86,21 @@ python <skill-dir>/scripts/kiroku.py add-source \
 For conversations, URLs, or tool output, provide a stable `--uri`. Use `--text`
 or `--stdin` when captured content is available; otherwise the source is
 registered with unavailable integrity.
+
+Before an update, identify which local inputs require analysis:
+
+```bash
+python <skill-dir>/scripts/kiroku.py source-status \
+  --dir ./kiroku \
+  --file docs/architecture.md \
+  --file docs/requirements.md \
+  --changed-only
+```
+
+The command compares current SHA-256 values with the latest registered source
+for each URI and reports `unchanged`, `changed`, or `new`. It never modifies
+memory. Use `--map URI=PATH` when the stored URI differs from the local path.
+Register and analyse only `changed` and `new` inputs.
 
 Start a run after registering its sources:
 
@@ -206,6 +223,7 @@ Available commands:
 ```bash
 python <skill-dir>/scripts/kiroku.py validate --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py add-source --help
+python <skill-dir>/scripts/kiroku.py source-status --help
 python <skill-dir>/scripts/kiroku.py start-run --help
 python <skill-dir>/scripts/kiroku.py add-record --help
 python <skill-dir>/scripts/kiroku.py update-record --help

@@ -197,6 +197,27 @@ Content input methods (mutually exclusive):
 Re-registering the same identity+content is idempotent. Same identity with
 different content is rejected (use a new `--revision` or `--uri`).
 
+### Source Status
+
+```bash
+python scripts/kiroku.py source-status \
+  --dir ./kiroku \
+  --file docs/architecture.md \
+  --file docs/requirements.md \
+  [--changed-only]
+```
+
+Compares each local file SHA-256 with the most recently captured source having
+the same URI. Results are emitted as JSON with these statuses:
+
+- `unchanged`: hashes match;
+- `changed`: a source exists, but its latest hash differs or is unavailable;
+- `new`: no source has the candidate URI.
+
+The command is read-only. `--changed-only` returns just the files that require
+registration and analysis. When a stored URI differs from its local path, use
+`--map URI=PATH` instead of `--file`.
+
 ### Start Run
 
 ```bash
@@ -402,14 +423,18 @@ python scripts/kiroku.py build --dir ./kiroku
 ### Updating Existing Memory
 
 ```bash
-# 1. Register new sources
+# 1. Detect inputs that require another analysis
+python scripts/kiroku.py source-status --dir ./kiroku \
+  --file docs/architecture.md --file docs/requirements.md --changed-only
+
+# 2. Register only changed and new sources with a new revision
 python scripts/kiroku.py add-source ...
 
-# 2. Start a run
+# 3. Start a run using only those source IDs
 python scripts/kiroku.py start-run --dir ./kiroku \
   --operation update --input src_new_file --actor-name codex
 
-# 3. Read the hash of the record to update
+# 4. Read the hash of the record to update
 RECORD_HASH=$(python -c "
 import json
 m = json.load(open('kiroku/memory.json'))
@@ -417,12 +442,12 @@ for r in m['records']:
     if r['key'] == 'my_decision': print(r['content_hash'])
 ")
 
-# 4. Update or supersede
+# 5. Update or supersede
 python scripts/kiroku.py update-record --dir ./kiroku \
   --run-id run_update_xxxx --key my_decision \
   --expect-hash "$RECORD_HASH" --file ./updated-draft.json
 
-# 5. Finish and build
+# 6. Finish and build
 python scripts/kiroku.py finish-run --dir ./kiroku \
   --run-id run_update_xxxx --summary "Updated decision with new findings."
 python scripts/kiroku.py build --dir ./kiroku

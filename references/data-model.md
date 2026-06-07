@@ -82,6 +82,25 @@ Source identity is `kind + uri + revision`. Registering the same identity and
 content is idempotent. Different content with the same identity is rejected;
 provide a new revision or URI.
 
+For incremental updates, compare local candidate files with the latest source
+registered for each URI:
+
+```bash
+python <skill-dir>/scripts/kiroku.py source-status \
+  --dir ./kiroku \
+  --file docs/planning.md \
+  --changed-only
+```
+
+The result is read-only and classifies each candidate as:
+
+- `unchanged`: current and stored hashes match;
+- `changed`: the URI exists but its latest hash differs or is unavailable;
+- `new`: the URI has no registered source.
+
+Use `--map URI=PATH` when source identity and local storage path differ. Only
+changed and new sources need a new registration and another analysis run.
+
 ## Runs
 
 A run records one create, update, review, or import operation:
