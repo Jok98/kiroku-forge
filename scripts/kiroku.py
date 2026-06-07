@@ -515,7 +515,10 @@ def command_update_record(args: argparse.Namespace) -> int:
             f"expected {existing['type']!r}, got {draft.get('type')!r}"
         )
         return 2
-    if draft.get("status") == "superseded" and existing["status"] != "superseded":
+    if existing["status"] == "superseded":
+        print(f"[ERROR] superseded record {args.key!r} is immutable")
+        return 2
+    if draft.get("status") == "superseded":
         print("[ERROR] use supersede-record to mark a record as superseded")
         return 2
 
@@ -570,6 +573,140 @@ def command_update_record(args: argparse.Namespace) -> int:
     print(f"[OK] Updated record {updated['id']}")
     print(f"     Previous hash: {existing['content_hash']}")
     print(f"     Current hash:  {updated['content_hash']}")
+    for warning in result.warnings:
+        print(f"[WARN]  {warning}")
+    return 0
+
+
+def command_supersede_record(args: argparse.Namespace) -> int:
+    directory = Path(args.dir).resolve()
+    memory = _load(directory)
+    baseline = validate_memory(memory, SCHEMA_PATH)
+    if not baseline.ok:
+        print("[ERROR] canonical memory is invalid; record was not superseded")
+        _print_result(baseline)
+        return 2
+
+    run = next((item for item in memory["runs"] if item["id"] == args.run_id), None)
+    if run is None:
+        print(f"[ERROR] unknown run: {args.run_id}")
+        return 2
+    if run["status"] != "running":
+        print(f"[ERROR] run {args.run_id} is not running")
+        return 2
+
+    existing = next(
+        (item for item in memory["records"] if item["key"] == args.key),
+        None,
+    )
+    if existing is None:
+        print(f"[ERROR] unknown record key: {args.key}")
+        return 2
+    if existing["status"] == "superseded":
+        replacement = next(
+            (
+                item
+                for item in memory["records"]
+                if any(
+                    relation["type"] == "supersedes"
+                    and relation["target_id"] == existing["id"]
+                    for relation in item["relations"]
+                )
+            ),
+            None,
+        )
+        suffix = f" by {replacement['key']!r}" if replacement else ""
+        print(f"[ERROR] record {args.key!r} is already superseded{suffix}")
+        return 2
+    if existing["content_hash"] != args.expect_hash:
+        print(
+            f"[ERROR] record {args.key!r} changed since it was read; "
+            f"expected {args.expect_hash}, current {existing['content_hash']}"
+        )
+        return 2
+
+    draft = _record_draft(args)
+    replacement_key = draft.get("key")
+    if replacement_key == args.key:
+        print("[ERROR] replacement record must use a different key")
+        return 2
+    if any(item["key"] == replacement_key for item in memory["records"]):
+        print(f"[ERROR] replacement record key already exists: {replacement_key!r}")
+        return 2
+    if draft.get("status", "active") in {"superseded", "obsolete", "cancelled"}:
+        print("[ERROR] replacement record must have a live lifecycle status")
+        return 2
+    if any(
+        relation.get("type") == "supersedes"
+        for relation in draft.get("relations", [])
+        if isinstance(relation, dict)
+    ):
+        print("[ERROR] supersedes relation is managed by supersede-record")
+        return 2
+
+    changed_at = _now_after(existing["updated_at"])
+    replacement = build_record(
+        draft,
+        run_id=args.run_id,
+        project_scope=memory["project"]["scope"],
+        now=changed_at,
+    )
+    replacement["relations"].append(
+        {
+            "type": "supersedes",
+            "target_id": existing["id"],
+        }
+    )
+    replacement["content_hash"] = record_hash(replacement)
+
+    duplicate = next(
+        (
+            item
+            for item in memory["records"]
+            if record_semantics(item, include_key=False)
+            == record_semantics(replacement, include_key=False)
+        ),
+        None,
+    )
+    if duplicate:
+        print(
+            f"[ERROR] replacement would duplicate existing record {duplicate['id']}; "
+            "no changes written"
+        )
+        return 2
+    if any(item["id"] == replacement["id"] for item in memory["records"]):
+        print(f"[ERROR] generated record ID collision: {replacement['id']}")
+        return 2
+
+    predecessor = copy.deepcopy(existing)
+    predecessor["status"] = "superseded"
+    predecessor["updated_at"] = changed_at
+    predecessor["generated_by"] = args.run_id
+    predecessor["content_hash"] = record_hash(predecessor)
+
+    candidate = copy.deepcopy(memory)
+    predecessor_index = next(
+        index
+        for index, item in enumerate(candidate["records"])
+        if item["id"] == existing["id"]
+    )
+    candidate["records"][predecessor_index] = predecessor
+    candidate["records"].append(replacement)
+
+    result = validate_memory(candidate, SCHEMA_PATH)
+    if not result.ok:
+        print(
+            "[ERROR] supersession would make canonical memory invalid; "
+            "no changes written"
+        )
+        _print_result(result)
+        return 2
+
+    write_json_if_changed(_memory_path(directory), candidate)
+    print(f"[OK] Superseded record {existing['id']}")
+    print(f"     Replacement: {replacement['id']}")
+    print(f"     Previous hash: {existing['content_hash']}")
+    print(f"     Historical hash: {predecessor['content_hash']}")
     for warning in result.warnings:
         print(f"[WARN]  {warning}")
     return 0
@@ -748,6 +885,19 @@ def build_parser() -> argparse.ArgumentParser:
     update_input.add_argument("--file")
     update_input.add_argument("--stdin", action="store_true")
     update_record.set_defaults(func=command_update_record)
+
+    supersede_record = subparsers.add_parser(
+        "supersede-record",
+        help="Atomically replace a record while preserving history",
+    )
+    supersede_record.add_argument("--dir", default="./kiroku")
+    supersede_record.add_argument("--run-id", required=True)
+    supersede_record.add_argument("--key", required=True)
+    supersede_record.add_argument("--expect-hash", required=True)
+    replacement_input = supersede_record.add_mutually_exclusive_group(required=True)
+    replacement_input.add_argument("--file")
+    replacement_input.add_argument("--stdin", action="store_true")
+    supersede_record.set_defaults(func=command_supersede_record)
 
     render = subparsers.add_parser("render", help="Generate Markdown views")
     render.add_argument("--dir", default="./kiroku")

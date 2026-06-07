@@ -65,9 +65,58 @@ def validate_memory(
     run_ids = {run["id"] for run in runs}
     runs_by_id = {run["id"]: run for run in runs}
     record_ids = {record["id"] for record in records}
+    records_by_id = {record["id"]: record for record in records}
 
     for duplicate in sorted(_duplicates([record["key"] for record in records])):
         result.errors.append(f"duplicate record key: {duplicate}")
+
+    superseded_by: dict[str, list[str]] = {}
+    supersedes_edges: dict[str, list[str]] = {}
+    for record in records:
+        for relation in record["relations"]:
+            if relation["type"] != "supersedes":
+                continue
+            target_id = relation["target_id"]
+            superseded_by.setdefault(target_id, []).append(record["id"])
+            supersedes_edges.setdefault(record["id"], []).append(target_id)
+
+    for target_id, replacement_ids in superseded_by.items():
+        target = records_by_id.get(target_id)
+        if target is not None and target["status"] != "superseded":
+            result.errors.append(
+                f"{target_id}: supersedes relation requires superseded status"
+            )
+        if len(replacement_ids) > 1:
+            result.errors.append(
+                f"{target_id}: record has multiple direct replacements: "
+                f"{', '.join(sorted(replacement_ids))}"
+            )
+
+    for replacement_id, target_ids in supersedes_edges.items():
+        if len(target_ids) > 1:
+            result.errors.append(
+                f"{replacement_id}: record supersedes multiple direct predecessors: "
+                f"{', '.join(sorted(target_ids))}"
+            )
+
+    visited: set[str] = set()
+    visiting: set[str] = set()
+
+    def visit_supersession(record_id: str) -> None:
+        if record_id in visiting:
+            result.errors.append(f"supersession cycle detected at {record_id}")
+            return
+        if record_id in visited:
+            return
+        visiting.add(record_id)
+        for target_id in supersedes_edges.get(record_id, []):
+            if target_id in record_ids:
+                visit_supersession(target_id)
+        visiting.remove(record_id)
+        visited.add(record_id)
+
+    for record_id in sorted(record_ids):
+        visit_supersession(record_id)
 
     project = memory["project"]
     if _timestamp(project["updated_at"]) < _timestamp(project["created_at"]):
@@ -222,15 +271,10 @@ def validate_memory(
             )
 
         if record["status"] == "superseded":
-            incoming = any(
-                relation["type"] == "supersedes"
-                and relation["target_id"] == record_id
-                for other in records
-                for relation in other["relations"]
-            )
-            if not incoming:
-                result.warnings.append(
-                    f"{record_id}: superseded record has no incoming supersedes relation"
+            replacements = superseded_by.get(record_id, [])
+            if not replacements:
+                result.errors.append(
+                    f"{record_id}: superseded record requires one direct replacement"
                 )
 
         if check_hashes and record["content_hash"] != record_hash(record):

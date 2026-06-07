@@ -38,7 +38,7 @@ bootstrap are generated projections and must never be edited as sources.
 2. Read existing `kiroku/memory.json` when present.
 3. Register every input with `add-source`.
 4. Start the extraction or update with `start-run`.
-5. Create or replace durable information with `add-record` or `update-record`.
+5. Create, replace, or supersede durable information with the record commands.
 6. Attach evidence to each claim and distinguish observation from inference.
 7. Preserve existing IDs during updates.
 8. Use relations for dependencies, contradictions, and supersession.
@@ -119,6 +119,17 @@ python <skill-dir>/scripts/kiroku.py update-record \
   --file ./record-draft.json
 ```
 
+When the previous claim must remain as history, use a new draft key:
+
+```bash
+python <skill-dir>/scripts/kiroku.py supersede-record \
+  --dir ./kiroku \
+  --run-id run_update_example \
+  --key canonical_memory \
+  --expect-hash sha256:... \
+  --file ./replacement-draft.json
+```
+
 Complete the run after all records have been added:
 
 ```bash
@@ -182,8 +193,8 @@ outside generated views and reference it through `sources`.
 
 - Keep record IDs stable.
 - Update `updated_at` only when the record changes.
-- Mark replaced records `superseded` or `obsolete`.
-- Add a `supersedes` relation from the replacement record.
+- Use `supersede-record` to replace durable knowledge while preserving history.
+- Do not manually set `superseded` or add `supersedes` relations.
 - Record unresolved disagreement as a `conflict`.
 - Mark tasks `completed` only with explicit completion evidence.
 - Do not regenerate timestamps merely because rendering ran.
@@ -198,6 +209,7 @@ python <skill-dir>/scripts/kiroku.py add-source --help
 python <skill-dir>/scripts/kiroku.py start-run --help
 python <skill-dir>/scripts/kiroku.py add-record --help
 python <skill-dir>/scripts/kiroku.py update-record --help
+python <skill-dir>/scripts/kiroku.py supersede-record --help
 python <skill-dir>/scripts/kiroku.py finish-run --help
 python <skill-dir>/scripts/kiroku.py render --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py bootstrap --dir ./kiroku

@@ -167,6 +167,17 @@ python <skill-dir>/scripts/kiroku.py update-record \
   --file ./record-draft.json
 ```
 
+Use `supersede-record` when the new record must retain a historical link:
+
+```bash
+python <skill-dir>/scripts/kiroku.py supersede-record \
+  --dir ./kiroku \
+  --run-id run_update_example \
+  --key decision_service_only \
+  --expect-hash sha256:... \
+  --file ./replacement-draft.json
+```
+
 Allowed lifecycle states:
 
 - `proposed`
@@ -269,8 +280,9 @@ Relations connect records:
 - `derived_from`
 - `related_to`
 
-Relation targets must exist. Use a `supersedes` relation when replacing previous
-knowledge instead of deleting it.
+Relation targets must exist. `supersedes` relations are managed by
+`supersede-record`: their targets must have `superseded` status, each target
+must have exactly one direct replacement, and replacement chains cannot cycle.
 
 ## Hashing
 

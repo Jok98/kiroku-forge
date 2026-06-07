@@ -161,6 +161,91 @@ class ValidationTests(unittest.TestCase):
             any("multiple running runs" in error for error in result.errors)
         )
 
+    def test_superseded_record_requires_replacement(self) -> None:
+        data = fixture()
+        record = data["records"][0]
+        record["status"] = "superseded"
+        record["content_hash"] = record_hash(record)
+        result = validate_memory(data, SCHEMA)
+        self.assertTrue(
+            any("requires one direct replacement" in error for error in result.errors)
+        )
+
+    def test_supersedes_relation_requires_target_status(self) -> None:
+        data = fixture()
+        replacement = data["records"][1]
+        replacement["relations"].append(
+            {
+                "type": "supersedes",
+                "target_id": data["records"][0]["id"],
+            }
+        )
+        replacement["content_hash"] = record_hash(replacement)
+        result = validate_memory(data, SCHEMA)
+        self.assertTrue(
+            any(
+                "supersedes relation requires superseded status" in error
+                for error in result.errors
+            )
+        )
+
+    def test_multiple_direct_replacements_are_rejected(self) -> None:
+        data = fixture()
+        target = data["records"][0]
+        target["status"] = "superseded"
+        target["content_hash"] = record_hash(target)
+        for replacement in data["records"][1:]:
+            replacement["relations"].append(
+                {
+                    "type": "supersedes",
+                    "target_id": target["id"],
+                }
+            )
+            replacement["content_hash"] = record_hash(replacement)
+        result = validate_memory(data, SCHEMA)
+        self.assertTrue(
+            any("multiple direct replacements" in error for error in result.errors)
+        )
+
+    def test_replacement_cannot_supersede_multiple_predecessors(self) -> None:
+        data = fixture()
+        first, second, replacement = data["records"]
+        first["status"] = "superseded"
+        second["status"] = "superseded"
+        replacement["relations"].extend(
+            [
+                {"type": "supersedes", "target_id": first["id"]},
+                {"type": "supersedes", "target_id": second["id"]},
+            ]
+        )
+        for record in data["records"]:
+            record["content_hash"] = record_hash(record)
+        result = validate_memory(data, SCHEMA)
+        self.assertTrue(
+            any(
+                "supersedes multiple direct predecessors" in error
+                for error in result.errors
+            )
+        )
+
+    def test_supersession_cycles_are_rejected(self) -> None:
+        data = fixture()
+        first, second = data["records"][:2]
+        first["status"] = "superseded"
+        second["status"] = "superseded"
+        first["relations"].append(
+            {"type": "supersedes", "target_id": second["id"]}
+        )
+        second["relations"].append(
+            {"type": "supersedes", "target_id": first["id"]}
+        )
+        first["content_hash"] = record_hash(first)
+        second["content_hash"] = record_hash(second)
+        result = validate_memory(data, SCHEMA)
+        self.assertTrue(
+            any("supersession cycle detected" in error for error in result.errors)
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

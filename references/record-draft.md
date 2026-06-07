@@ -1,7 +1,7 @@
 # Record Draft Contract
 
-Use `add-record` or `update-record` with a JSON object containing only semantic
-record data.
+Use `add-record`, `update-record`, or `supersede-record` with a JSON object
+containing only semantic record data.
 
 Required fields:
 
@@ -93,3 +93,24 @@ and timestamps of unchanged evidence, then refreshes `updated_at`,
 
 `--expect-hash` is mandatory optimistic concurrency control. A stale hash
 rejects the operation without changing canonical memory.
+
+Supersede a record when a new claim replaces it but history must remain:
+
+```bash
+python <skill-dir>/scripts/kiroku.py supersede-record \
+  --dir ./kiroku \
+  --run-id run_update_example \
+  --key canonical_memory \
+  --expect-hash sha256:... \
+  --file ./replacement-draft.json
+```
+
+The replacement draft must use a new, unused `key` and a live status. Do not
+provide a `supersedes` relation; the command adds it automatically.
+
+The operation atomically marks the predecessor `superseded`, creates the
+replacement, updates both hashes, and links the replacement to the predecessor.
+The active run must include every evidence source referenced by both records.
+
+Each superseded record has exactly one direct replacement. Linear replacement
+chains are valid; branches and cycles are rejected.
