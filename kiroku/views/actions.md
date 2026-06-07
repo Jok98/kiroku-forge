@@ -36,3 +36,23 @@ Selective queries, compact bootstrap output, and incremental source checks are i
 - `src_kiroku_forge_p1_final_0f883bb65893`: supports via test_result
 - `src_session_2026_06_07_architecture_6ceac687ec54`: supports via user_statement
 
+<!-- record:rec_p2_local_memory_viewer_complete_634e5368c5c6 -->
+## Complete P2 local memory viewer
+
+**ID:** `rec_p2_local_memory_viewer_complete_634e5368c5c6`  
+**Key:** `p2_local_memory_viewer_complete`  
+**Type:** `roadmap_item` | **Status:** `completed` | **Verification:** `verified`  
+
+The read-only local viewer, API, interactive explorer, and provenance details are implemented and verified.
+
+**Outcome:** P2 provides reusable shared queries, a loopback-only read-only API over canonical memory, and a dependency-free browser UI with dashboard, complete record filters, stable deep links, provenance, relations, sources, and run history.  
+**Horizon:** now  
+**Priority:** high
+
+**Evidence:**
+- `src_viewer_contract_md_1bddba144dbe`: supports via direct_observation
+- `src_viewer_py_2c3103427c7e`: supports via direct_observation
+- `src_app_js_b57b6335d85e`: supports via direct_observation
+- `src_test_viewer_server_py_da2162e203af`: supports via direct_observation
+- `src_p2_2_verification_607a563f11b1`: supports via test_result
+

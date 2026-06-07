@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_from": "sha256:3621dc2fe1b88fc777a549ee00180fe44453440dbbbb7e2b8bd1a3dcfef701b8",
+  "generated_from": "sha256:a8ab2050e7862358b5af8cadc498d017ba76abc2f6fa78bd8e99e48a43a31b4f",
   "scope_filter": null,
   "project": {
     "id": "project_kirokuforge",
@@ -368,9 +368,9 @@
       "id": "rec_dedicated_user_memory_ui_17ebf9999e50",
       "key": "dedicated_user_memory_ui",
       "type": "idea",
-      "status": "proposed",
+      "status": "resolved",
       "title": "Dedicated user memory UI",
-      "summary": "The user proposed a dedicated interface over the structured memory store.",
+      "summary": "The proposed interface is implemented as the read-only local Kiroku viewer.",
       "scope": [
         "kiroku-forge"
       ],
@@ -381,12 +381,18 @@
         "expected_value": "Improve navigation and comprehension without making Markdown a competing source of truth."
       },
       "evidence_source_ids": [
-        "src_design_session_74a24ba02b43"
+        "src_design_session_74a24ba02b43",
+        "src_p2_2_verification_607a563f11b1",
+        "src_viewer_contract_md_1bddba144dbe"
       ],
       "relations": [
         {
           "type": "depends_on",
           "target_id": "rec_p0_controlled_writes_complete_fb377628b080"
+        },
+        {
+          "type": "related_to",
+          "target_id": "rec_p2_local_memory_viewer_complete_634e5368c5c6"
         }
       ]
     },
@@ -453,6 +459,45 @@
         {
           "type": "related_to",
           "target_id": "rec_incremental_source_hash_status_451181a6b511"
+        }
+      ]
+    },
+    {
+      "id": "rec_p2_local_memory_viewer_complete_634e5368c5c6",
+      "key": "p2_local_memory_viewer_complete",
+      "type": "roadmap_item",
+      "status": "completed",
+      "title": "Complete P2 local memory viewer",
+      "summary": "The read-only local viewer, API, interactive explorer, and provenance details are implemented and verified.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "payload": {
+        "outcome": "P2 provides reusable shared queries, a loopback-only read-only API over canonical memory, and a dependency-free browser UI with dashboard, complete record filters, stable deep links, provenance, relations, sources, and run history.",
+        "horizon": "now",
+        "priority": "high"
+      },
+      "evidence_source_ids": [
+        "src_app_js_b57b6335d85e",
+        "src_p2_2_verification_607a563f11b1",
+        "src_test_viewer_server_py_da2162e203af",
+        "src_viewer_contract_md_1bddba144dbe",
+        "src_viewer_py_2c3103427c7e"
+      ],
+      "relations": [
+        {
+          "type": "implements",
+          "target_id": "rec_dedicated_user_memory_ui_17ebf9999e50"
+        },
+        {
+          "type": "depends_on",
+          "target_id": "rec_p1_agent_efficiency_complete_715ed9381da4"
+        },
+        {
+          "type": "implements",
+          "target_id": "rec_canonical_json_memory_a72909b99be1"
         }
       ]
     }
@@ -562,6 +607,41 @@
       "title": "KirokuForge P1 final test suite",
       "uri": "command://python-unittest/kiroku-forge-p1-final",
       "revision": "2026-06-07-p1-final"
+    },
+    {
+      "id": "src_app_js_b57b6335d85e",
+      "kind": "repository_file",
+      "title": "Kiroku interactive viewer application",
+      "uri": "assets/viewer/app.js",
+      "revision": "p2.2-verified-2026-06-07"
+    },
+    {
+      "id": "src_viewer_contract_md_1bddba144dbe",
+      "kind": "repository_file",
+      "title": "Local viewer contract P2.2",
+      "uri": "references/viewer-contract.md",
+      "revision": "p2.2-verified-2026-06-07"
+    },
+    {
+      "id": "src_viewer_py_2c3103427c7e",
+      "kind": "repository_file",
+      "title": "Read-only local viewer server",
+      "uri": "scripts/kiroku_core/viewer.py",
+      "revision": "p2.2-verified-2026-06-07"
+    },
+    {
+      "id": "src_test_viewer_server_py_da2162e203af",
+      "kind": "repository_file",
+      "title": "Local viewer server and browser tests",
+      "uri": "tests/test_viewer_server.py",
+      "revision": "p2.2-verified-2026-06-07"
+    },
+    {
+      "id": "src_p2_2_verification_607a563f11b1",
+      "kind": "test_result",
+      "title": "P2.2 viewer verification",
+      "uri": "command://kiroku-forge/p2.2-verification",
+      "revision": "2026-06-07-final"
     }
   ]
 }

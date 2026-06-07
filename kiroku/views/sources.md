@@ -152,3 +152,67 @@
 **Revision:** `2026-06-07-p1-final`  
 **Integrity:** `verified`
 
+## KirokuForge README with viewer usage
+
+**ID:** `src_readme_md_5528cf7269e6`  
+**Kind:** `repository_file`  
+**URI:** `README.md`  
+**Revision:** `p2.2-verified-2026-06-07`  
+**Integrity:** `verified`
+
+## Kiroku viewer stylesheet
+
+**ID:** `src_app_css_4a5c0241bbe2`  
+**Kind:** `repository_file`  
+**URI:** `assets/viewer/app.css`  
+**Revision:** `p2.2-verified-2026-06-07`  
+**Integrity:** `verified`
+
+## Kiroku interactive viewer application
+
+**ID:** `src_app_js_b57b6335d85e`  
+**Kind:** `repository_file`  
+**URI:** `assets/viewer/app.js`  
+**Revision:** `p2.2-verified-2026-06-07`  
+**Integrity:** `verified`
+
+## Kiroku viewer HTML shell
+
+**ID:** `src_index_html_6f8a275f993e`  
+**Kind:** `repository_file`  
+**URI:** `assets/viewer/index.html`  
+**Revision:** `p2.2-verified-2026-06-07`  
+**Integrity:** `verified`
+
+## Local viewer contract P2.2
+
+**ID:** `src_viewer_contract_md_1bddba144dbe`  
+**Kind:** `repository_file`  
+**URI:** `references/viewer-contract.md`  
+**Revision:** `p2.2-verified-2026-06-07`  
+**Integrity:** `verified`
+
+## Read-only local viewer server
+
+**ID:** `src_viewer_py_2c3103427c7e`  
+**Kind:** `repository_file`  
+**URI:** `scripts/kiroku_core/viewer.py`  
+**Revision:** `p2.2-verified-2026-06-07`  
+**Integrity:** `verified`
+
+## Local viewer server and browser tests
+
+**ID:** `src_test_viewer_server_py_da2162e203af`  
+**Kind:** `repository_file`  
+**URI:** `tests/test_viewer_server.py`  
+**Revision:** `p2.2-verified-2026-06-07`  
+**Integrity:** `verified`
+
+## P2.2 viewer verification
+
+**ID:** `src_p2_2_verification_607a563f11b1`  
+**Kind:** `test_result`  
+**URI:** `command://kiroku-forge/p2.2-verification`  
+**Revision:** `2026-06-07-final`  
+**Integrity:** `verified`
+

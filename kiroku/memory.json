@@ -279,6 +279,119 @@
         "size_bytes": 138,
         "encoding": "utf-8"
       }
+    },
+    {
+      "id": "src_readme_md_5528cf7269e6",
+      "kind": "repository_file",
+      "title": "KirokuForge README with viewer usage",
+      "uri": "README.md",
+      "revision": "p2.2-verified-2026-06-07",
+      "integrity": "verified",
+      "content_hash": "sha256:890aca4e3f2091b46ebd901699e24ef2fe4326a501e831b97087621f52840966",
+      "captured_at": "2026-06-07T14:30:11.458816Z",
+      "metadata": {
+        "phase": "P2.2",
+        "size_bytes": 26369
+      }
+    },
+    {
+      "id": "src_app_css_4a5c0241bbe2",
+      "kind": "repository_file",
+      "title": "Kiroku viewer stylesheet",
+      "uri": "assets/viewer/app.css",
+      "revision": "p2.2-verified-2026-06-07",
+      "integrity": "verified",
+      "content_hash": "sha256:d60e3243e90eca9f7db45d7802ba14f74deb2e59d82afb1bc40e14cc849d07db",
+      "captured_at": "2026-06-07T14:30:18.136419Z",
+      "metadata": {
+        "phase": "P2.2",
+        "size_bytes": 11662
+      }
+    },
+    {
+      "id": "src_app_js_b57b6335d85e",
+      "kind": "repository_file",
+      "title": "Kiroku interactive viewer application",
+      "uri": "assets/viewer/app.js",
+      "revision": "p2.2-verified-2026-06-07",
+      "integrity": "verified",
+      "content_hash": "sha256:3855f58999f0f956e3fbef2ab3144d75a9a4892bb6aa2f0aba353071d201ac04",
+      "captured_at": "2026-06-07T14:30:22.425737Z",
+      "metadata": {
+        "phase": "P2.2",
+        "size_bytes": 36141
+      }
+    },
+    {
+      "id": "src_index_html_6f8a275f993e",
+      "kind": "repository_file",
+      "title": "Kiroku viewer HTML shell",
+      "uri": "assets/viewer/index.html",
+      "revision": "p2.2-verified-2026-06-07",
+      "integrity": "verified",
+      "content_hash": "sha256:e1840c8b228d7ec674de96148a4d2f02d144a625a7feff85853e0d4618f0a76e",
+      "captured_at": "2026-06-07T14:30:29.406962Z",
+      "metadata": {
+        "phase": "P2.2",
+        "size_bytes": 418
+      }
+    },
+    {
+      "id": "src_viewer_contract_md_1bddba144dbe",
+      "kind": "repository_file",
+      "title": "Local viewer contract P2.2",
+      "uri": "references/viewer-contract.md",
+      "revision": "p2.2-verified-2026-06-07",
+      "integrity": "verified",
+      "content_hash": "sha256:c29b749e1f23c304940de818588edd65a63f5df402e95b8cc625186f0594388c",
+      "captured_at": "2026-06-07T14:30:33.292623Z",
+      "metadata": {
+        "phase": "P2.2",
+        "size_bytes": 7331
+      }
+    },
+    {
+      "id": "src_viewer_py_2c3103427c7e",
+      "kind": "repository_file",
+      "title": "Read-only local viewer server",
+      "uri": "scripts/kiroku_core/viewer.py",
+      "revision": "p2.2-verified-2026-06-07",
+      "integrity": "verified",
+      "content_hash": "sha256:dff6484af01afae9c64cc03481bc214da5d9eb5e6126ecd71d873bed766b15a4",
+      "captured_at": "2026-06-07T14:30:37.053243Z",
+      "metadata": {
+        "phase": "P2.2",
+        "size_bytes": 19889
+      }
+    },
+    {
+      "id": "src_test_viewer_server_py_da2162e203af",
+      "kind": "repository_file",
+      "title": "Local viewer server and browser tests",
+      "uri": "tests/test_viewer_server.py",
+      "revision": "p2.2-verified-2026-06-07",
+      "integrity": "verified",
+      "content_hash": "sha256:754205c4150b2c5fb876ccb6211465d12561f45a5fb3c809d7e949a8c79faff6",
+      "captured_at": "2026-06-07T14:30:42.303447Z",
+      "metadata": {
+        "phase": "P2.2",
+        "size_bytes": 15164
+      }
+    },
+    {
+      "id": "src_p2_2_verification_607a563f11b1",
+      "kind": "test_result",
+      "title": "P2.2 viewer verification",
+      "uri": "command://kiroku-forge/p2.2-verification",
+      "revision": "2026-06-07-final",
+      "integrity": "verified",
+      "content_hash": "sha256:7dfe167dac0abf75c356dc7a6ca66116f881ac3b119fc515ca0cf6e082d510a4",
+      "captured_at": "2026-06-07T14:30:48.959970Z",
+      "metadata": {
+        "phase": "P2.2",
+        "test_count": 117,
+        "size_bytes": 510
+      }
     }
   ],
   "runs": [
@@ -383,6 +496,49 @@
       "started_at": "2026-06-07T04:59:46.654122Z",
       "completed_at": "2026-06-07T05:00:57.404983Z",
       "summary": "Closed P1 agent efficiency with selective queries, compact bootstrap context, incremental source hash status, version-control independent operation, and explicit KirokuForge development-memory dogfooding.",
+      "warnings": []
+    },
+    {
+      "id": "run_update_20260607t143100990290z_5ae62de1",
+      "operation": "update",
+      "status": "completed",
+      "actor": {
+        "type": "agent",
+        "name": "codex",
+        "version": null
+      },
+      "inputs": [
+        "src_readme_md_5528cf7269e6",
+        "src_app_css_4a5c0241bbe2",
+        "src_app_js_b57b6335d85e",
+        "src_index_html_6f8a275f993e",
+        "src_viewer_contract_md_1bddba144dbe",
+        "src_viewer_py_2c3103427c7e",
+        "src_test_viewer_server_py_da2162e203af",
+        "src_p2_2_verification_607a563f11b1"
+      ],
+      "started_at": "2026-06-07T14:31:00.990290Z",
+      "completed_at": "2026-06-07T14:31:44.681207Z",
+      "summary": "Captured the completed P2 local viewer milestone from its contract, implementation, documentation, and 117-test verification.",
+      "warnings": []
+    },
+    {
+      "id": "run_update_20260607t143148612787z_f7d6277f",
+      "operation": "update",
+      "status": "completed",
+      "actor": {
+        "type": "agent",
+        "name": "codex",
+        "version": null
+      },
+      "inputs": [
+        "src_design_session_74a24ba02b43",
+        "src_viewer_contract_md_1bddba144dbe",
+        "src_p2_2_verification_607a563f11b1"
+      ],
+      "started_at": "2026-06-07T14:31:48.612787Z",
+      "completed_at": "2026-06-07T14:32:20.294583Z",
+      "summary": "Marked the dedicated user memory UI idea resolved and linked it to the verified P2 viewer milestone.",
       "warnings": []
     }
   ],
@@ -812,16 +968,17 @@
       "id": "rec_dedicated_user_memory_ui_17ebf9999e50",
       "key": "dedicated_user_memory_ui",
       "type": "idea",
-      "status": "proposed",
+      "status": "resolved",
       "title": "Dedicated user memory UI",
-      "summary": "The user proposed a dedicated interface over the structured memory store.",
+      "summary": "The proposed interface is implemented as the read-only local Kiroku viewer.",
       "scope": [
         "kiroku-forge"
       ],
       "tags": [
         "ui",
         "user-experience",
-        "p2"
+        "p2",
+        "resolved"
       ],
       "confidence": "confirmed",
       "verification_status": "verified",
@@ -835,13 +992,43 @@
             "kind": "message",
             "message_id": "user-ui-proposal"
           },
-          "observed_at": "2026-06-07T00:52:16.456047Z"
+          "observed_at": "2026-06-07T00:52:16.456047Z",
+          "note": "The user proposed a dedicated interface over structured memory while retaining agent-oriented canonical files."
+        },
+        {
+          "source_id": "src_viewer_contract_md_1bddba144dbe",
+          "relation": "supports",
+          "method": "direct_observation",
+          "target": "/payload/expected_value",
+          "locator": {
+            "kind": "lines",
+            "start_line": 188,
+            "end_line": 202
+          },
+          "note": "P2.2 implements a dependency-free browser interface as a read-only projection over memory.json.",
+          "observed_at": "2026-06-07T14:32:13.513709Z"
+        },
+        {
+          "source_id": "src_p2_2_verification_607a563f11b1",
+          "relation": "supports",
+          "method": "test_result",
+          "target": "/payload/expected_value",
+          "locator": {
+            "kind": "command",
+            "command": "python -m unittest discover -s tests -q"
+          },
+          "note": "The complete 117-test suite and browser smoke checks passed.",
+          "observed_at": "2026-06-07T14:32:13.513709Z"
         }
       ],
       "relations": [
         {
           "type": "depends_on",
           "target_id": "rec_p0_controlled_writes_complete_fb377628b080"
+        },
+        {
+          "type": "related_to",
+          "target_id": "rec_p2_local_memory_viewer_complete_634e5368c5c6"
         }
       ],
       "payload": {
@@ -849,9 +1036,9 @@
         "expected_value": "Improve navigation and comprehension without making Markdown a competing source of truth."
       },
       "created_at": "2026-06-07T00:52:16.456047Z",
-      "updated_at": "2026-06-07T00:52:16.456047Z",
-      "generated_by": "run_create_20260607t005215788258z_3cda829a",
-      "content_hash": "sha256:902b90f1955c356da4939bbd8780f60b60b363dd91d8c14a9e65a650f0c1f54d"
+      "updated_at": "2026-06-07T14:32:13.513709Z",
+      "generated_by": "run_update_20260607t143148612787z_f7d6277f",
+      "content_hash": "sha256:9c7f8dfbec5ef3905380c2fb01cf842fa94b546daba3d79cb0a9dbc57e5fbfad"
     },
     {
       "id": "rec_agent_query_command_completed_56db657db32c",
@@ -1197,6 +1384,114 @@
       "updated_at": "2026-06-07T05:00:51.192395Z",
       "generated_by": "run_update_20260607t045946654122z_5e4e0dd1",
       "content_hash": "sha256:6986c659b8534d11130ecf6d9af84da3ef59654004ba54324381b7b63ac0218b"
+    },
+    {
+      "id": "rec_p2_local_memory_viewer_complete_634e5368c5c6",
+      "key": "p2_local_memory_viewer_complete",
+      "type": "roadmap_item",
+      "status": "completed",
+      "title": "Complete P2 local memory viewer",
+      "summary": "The read-only local viewer, API, interactive explorer, and provenance details are implemented and verified.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "tags": [
+        "p2",
+        "viewer",
+        "user-experience",
+        "completed"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "evidence": [
+        {
+          "source_id": "src_viewer_contract_md_1bddba144dbe",
+          "relation": "supports",
+          "method": "direct_observation",
+          "target": "/payload/outcome",
+          "locator": {
+            "kind": "lines",
+            "start_line": 168,
+            "end_line": 202
+          },
+          "note": "The viewer contract documents the loopback server, API V1, browser interface, shared filters, deep links, safe DOM rendering, and read-only boundary.",
+          "observed_at": "2026-06-07T14:31:28.985846Z"
+        },
+        {
+          "source_id": "src_viewer_py_2c3103427c7e",
+          "relation": "supports",
+          "method": "direct_observation",
+          "target": "/payload/outcome",
+          "locator": {
+            "kind": "lines",
+            "start_line": 121,
+            "end_line": 218
+          },
+          "note": "The server accepts only GET and HEAD, validates canonical memory, serves confined assets, and exposes API V1 routes.",
+          "observed_at": "2026-06-07T14:31:28.985846Z"
+        },
+        {
+          "source_id": "src_app_js_b57b6335d85e",
+          "relation": "supports",
+          "method": "direct_observation",
+          "target": "/payload/outcome",
+          "locator": {
+            "kind": "lines",
+            "start_line": 242,
+            "end_line": 419
+          },
+          "note": "The browser application implements the bookmarkable record explorer with the complete shared query filter set.",
+          "observed_at": "2026-06-07T14:31:28.985846Z"
+        },
+        {
+          "source_id": "src_test_viewer_server_py_da2162e203af",
+          "relation": "supports",
+          "method": "direct_observation",
+          "target": "/payload/outcome",
+          "locator": {
+            "kind": "lines",
+            "start_line": 269,
+            "end_line": 329
+          },
+          "note": "Automated tests cover CSP, safe DOM construction, Chromium execution, filters, and record, source, and run deep links.",
+          "observed_at": "2026-06-07T14:31:28.985846Z"
+        },
+        {
+          "source_id": "src_p2_2_verification_607a563f11b1",
+          "relation": "supports",
+          "method": "test_result",
+          "target": "/payload/outcome",
+          "locator": {
+            "kind": "command",
+            "command": "python -m unittest discover -s tests -q"
+          },
+          "note": "All 117 tests passed; targeted Chromium tests and an interactive sorting smoke test also passed.",
+          "observed_at": "2026-06-07T14:31:28.985846Z"
+        }
+      ],
+      "relations": [
+        {
+          "type": "implements",
+          "target_id": "rec_dedicated_user_memory_ui_17ebf9999e50"
+        },
+        {
+          "type": "depends_on",
+          "target_id": "rec_p1_agent_efficiency_complete_715ed9381da4"
+        },
+        {
+          "type": "implements",
+          "target_id": "rec_canonical_json_memory_a72909b99be1"
+        }
+      ],
+      "payload": {
+        "outcome": "P2 provides reusable shared queries, a loopback-only read-only API over canonical memory, and a dependency-free browser UI with dashboard, complete record filters, stable deep links, provenance, relations, sources, and run history.",
+        "horizon": "now",
+        "priority": "high"
+      },
+      "created_at": "2026-06-07T14:31:28.985846Z",
+      "updated_at": "2026-06-07T14:31:28.985846Z",
+      "generated_by": "run_update_20260607t143100990290z_5ae62de1",
+      "content_hash": "sha256:fa5f65aef8ea1febd8a2c9a76f5bc59b8c2df82fb65eca626345dbfffe4a9c07"
     }
   ]
 }

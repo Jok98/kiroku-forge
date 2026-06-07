@@ -24,5 +24,5 @@
 | `fact` | 1 |
 | `idea` | 1 |
 | `implementation_detail` | 3 |
-| `roadmap_item` | 2 |
-| **Total** | **14** |
+| `roadmap_item` | 3 |
+| **Total** | **15** |
