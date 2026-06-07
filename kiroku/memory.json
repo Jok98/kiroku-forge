@@ -186,6 +186,99 @@
         "size_bytes": 202,
         "encoding": "utf-8"
       }
+    },
+    {
+      "id": "src_session_2026_06_07_architecture_6ceac687ec54",
+      "kind": "user_input",
+      "title": "Architecture direction for KirokuForge storage and tooling",
+      "uri": "conversation://kiroku-forge/session-2026-06-07-architecture",
+      "revision": "2026-06-07-p1-final",
+      "integrity": "verified",
+      "content_hash": "sha256:9b97d5adba56c6f255de67215b480d734b259d5bd51a2701420d1ac3d602630c",
+      "captured_at": "2026-06-07T04:59:12.006340Z",
+      "metadata": {
+        "size_bytes": 312,
+        "encoding": "utf-8"
+      }
+    },
+    {
+      "id": "src_kiroku_py_95f0c5d6102a",
+      "kind": "repository_file",
+      "title": "KirokuForge CLI with incremental source status",
+      "uri": "scripts/kiroku.py",
+      "revision": "2026-06-07-p1-final",
+      "integrity": "verified",
+      "content_hash": "sha256:0302c742fe8b91f10856ab8c1f78e37c9502f7bab535aec17f94b0bbb86058e7",
+      "captured_at": "2026-06-07T04:59:17.332732Z",
+      "metadata": {
+        "size_bytes": 40582
+      }
+    },
+    {
+      "id": "src_test_source_status_cli_py_c12c7f29cef9",
+      "kind": "repository_file",
+      "title": "Incremental source status tests",
+      "uri": "tests/test_source_status_cli.py",
+      "revision": "2026-06-07-p1-final",
+      "integrity": "verified",
+      "content_hash": "sha256:5daa1f32947c1a1a2d0b6532662f4050320152b05acf9168809947309eac168d",
+      "captured_at": "2026-06-07T04:59:22.136182Z",
+      "metadata": {
+        "size_bytes": 9263
+      }
+    },
+    {
+      "id": "src_skill_md_dec324b6ab2b",
+      "kind": "repository_file",
+      "title": "KirokuForge skill contract after P1",
+      "uri": "SKILL.md",
+      "revision": "2026-06-07-p1-final",
+      "integrity": "verified",
+      "content_hash": "sha256:eabccfbae338127636e56d337230f919b78985d034b310a8c4d1c3a6657cce70",
+      "captured_at": "2026-06-07T04:59:26.565486Z",
+      "metadata": {
+        "size_bytes": 8722
+      }
+    },
+    {
+      "id": "src_readme_md_bbcfadab57e9",
+      "kind": "document",
+      "title": "KirokuForge user documentation after P1",
+      "uri": "README.md",
+      "revision": "2026-06-07-p1-final",
+      "integrity": "verified",
+      "content_hash": "sha256:1ee3374ea31b6d56636b6602296bff041d0962f1f08c3cc7a278e0a73c82cc9a",
+      "captured_at": "2026-06-07T04:59:32.052167Z",
+      "metadata": {
+        "size_bytes": 24743
+      }
+    },
+    {
+      "id": "src_data_model_md_33dbf5151b03",
+      "kind": "document",
+      "title": "KirokuForge data model after P1",
+      "uri": "references/data-model.md",
+      "revision": "2026-06-07-p1-final",
+      "integrity": "verified",
+      "content_hash": "sha256:d42724e7c739a9b46145561ab219101c7997dd996aedfbec413c3d13aa38d45b",
+      "captured_at": "2026-06-07T04:59:35.773927Z",
+      "metadata": {
+        "size_bytes": 7110
+      }
+    },
+    {
+      "id": "src_kiroku_forge_p1_final_0f883bb65893",
+      "kind": "test_result",
+      "title": "KirokuForge P1 final test suite",
+      "uri": "command://python-unittest/kiroku-forge-p1-final",
+      "revision": "2026-06-07-p1-final",
+      "integrity": "verified",
+      "content_hash": "sha256:3a327ebfdc5ca8c04d93e9ad5ab8fb61e7e95bc060c8614680f5f489977e3a3d",
+      "captured_at": "2026-06-07T04:59:40.156810Z",
+      "metadata": {
+        "size_bytes": 138,
+        "encoding": "utf-8"
+      }
     }
   ],
   "runs": [
@@ -267,6 +360,29 @@
       "started_at": "2026-06-07T04:25:15.186689Z",
       "completed_at": "2026-06-07T04:26:40.725876Z",
       "summary": "Removed invalid P1 provenance sources, discarded the two dependent intermediate runs and obsolete superseded roadmap record, and retained only commit-backed P1 evidence.",
+      "warnings": []
+    },
+    {
+      "id": "run_update_20260607t045946654122z_5e4e0dd1",
+      "operation": "update",
+      "status": "completed",
+      "actor": {
+        "type": "agent",
+        "name": "codex",
+        "version": null
+      },
+      "inputs": [
+        "src_session_2026_06_07_architecture_6ceac687ec54",
+        "src_kiroku_py_95f0c5d6102a",
+        "src_test_source_status_cli_py_c12c7f29cef9",
+        "src_skill_md_dec324b6ab2b",
+        "src_readme_md_bbcfadab57e9",
+        "src_data_model_md_33dbf5151b03",
+        "src_kiroku_forge_p1_final_0f883bb65893"
+      ],
+      "started_at": "2026-06-07T04:59:46.654122Z",
+      "completed_at": "2026-06-07T05:00:57.404983Z",
+      "summary": "Closed P1 agent efficiency with selective queries, compact bootstrap context, incremental source hash status, version-control independent operation, and explicit KirokuForge development-memory dogfooding.",
       "warnings": []
     }
   ],
@@ -806,6 +922,281 @@
       "updated_at": "2026-06-07T04:25:38.204209Z",
       "generated_by": "run_update_20260607t042515186689z_2b9fee68",
       "content_hash": "sha256:35a61e610c2737f7bf28fa734fd48a2b50a5792773b56d04c272c9f4c5349fcd"
+    },
+    {
+      "id": "rec_version_control_independent_operation_eec90a915833",
+      "key": "version_control_independent_operation",
+      "type": "decision",
+      "status": "active",
+      "title": "Version-control independent operation",
+      "summary": "KirokuForge treats source revisions as opaque identifiers and does not invoke version-control tools.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "tags": [
+        "architecture",
+        "portability",
+        "provenance"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "evidence": [
+        {
+          "source_id": "src_session_2026_06_07_architecture_6ceac687ec54",
+          "relation": "supports",
+          "method": "user_statement",
+          "target": "/payload/decision",
+          "locator": {
+            "kind": "message",
+            "message_id": "user-version-control-boundary"
+          },
+          "note": "The user explicitly required the skill to avoid dependencies on version-control systems.",
+          "observed_at": "2026-06-07T05:00:09.524283Z"
+        },
+        {
+          "source_id": "src_skill_md_dec324b6ab2b",
+          "relation": "supports",
+          "method": "direct_observation",
+          "target": "/payload/implications",
+          "locator": {
+            "kind": "whole_source"
+          },
+          "note": "The current skill contract describes revisions as source identifiers and exposes no version-control workflow.",
+          "observed_at": "2026-06-07T05:00:09.524283Z"
+        }
+      ],
+      "relations": [
+        {
+          "type": "related_to",
+          "target_id": "rec_provenance_backed_claims_a3ab965374ab"
+        }
+      ],
+      "payload": {
+        "decision": "Keep KirokuForge independent from Git and all other version-control systems.",
+        "context": "Memory storage and source verification must work for local, external, or independently managed artifacts.",
+        "implications": [
+          "Revision values are opaque identifiers supplied by the user or agent.",
+          "The CLI validates captured hashes and internal consistency without resolving external revisions.",
+          "Versioning, backup, and synchronization remain outside the skill boundary."
+        ]
+      },
+      "created_at": "2026-06-07T05:00:09.524283Z",
+      "updated_at": "2026-06-07T05:00:09.524283Z",
+      "generated_by": "run_update_20260607t045946654122z_5e4e0dd1",
+      "content_hash": "sha256:04ebbe28d03062a734900f0b2737a7c97bd68814cb60098a955da704b0c45153"
+    },
+    {
+      "id": "rec_kiroku_forge_development_memory_db47fef3a4c6",
+      "key": "kiroku_forge_development_memory",
+      "type": "decision",
+      "status": "active",
+      "title": "Maintain KirokuForge development memory",
+      "summary": "The project-local kiroku directory is the official durable memory for development of the skill itself.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "tags": [
+        "dogfooding",
+        "development-memory",
+        "workflow"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "evidence": [
+        {
+          "source_id": "src_session_2026_06_07_architecture_6ceac687ec54",
+          "relation": "supports",
+          "method": "user_statement",
+          "target": "/payload/decision",
+          "locator": {
+            "kind": "message",
+            "message_id": "user-development-memory-purpose"
+          },
+          "note": "The user clarified that kiroku/ intentionally tracks progress in developing KirokuForge itself.",
+          "observed_at": "2026-06-07T05:00:21.447465Z"
+        }
+      ],
+      "relations": [
+        {
+          "type": "implements",
+          "target_id": "rec_canonical_json_memory_a72909b99be1"
+        },
+        {
+          "type": "related_to",
+          "target_id": "rec_generated_projections_read_only_5aa0e24efcc0"
+        }
+      ],
+      "payload": {
+        "decision": "Maintain kiroku/ in this project as the official development memory for KirokuForge.",
+        "context": "The skill is developed using its own memory model so decisions, milestones, evidence, and rationale remain reusable across sessions.",
+        "implications": [
+          "Update canonical memory at the end of meaningful development sessions.",
+          "Regenerate projections from memory.json after each update.",
+          "This dogfooding choice does not prescribe where other users store their memories."
+        ]
+      },
+      "created_at": "2026-06-07T05:00:21.447465Z",
+      "updated_at": "2026-06-07T05:00:21.447465Z",
+      "generated_by": "run_update_20260607t045946654122z_5e4e0dd1",
+      "content_hash": "sha256:713faa3268823b2f87c68d6e2e8e46a2f58d8eb8249d0036cadc19578175e508"
+    },
+    {
+      "id": "rec_incremental_source_hash_status_451181a6b511",
+      "key": "incremental_source_hash_status",
+      "type": "implementation_detail",
+      "status": "active",
+      "title": "Incremental source hash status",
+      "summary": "source-status identifies unchanged, changed, and new local inputs before an update run.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "tags": [
+        "p1",
+        "agent-efficiency",
+        "sources",
+        "hashing"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "evidence": [
+        {
+          "source_id": "src_kiroku_py_95f0c5d6102a",
+          "relation": "supports",
+          "method": "direct_observation",
+          "target": "/payload/detail",
+          "locator": {
+            "kind": "whole_source"
+          },
+          "note": "The CLI implements read-only source-status comparison and JSON output.",
+          "observed_at": "2026-06-07T05:00:36.203543Z"
+        },
+        {
+          "source_id": "src_test_source_status_cli_py_c12c7f29cef9",
+          "relation": "supports",
+          "method": "direct_observation",
+          "target": "/payload/components",
+          "locator": {
+            "kind": "whole_source"
+          },
+          "note": "Tests cover unchanged, changed, new, URI mapping, latest revision, filtering, missing files, and non-mutation.",
+          "observed_at": "2026-06-07T05:00:36.203543Z"
+        },
+        {
+          "source_id": "src_kiroku_forge_p1_final_0f883bb65893",
+          "relation": "supports",
+          "method": "test_result",
+          "target": "/payload/detail",
+          "locator": {
+            "kind": "command",
+            "command": "python -m unittest discover -s tests -v"
+          },
+          "note": "The complete 90-test suite passed.",
+          "observed_at": "2026-06-07T05:00:36.203543Z"
+        }
+      ],
+      "relations": [
+        {
+          "type": "implements",
+          "target_id": "rec_controlled_mutation_pipeline_ba2150c97e21"
+        },
+        {
+          "type": "related_to",
+          "target_id": "rec_agent_query_command_completed_56db657db32c"
+        }
+      ],
+      "payload": {
+        "detail": "source-status compares local file SHA-256 values with the latest source registered for each URI, returns deterministic JSON, and never mutates canonical memory.",
+        "components": [
+          "unchanged, changed, and new classification",
+          "latest captured source selection per URI",
+          "explicit URI-to-path mapping",
+          "changed-only actionable output",
+          "read-only operation"
+        ]
+      },
+      "created_at": "2026-06-07T05:00:36.203543Z",
+      "updated_at": "2026-06-07T05:00:36.203543Z",
+      "generated_by": "run_update_20260607t045946654122z_5e4e0dd1",
+      "content_hash": "sha256:0b0714dac2871939822af015e30a75c389b89940cdd65aa97cb6e235880c8fbe"
+    },
+    {
+      "id": "rec_p1_agent_efficiency_complete_715ed9381da4",
+      "key": "p1_agent_efficiency_complete",
+      "type": "roadmap_item",
+      "status": "completed",
+      "title": "Complete P1 agent efficiency",
+      "summary": "Selective queries, compact bootstrap output, and incremental source checks are implemented and verified.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "tags": [
+        "p1",
+        "milestone",
+        "agent-efficiency",
+        "completed"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "evidence": [
+        {
+          "source_id": "src_skill_md_dec324b6ab2b",
+          "relation": "supports",
+          "method": "direct_observation",
+          "target": "/payload/outcome",
+          "locator": {
+            "kind": "whole_source"
+          },
+          "note": "The skill workflow exposes query, compact bootstrap, and incremental source-status capabilities.",
+          "observed_at": "2026-06-07T05:00:51.192395Z"
+        },
+        {
+          "source_id": "src_kiroku_forge_p1_final_0f883bb65893",
+          "relation": "supports",
+          "method": "test_result",
+          "target": "/payload/outcome",
+          "locator": {
+            "kind": "command",
+            "command": "python -m unittest discover -s tests -v"
+          },
+          "note": "All 90 tests passed and the skill validator accepted the current skill.",
+          "observed_at": "2026-06-07T05:00:51.192395Z"
+        },
+        {
+          "source_id": "src_session_2026_06_07_architecture_6ceac687ec54",
+          "relation": "supports",
+          "method": "user_statement",
+          "target": "/payload/outcome",
+          "locator": {
+            "kind": "message",
+            "message_id": "user-version-control-boundary"
+          },
+          "note": "The final P1 implementation remains independent from version-control tooling.",
+          "observed_at": "2026-06-07T05:00:51.192395Z"
+        }
+      ],
+      "relations": [
+        {
+          "type": "depends_on",
+          "target_id": "rec_p0_controlled_writes_complete_fb377628b080"
+        },
+        {
+          "type": "related_to",
+          "target_id": "rec_agent_query_command_completed_56db657db32c"
+        },
+        {
+          "type": "related_to",
+          "target_id": "rec_incremental_source_hash_status_451181a6b511"
+        }
+      ],
+      "payload": {
+        "outcome": "P1 provides compact agent context, selective record queries, and read-only incremental source detection through content hashes, without depending on external version-control systems.",
+        "horizon": "now",
+        "priority": "high"
+      },
+      "created_at": "2026-06-07T05:00:51.192395Z",
+      "updated_at": "2026-06-07T05:00:51.192395Z",
+      "generated_by": "run_update_20260607t045946654122z_5e4e0dd1",
+      "content_hash": "sha256:6986c659b8534d11130ecf6d9af84da3ef59654004ba54324381b7b63ac0218b"
     }
   ]
 }

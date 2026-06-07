@@ -96,3 +96,59 @@
 **Revision:** `2026-06-07`  
 **Integrity:** `verified`
 
+## Architecture direction for KirokuForge storage and tooling
+
+**ID:** `src_session_2026_06_07_architecture_6ceac687ec54`  
+**Kind:** `user_input`  
+**URI:** `conversation://kiroku-forge/session-2026-06-07-architecture`  
+**Revision:** `2026-06-07-p1-final`  
+**Integrity:** `verified`
+
+## KirokuForge CLI with incremental source status
+
+**ID:** `src_kiroku_py_95f0c5d6102a`  
+**Kind:** `repository_file`  
+**URI:** `scripts/kiroku.py`  
+**Revision:** `2026-06-07-p1-final`  
+**Integrity:** `verified`
+
+## Incremental source status tests
+
+**ID:** `src_test_source_status_cli_py_c12c7f29cef9`  
+**Kind:** `repository_file`  
+**URI:** `tests/test_source_status_cli.py`  
+**Revision:** `2026-06-07-p1-final`  
+**Integrity:** `verified`
+
+## KirokuForge skill contract after P1
+
+**ID:** `src_skill_md_dec324b6ab2b`  
+**Kind:** `repository_file`  
+**URI:** `SKILL.md`  
+**Revision:** `2026-06-07-p1-final`  
+**Integrity:** `verified`
+
+## KirokuForge user documentation after P1
+
+**ID:** `src_readme_md_bbcfadab57e9`  
+**Kind:** `document`  
+**URI:** `README.md`  
+**Revision:** `2026-06-07-p1-final`  
+**Integrity:** `verified`
+
+## KirokuForge data model after P1
+
+**ID:** `src_data_model_md_33dbf5151b03`  
+**Kind:** `document`  
+**URI:** `references/data-model.md`  
+**Revision:** `2026-06-07-p1-final`  
+**Integrity:** `verified`
+
+## KirokuForge P1 final test suite
+
+**ID:** `src_kiroku_forge_p1_final_0f883bb65893`  
+**Kind:** `test_result`  
+**URI:** `command://python-unittest/kiroku-forge-p1-final`  
+**Revision:** `2026-06-07-p1-final`  
+**Integrity:** `verified`
+

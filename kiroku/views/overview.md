@@ -94,3 +94,25 @@ The controlled write core is implemented and verified at commit e598905.
 - `src_kiroku_forge_cd2b9cf4fc73`: supports via test_result
 - `src_kiroku_forge_p0_8f0086c3a328`: context via direct_observation
 
+<!-- record:rec_incremental_source_hash_status_451181a6b511 -->
+## Incremental source hash status
+
+**ID:** `rec_incremental_source_hash_status_451181a6b511`  
+**Key:** `incremental_source_hash_status`  
+**Type:** `implementation_detail` | **Status:** `active` | **Verification:** `verified`  
+
+source-status identifies unchanged, changed, and new local inputs before an update run.
+
+**Detail:** source-status compares local file SHA-256 values with the latest source registered for each URI, returns deterministic JSON, and never mutates canonical memory.  
+**Components:**
+- unchanged, changed, and new classification
+- latest captured source selection per URI
+- explicit URI-to-path mapping
+- changed-only actionable output
+- read-only operation
+
+**Evidence:**
+- `src_kiroku_py_95f0c5d6102a`: supports via direct_observation
+- `src_test_source_status_cli_py_c12c7f29cef9`: supports via direct_observation
+- `src_kiroku_forge_p1_final_0f883bb65893`: supports via test_result
+
