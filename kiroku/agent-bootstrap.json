@@ -1,0 +1,414 @@
+{
+  "schema_version": "2.0.0",
+  "generated_from": "sha256:7637ffba77494600e86ebd09a91beba96adf7bcfe6b2a27531610b69efa52769",
+  "scope_filter": null,
+  "project": {
+    "id": "project_kirokuforge",
+    "name": "KirokuForge",
+    "domain": "project memory tooling",
+    "status": "active",
+    "goal": "Provide reliable provenance-backed project memory for agents and users.",
+    "scope": [
+      "kiroku-forge"
+    ]
+  },
+  "records": [
+    {
+      "id": "rec_canonical_json_memory_a72909b99be1",
+      "key": "canonical_json_memory",
+      "type": "decision",
+      "status": "active",
+      "title": "Canonical JSON memory",
+      "summary": "memory.json is the only editable source of truth.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "payload": {
+        "decision": "Use kiroku/memory.json as the canonical project-memory artifact.",
+        "context": "Agents and user-facing projections need one authoritative representation.",
+        "implications": [
+          "Generated Markdown and bootstrap files are projections.",
+          "Canonical mutations must validate against the memory schema."
+        ]
+      },
+      "evidence_source_ids": [
+        "src_skill_md_ee1fe041d607"
+      ],
+      "relations": []
+    },
+    {
+      "id": "rec_linear_supersession_history_39b69a2cd188",
+      "key": "linear_supersession_history",
+      "type": "decision",
+      "status": "active",
+      "title": "Linear supersession history",
+      "summary": "Historical replacement uses one predecessor and one direct successor without cycles.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "payload": {
+        "decision": "Preserve replaced knowledge through atomic linear supersession chains.",
+        "context": "Historical claims must remain inspectable without allowing ambiguous replacement graphs.",
+        "implications": [
+          "A superseded record has exactly one direct replacement.",
+          "A replacement supersedes exactly one direct predecessor.",
+          "Branches, merges, cycles, and later edits to historical predecessors are rejected."
+        ]
+      },
+      "evidence_source_ids": [
+        "src_kiroku_py_32b19fd05327",
+        "src_validation_py_c4831a31501b"
+      ],
+      "relations": [
+        {
+          "type": "implements",
+          "target_id": "rec_controlled_mutation_pipeline_ba2150c97e21"
+        }
+      ]
+    },
+    {
+      "id": "rec_provenance_backed_claims_a3ab965374ab",
+      "key": "provenance_backed_claims",
+      "type": "decision",
+      "status": "active",
+      "title": "Provenance-backed durable claims",
+      "summary": "Durable memory distinguishes observed evidence from inference.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "payload": {
+        "decision": "Attach structured source evidence to durable claims and preserve explicit uncertainty.",
+        "context": "Future agents must understand both what is believed and why.",
+        "implications": [
+          "Verified claims require direct supporting evidence.",
+          "Inferences remain distinguishable from observations.",
+          "Sources use stable locators, revisions, and hashes when available."
+        ]
+      },
+      "evidence_source_ids": [
+        "src_skill_md_ee1fe041d607"
+      ],
+      "relations": [
+        {
+          "type": "related_to",
+          "target_id": "rec_canonical_json_memory_a72909b99be1"
+        }
+      ]
+    },
+    {
+      "id": "rec_generated_projections_read_only_5aa0e24efcc0",
+      "key": "generated_projections_read_only",
+      "type": "constraint",
+      "status": "active",
+      "title": "Generated projections are read-only",
+      "summary": "Markdown views and the agent bootstrap must be regenerated from canonical JSON.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "payload": {
+        "constraint": "Do not edit generated Markdown views or agent-bootstrap.json as source data.",
+        "consequences": [
+          "Regenerate projections with render, bootstrap, or build.",
+          "Discard projection-only changes that are not represented in memory.json."
+        ]
+      },
+      "evidence_source_ids": [
+        "src_skill_md_ee1fe041d607"
+      ],
+      "relations": [
+        {
+          "type": "implements",
+          "target_id": "rec_canonical_json_memory_a72909b99be1",
+          "note": "Read-only projections preserve a single source of truth."
+        }
+      ]
+    },
+    {
+      "id": "rec_single_active_run_99767010fee9",
+      "key": "single_active_run",
+      "type": "constraint",
+      "status": "active",
+      "title": "Single active mutation run",
+      "summary": "Only one run may be active and build waits for its completion.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "payload": {
+        "constraint": "A memory may contain at most one running run, and projections must not be built until it is completed.",
+        "consequences": [
+          "Concurrent mutations are serialized.",
+          "Published projections cannot represent a partially completed operation."
+        ]
+      },
+      "evidence_source_ids": [
+        "src_validation_py_c4831a31501b"
+      ],
+      "relations": [
+        {
+          "type": "implements",
+          "target_id": "rec_controlled_mutation_pipeline_ba2150c97e21"
+        }
+      ]
+    },
+    {
+      "id": "rec_p0_controlled_writes_complete_fb377628b080",
+      "key": "p0_controlled_writes_complete",
+      "type": "fact",
+      "status": "active",
+      "title": "P0 controlled writes complete",
+      "summary": "The controlled write core is implemented and verified at commit e598905.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "payload": {
+        "statement": "At commit e598905, KirokuForge implements controlled sources, run lifecycle, record creation, optimistic updates, atomic supersession, validation, rendering, and bootstrap generation; 62 tests pass."
+      },
+      "evidence_source_ids": [
+        "src_kiroku_forge_cd2b9cf4fc73",
+        "src_kiroku_forge_p0_8f0086c3a328"
+      ],
+      "relations": [
+        {
+          "type": "related_to",
+          "target_id": "rec_controlled_mutation_pipeline_ba2150c97e21"
+        }
+      ]
+    },
+    {
+      "id": "rec_controlled_mutation_pipeline_ba2150c97e21",
+      "key": "controlled_mutation_pipeline",
+      "type": "implementation_detail",
+      "status": "active",
+      "title": "Controlled memory mutation pipeline",
+      "summary": "The CLI manages source registration, runs, record lifecycle, validation, and projection builds.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "payload": {
+        "detail": "Canonical writes flow through add-source, start-run, add-record or update-record or supersede-record, finish-run, and build.",
+        "components": [
+          "add-source",
+          "start-run",
+          "add-record",
+          "update-record",
+          "supersede-record",
+          "finish-run",
+          "validate",
+          "render",
+          "bootstrap",
+          "build"
+        ]
+      },
+      "evidence_source_ids": [
+        "src_kiroku_py_32b19fd05327"
+      ],
+      "relations": [
+        {
+          "type": "implements",
+          "target_id": "rec_canonical_json_memory_a72909b99be1"
+        },
+        {
+          "type": "implements",
+          "target_id": "rec_provenance_backed_claims_a3ab965374ab"
+        }
+      ]
+    },
+    {
+      "id": "rec_optimistic_record_updates_45cfab2c03b2",
+      "key": "optimistic_record_updates",
+      "type": "implementation_detail",
+      "status": "active",
+      "title": "Optimistic record updates",
+      "summary": "Record replacement requires the current content hash and preserves stable identity.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "payload": {
+        "detail": "update-record performs complete semantic replacement only when --expect-hash matches, preserving id, key, type, and created_at while refreshing updated_at, generated_by, and content_hash.",
+        "components": [
+          "record draft normalization",
+          "semantic comparison",
+          "expected hash check",
+          "atomic canonical write"
+        ]
+      },
+      "evidence_source_ids": [
+        "src_kiroku_py_32b19fd05327",
+        "src_records_py_c238f9857c74"
+      ],
+      "relations": [
+        {
+          "type": "implements",
+          "target_id": "rec_controlled_mutation_pipeline_ba2150c97e21"
+        }
+      ]
+    },
+    {
+      "id": "rec_dedicated_user_memory_ui_17ebf9999e50",
+      "key": "dedicated_user_memory_ui",
+      "type": "idea",
+      "status": "proposed",
+      "title": "Dedicated user memory UI",
+      "summary": "The user proposed a dedicated interface over the structured memory store.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "payload": {
+        "description": "Keep structured canonical files optimized for agents and build a dedicated UI for users to inspect and interact with project memory.",
+        "expected_value": "Improve navigation and comprehension without making Markdown a competing source of truth."
+      },
+      "evidence_source_ids": [
+        "src_design_session_74a24ba02b43"
+      ],
+      "relations": [
+        {
+          "type": "depends_on",
+          "target_id": "rec_p0_controlled_writes_complete_fb377628b080"
+        }
+      ]
+    },
+    {
+      "id": "rec_agent_query_command_completed_56db657db32c",
+      "key": "agent_query_command_completed",
+      "type": "roadmap_item",
+      "status": "completed",
+      "title": "Add selective agent queries",
+      "summary": "The query command is implemented with filters for key, type, status, scope, tag, relation-target, and relation-type, with sorting and multiple output formats.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "confidence": "confirmed",
+      "verification_status": "verified",
+      "payload": {
+        "outcome": "The query command supports filtering by key, type, status, scope, tag, relation-target, and relation-type. Output formats: compact, full, ids. Sorting by title, type, status, created_at, updated_at. --count flag.",
+        "horizon": "now",
+        "priority": "high"
+      },
+      "evidence_source_ids": [
+        "src_kiroku_forge_query_522b99efed65",
+        "src_kiroku_py_32b19fd05327",
+        "src_test_query_cli_py_8b0feb2a33c0"
+      ],
+      "relations": [
+        {
+          "type": "depends_on",
+          "target_id": "rec_p0_controlled_writes_complete_fb377628b080"
+        },
+        {
+          "type": "supersedes",
+          "target_id": "rec_agent_query_command_6b4bb1d09eb1"
+        }
+      ]
+    },
+    {
+      "id": "rec_agent_query_command_6b4bb1d09eb1",
+      "key": "agent_query_command",
+      "type": "roadmap_item",
+      "status": "superseded",
+      "title": "Add selective agent queries",
+      "summary": "The next efficiency capability is filtered record retrieval without loading all canonical memory.",
+      "scope": [
+        "kiroku-forge"
+      ],
+      "confidence": "medium",
+      "verification_status": "unverified",
+      "payload": {
+        "outcome": "Provide a query command for key, type, status, scope, tag, and relation filters with compact structured output.",
+        "horizon": "next",
+        "priority": "high"
+      },
+      "evidence_source_ids": [
+        "src_kiroku_py_32b19fd05327"
+      ],
+      "relations": [
+        {
+          "type": "depends_on",
+          "target_id": "rec_p0_controlled_writes_complete_fb377628b080"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "src_skill_md_ee1fe041d607",
+      "kind": "repository_file",
+      "title": "KirokuForge skill contract",
+      "uri": "SKILL.md",
+      "revision": "e5989058c560ee49bd9cf3fdf0d336836f9d98a4"
+    },
+    {
+      "id": "src_kiroku_py_32b19fd05327",
+      "kind": "repository_file",
+      "title": "KirokuForge command-line implementation",
+      "uri": "scripts/kiroku.py",
+      "revision": "e5989058c560ee49bd9cf3fdf0d336836f9d98a4"
+    },
+    {
+      "id": "src_validation_py_c4831a31501b",
+      "kind": "repository_file",
+      "title": "Semantic memory validation",
+      "uri": "scripts/kiroku_core/validation.py",
+      "revision": "e5989058c560ee49bd9cf3fdf0d336836f9d98a4"
+    },
+    {
+      "id": "src_records_py_c238f9857c74",
+      "kind": "repository_file",
+      "title": "Record construction helpers",
+      "uri": "scripts/kiroku_core/records.py",
+      "revision": "e5989058c560ee49bd9cf3fdf0d336836f9d98a4"
+    },
+    {
+      "id": "src_kiroku_forge_cd2b9cf4fc73",
+      "kind": "test_result",
+      "title": "KirokuForge test suite at P0 completion",
+      "uri": "command://python-unittest/kiroku-forge",
+      "revision": "e5989058c560ee49bd9cf3fdf0d336836f9d98a4"
+    },
+    {
+      "id": "src_kiroku_forge_p0_8f0086c3a328",
+      "kind": "command_output",
+      "title": "KirokuForge milestone commits",
+      "uri": "command://git-log/kiroku-forge-p0",
+      "revision": "e5989058c560ee49bd9cf3fdf0d336836f9d98a4"
+    },
+    {
+      "id": "src_design_session_74a24ba02b43",
+      "kind": "conversation",
+      "title": "User direction for KirokuForge memory and UI",
+      "uri": "conversation://kiroku-forge/design-session",
+      "revision": "2026-06-07"
+    },
+    {
+      "id": "src_test_query_cli_py_8b0feb2a33c0",
+      "kind": "repository_file",
+      "title": "Query command tests",
+      "uri": "tests/test_query_cli.py",
+      "revision": "e5989058c560ee49bd9cf3fdf0d336836f9d98a4"
+    },
+    {
+      "id": "src_kiroku_forge_query_522b99efed65",
+      "kind": "test_result",
+      "title": "Query command test suite pass",
+      "uri": "command://python-unittest/kiroku-forge-query",
+      "revision": "e5989058c560ee49bd9cf3fdf0d336836f9d98a4"
+    }
+  ]
+}

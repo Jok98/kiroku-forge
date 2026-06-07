@@ -766,6 +766,147 @@ def command_bootstrap(args: argparse.Namespace) -> int:
     return 0
 
 
+def _compact_record(record: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "id": record["id"],
+        "key": record["key"],
+        "type": record["type"],
+        "status": record["status"],
+        "title": record["title"],
+        "summary": record["summary"],
+        "scope": record["scope"],
+        "confidence": record["confidence"],
+        "verification_status": record["verification_status"],
+        "payload": record["payload"],
+        "evidence_source_ids": sorted(
+            {item["source_id"] for item in record["evidence"]}
+        ),
+        "relations": record["relations"],
+    }
+
+
+VALID_RECORD_TYPES = {
+    "fact",
+    "decision",
+    "assumption",
+    "idea",
+    "rejected_idea",
+    "task",
+    "question",
+    "risk",
+    "preference",
+    "constraint",
+    "implementation_detail",
+    "roadmap_item",
+    "conflict",
+    "event",
+}
+
+VALID_RECORD_STATUSES = {
+    "proposed",
+    "active",
+    "resolved",
+    "superseded",
+    "obsolete",
+    "completed",
+    "cancelled",
+}
+
+VALID_RELATION_TYPES = {
+    "depends_on",
+    "blocks",
+    "supersedes",
+    "contradicts",
+    "implements",
+    "mitigates",
+    "answers",
+    "derived_from",
+    "related_to",
+}
+
+
+def _sort_timestamp(value: str) -> datetime:
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+QUERY_SORT_FIELDS = {
+    "title": lambda r: r["title"].lower(),
+    "type": lambda r: r["type"],
+    "status": lambda r: r["status"],
+    "created_at": lambda r: _sort_timestamp(r["created_at"]),
+    "updated_at": lambda r: _sort_timestamp(r["updated_at"]),
+}
+
+QUERY_FORMATS = ("compact", "full", "ids")
+
+
+def command_query(args: argparse.Namespace) -> int:
+    directory = Path(args.dir).resolve()
+    memory = _load(directory)
+    result = validate_memory(memory, SCHEMA_PATH)
+    if not result.ok:
+        _print_result(result)
+        return 2
+
+    if args.type is not None and args.type not in VALID_RECORD_TYPES:
+        print(f"[ERROR] unknown record type: {args.type}")
+        return 2
+    if args.status is not None and args.status not in VALID_RECORD_STATUSES:
+        print(f"[ERROR] unknown record status: {args.status}")
+        return 2
+    if args.relation_type is not None and args.relation_type not in VALID_RELATION_TYPES:
+        print(f"[ERROR] unknown relation type: {args.relation_type}")
+        return 2
+
+    records = memory["records"]
+
+    if args.key is not None:
+        records = [r for r in records if r["key"] == args.key]
+    if args.type is not None:
+        records = [r for r in records if r["type"] == args.type]
+    if args.status is not None:
+        records = [r for r in records if r["status"] == args.status]
+    if args.scope is not None:
+        records = [r for r in records if args.scope in r["scope"]]
+    if args.tag is not None:
+        records = [r for r in records if args.tag in r["tags"]]
+
+    relation_target = args.relation_target
+    relation_type = args.relation_type
+    if relation_target is not None or relation_type is not None:
+        records = [
+            r
+            for r in records
+            if any(
+                (relation_target is None or rel["target_id"] == relation_target)
+                and (relation_type is None or rel["type"] == relation_type)
+                for rel in r["relations"]
+            )
+        ]
+
+    if args.count:
+        print(len(records))
+        return 0
+
+    sort_dir = args.sort_dir or "asc"
+    sort_key = QUERY_SORT_FIELDS.get(args.sort or "title", QUERY_SORT_FIELDS["title"])
+    records = sorted(records, key=sort_key, reverse=(sort_dir == "desc"))
+
+    fmt = args.format or "compact"
+    if fmt == "compact":
+        output = [_compact_record(r) for r in records]
+    elif fmt == "full":
+        output = records
+    elif fmt == "ids":
+        output = [r["id"] for r in records]
+    else:
+        print(f"[ERROR] unknown output format: {fmt}")
+        return 2
+
+    print(json.dumps(output, indent=2, ensure_ascii=False))
+    return 0
+
+
 def command_build(args: argparse.Namespace) -> int:
     directory = Path(args.dir).resolve()
     memory = _load(directory)
@@ -911,6 +1052,24 @@ def build_parser() -> argparse.ArgumentParser:
     bootstrap.add_argument("--scope")
     bootstrap.add_argument("--max-records", type=int, default=40)
     bootstrap.set_defaults(func=command_bootstrap)
+
+    query = subparsers.add_parser(
+        "query",
+        help="Filter and retrieve records from canonical memory",
+    )
+    query.add_argument("--dir", default="./kiroku")
+    query.add_argument("--key")
+    query.add_argument("--type")
+    query.add_argument("--status")
+    query.add_argument("--scope")
+    query.add_argument("--tag")
+    query.add_argument("--relation-target")
+    query.add_argument("--relation-type")
+    query.add_argument("--format", choices=QUERY_FORMATS, default="compact")
+    query.add_argument("--sort", choices=list(QUERY_SORT_FIELDS), default="title")
+    query.add_argument("--sort-dir", choices=("asc", "desc"), default="asc")
+    query.add_argument("--count", action="store_true")
+    query.set_defaults(func=command_query)
 
     build = subparsers.add_parser(
         "build",
