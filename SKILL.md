@@ -1,282 +1,33 @@
 ---
 name: kiroku-forge
-description: Transform conversations, planning sessions, project files, notes, and technical investigations into durable, provenance-backed project memory. Use when Codex must create, update, review, validate, or render reusable project knowledge such as decisions, facts, assumptions, tasks, risks, constraints, preferences, open questions, rejected ideas, and implementation context. Do not use for generic summaries unless the result is intended to become persistent project memory.
-license: MIT
-metadata:
-  project: KirokuForge
-  format: kiroku-memory-2
+description: Build and maintain durable project memory by capturing evidence, classifying reusable knowledge, reconciling it with existing state, compiling canonical records, validating quality, and generating focused handoffs. Use when project context must persist across sessions or agents. Do not use for generic summaries or project documentation.
 ---
 
 # KirokuForge
 
-Create durable project memory, not a generic summary.
+KirokuForge is being rebuilt as a project-memory compiler.
 
-The canonical artifact is `kiroku/memory.json`. Markdown files and the agent
-bootstrap are generated projections and must never be edited as sources.
+## Product Boundary
 
-## Read First
+- Preserve durable operational knowledge, not an encyclopedic project overview.
+- Keep one structured canonical memory owned by the project using the skill.
+- Keep raw source content outside canonical memory and reference it through provenance.
+- Do not depend on Git.
+- Treat human views and agent context packs as generated, read-only projections.
 
-- Read [references/data-model.md](references/data-model.md) before creating or
-  changing records.
-- Read [references/provenance.md](references/provenance.md) when collecting
-  evidence or assigning confidence.
-- Read [references/record-draft.md](references/record-draft.md) before using
-  `add-record`.
-- Read [references/viewer-contract.md](references/viewer-contract.md) when
-  implementing or integrating the local memory viewer.
-- The normative machine contract is
-  [schemas/memory-v2.schema.json](schemas/memory-v2.schema.json).
+## Target Pipeline
 
-## Operating Modes
+1. `CAPTURE`: identify and register selected conversations, files, documents, and observations.
+2. `CLASSIFY`: extract atomic candidate facts, decisions, assumptions, constraints, preferences, proposals, tasks, questions, risks, and events.
+3. `RECONCILE`: compare candidates with current memory and produce an explicit change set.
+4. `COMPILE`: apply the complete change set atomically to canonical memory.
+5. `VALIDATE`: verify structural integrity and report semantic quality problems.
+6. `HANDOFF`: generate a goal-focused context pack for the next session or agent.
 
-- **Create**: initialize new memory and extract durable records.
-- **Update**: preserve record IDs, add evidence, supersede instead of deleting.
-- **Review**: report stale, unsupported, duplicated, or contradictory records.
-- **Compact**: generate only the agent bootstrap or a concise inline result.
+Only `COMPILE` may modify canonical memory.
 
-## Workflow
+## Current State
 
-1. Determine project scope, goal, current phase, and requested mode.
-2. Read existing `kiroku/memory.json` when present.
-3. For updates, compare local candidate files with `source-status` and skip
-   unchanged inputs.
-4. Register new or changed inputs with `add-source`.
-5. Start the extraction or update with `start-run`.
-6. Create, replace, or supersede durable information with the record commands.
-7. Attach evidence to each claim and distinguish observation from inference.
-8. Preserve existing IDs during updates.
-9. Use relations for dependencies, contradictions, and supersession.
-10. Finish the operation with `finish-run`.
-11. Write only the canonical `memory.json`.
-12. Run:
-
-```bash
-python <skill-dir>/scripts/kiroku.py build --dir ./kiroku
-```
-
-13. Fix all validation errors. Warnings may remain only when they represent
-    explicit uncertainty.
-14. Report the canonical file, generated views, important changes, and remaining
-    uncertainty.
-
-## Initializing Memory
-
-For a new project:
-
-```bash
-python <skill-dir>/scripts/kiroku.py init \
-  --dir ./kiroku \
-  --name "Project name" \
-  --domain "Project domain" \
-  --goal "Durable project goal"
-```
-
-Then register sources, start a run, add records, and finish the run before
-running `build`.
-
-Register a source from a local file:
-
-```bash
-python <skill-dir>/scripts/kiroku.py add-source \
-  --dir ./kiroku \
-  --kind repository_file \
-  --title "Security configuration" \
-  --file src/main/java/example/SecurityConfiguration.java \
-  --revision "<source-revision>"
-```
-
-For conversations, URLs, or tool output, provide a stable `--uri`. Use `--text`
-or `--stdin` when captured content is available; otherwise the source is
-registered with unavailable integrity.
-
-Before an update, identify which local inputs require analysis:
-
-```bash
-python <skill-dir>/scripts/kiroku.py source-status \
-  --dir ./kiroku \
-  --file docs/architecture.md \
-  --file docs/requirements.md \
-  --changed-only
-```
-
-The command compares current SHA-256 values with the latest registered source
-for each URI and reports `unchanged`, `changed`, or `new`. It never modifies
-memory. Use `--map URI=PATH` when the stored URI differs from the local path.
-Register and analyse only `changed` and `new` inputs.
-
-Start a run after registering its sources:
-
-```bash
-python <skill-dir>/scripts/kiroku.py start-run \
-  --dir ./kiroku \
-  --operation update \
-  --input src_example \
-  --actor-name codex
-```
-
-Use the returned run ID for generated records, then complete the run:
-
-```bash
-python <skill-dir>/scripts/kiroku.py add-record \
-  --dir ./kiroku \
-  --run-id run_update_example \
-  --file ./record-draft.json
-```
-
-The draft contract is documented in
-[references/record-draft.md](references/record-draft.md). Use `--stdin` to avoid
-temporary files when the agent already has the JSON payload.
-
-To replace an existing record, read its current `content_hash` and run:
-
-```bash
-python <skill-dir>/scripts/kiroku.py update-record \
-  --dir ./kiroku \
-  --run-id run_update_example \
-  --key canonical_memory \
-  --expect-hash sha256:... \
-  --file ./record-draft.json
-```
-
-When the previous claim must remain as history, use a new draft key:
-
-```bash
-python <skill-dir>/scripts/kiroku.py supersede-record \
-  --dir ./kiroku \
-  --run-id run_update_example \
-  --key canonical_memory \
-  --expect-hash sha256:... \
-  --file ./replacement-draft.json
-```
-
-Complete the run after all records have been added:
-
-```bash
-python <skill-dir>/scripts/kiroku.py finish-run \
-  --dir ./kiroku \
-  --run-id run_update_example \
-  --summary "Updated project decisions and tasks."
-```
-
-`build` refuses to generate projections while a run is still active.
-
-## Record Rules
-
-Use one atomic record for one reusable claim or action.
-
-Supported types:
-
-- `fact`
-- `decision`
-- `assumption`
-- `idea`
-- `rejected_idea`
-- `task`
-- `question`
-- `risk`
-- `preference`
-- `constraint`
-- `implementation_detail`
-- `roadmap_item`
-- `conflict`
-- `event`
-
-Never convert brainstorming into a decision. Never mark an inference as directly
-observed. Never delete unresolved work during an update.
-
-Use:
-
-- `verification_status: verified` only with direct supporting evidence.
-- `partially_verified` when evidence covers only part of the claim.
-- `unverified` when no reliable evidence is available.
-- `contradicted` when evidence refutes the record.
-
-Use `confidence: confirmed` only for verified records.
-
-## Provenance Rules
-
-Every verified or partially verified record must have evidence.
-
-Evidence must identify:
-
-- source;
-- relationship to the claim;
-- observation method;
-- locator inside the source;
-- observation time.
-
-Prefer stable source paths and immutable revision identifiers. Preserve raw
-input outside generated views and reference it through `sources`.
-
-## Update Rules
-
-- Keep record IDs stable.
-- Update `updated_at` only when the record changes.
-- Use `supersede-record` to replace durable knowledge while preserving history.
-- Do not manually set `superseded` or add `supersedes` relations.
-- Record unresolved disagreement as a `conflict`.
-- Mark tasks `completed` only with explicit completion evidence.
-- Do not regenerate timestamps merely because rendering ran.
-
-## Validation And Projections
-
-Available commands:
-
-```bash
-python <skill-dir>/scripts/kiroku.py validate --dir ./kiroku
-python <skill-dir>/scripts/kiroku.py add-source --help
-python <skill-dir>/scripts/kiroku.py source-status --help
-python <skill-dir>/scripts/kiroku.py start-run --help
-python <skill-dir>/scripts/kiroku.py add-record --help
-python <skill-dir>/scripts/kiroku.py update-record --help
-python <skill-dir>/scripts/kiroku.py supersede-record --help
-python <skill-dir>/scripts/kiroku.py finish-run --help
-python <skill-dir>/scripts/kiroku.py query --help
-python <skill-dir>/scripts/kiroku.py serve --dir ./kiroku
-python <skill-dir>/scripts/kiroku.py render --dir ./kiroku
-python <skill-dir>/scripts/kiroku.py bootstrap --dir ./kiroku
-python <skill-dir>/scripts/kiroku.py build --dir ./kiroku
-```
-
-`build` recalculates record hashes, validates memory, and generates:
-
-```text
-kiroku/
-├── memory.json
-├── agent-bootstrap.json
-└── views/
-    ├── INDEX.md
-    ├── overview.md
-    ├── decisions.md
-    ├── actions.md
-    ├── risks-and-questions.md
-    ├── preferences.md
-    ├── history.md
-    └── sources.md
-```
-
-Use `bootstrap --scope <scope>` for focused agent context. Generated files are
-written only when their content changes.
-
-## Quality Bar
-
-- Do not invent facts, decisions, dates, owners, or evidence.
-- Keep temporary command results as `event` records or source evidence, not
-  stable facts.
-- Use concise titles and payloads.
-- Use project terminology exactly where compatibility matters.
-- Prefer explicit uncertainty over false precision.
-- Ensure another agent can answer both "what is true?" and "why do we believe
-  it?" without rereading the full conversation.
-
-## User Response
-
-Keep the completion response concise:
-
-- canonical memory created or updated;
-- generated projections;
-- key decisions and actions;
-- unresolved conflicts or unverified claims;
-- validation result.
-
-Do not paste all generated files unless requested.
+The previous v2 implementation has been removed. No executable command or data
+contract is currently defined. Specify and validate the v3 contracts before
+adding implementation code.
