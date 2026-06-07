@@ -34,6 +34,7 @@ from kiroku_core.query import (
 from kiroku_core.rendering import render_views
 from kiroku_core.records import build_record, record_semantics
 from kiroku_core.validation import ValidationResult, validate_memory
+from kiroku_core.viewer import InvalidMemoryError, create_viewer_server
 
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
@@ -930,6 +931,33 @@ def command_query(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_serve(args: argparse.Namespace) -> int:
+    directory = Path(args.dir).resolve()
+    try:
+        server = create_viewer_server(
+            directory,
+            SCHEMA_PATH,
+            SKILL_DIR / "assets" / "viewer",
+            port=args.port,
+        )
+    except InvalidMemoryError as exc:
+        print("[ERROR] canonical memory is invalid; viewer was not started")
+        for detail in exc.details:
+            print(f"[ERROR] {detail}")
+        return 2
+
+    host, port = server.server_address
+    print(f"[OK] Kiroku viewer serving {directory / 'memory.json'}")
+    print(f"     http://{host}:{port}")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\n[OK] Kiroku viewer stopped")
+    finally:
+        server.server_close()
+    return 0
+
+
 def command_build(args: argparse.Namespace) -> int:
     directory = Path(args.dir).resolve()
     memory = _load(directory)
@@ -1124,6 +1152,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     query.add_argument("--count", action="store_true")
     query.set_defaults(func=command_query)
+
+    serve = subparsers.add_parser(
+        "serve",
+        help="Serve validated memory through a local read-only API",
+    )
+    serve.add_argument("--dir", default="./kiroku")
+    serve.add_argument("--port", type=int, default=8765)
+    serve.set_defaults(func=command_serve)
 
     build = subparsers.add_parser(
         "build",

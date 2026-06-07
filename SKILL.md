@@ -232,6 +232,7 @@ python <skill-dir>/scripts/kiroku.py update-record --help
 python <skill-dir>/scripts/kiroku.py supersede-record --help
 python <skill-dir>/scripts/kiroku.py finish-run --help
 python <skill-dir>/scripts/kiroku.py query --help
+python <skill-dir>/scripts/kiroku.py serve --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py render --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py bootstrap --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py build --dir ./kiroku

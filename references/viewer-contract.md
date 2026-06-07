@@ -101,7 +101,7 @@ using `type` for `RecordQuery.record_type`, plus:
 - `sort`, default `title`;
 - `sort_dir`, default `asc`;
 - `offset`, default `0`;
-- `limit`, with a server-defined bounded default.
+- `limit`, default `50`, maximum `200`.
 
 Filtering and sorting happen before pagination. A collection response has this
 shape:
@@ -122,6 +122,8 @@ shape:
 ```
 
 Single-resource responses omit `page` and place the resource in `data`.
+Record collections use compact records; record details return the full record.
+Source and run collections accept only `offset` and `limit`.
 
 ## Errors
 
@@ -162,6 +164,26 @@ Human-facing routes are stable deep links:
 
 Explorer filters remain in the URL query string so a view can be bookmarked.
 The browser routes are client-side navigation and do not change API semantics.
+
+## P2.1 Implementation
+
+P2.1 provides:
+
+- `serve --dir <memory-dir> [--port <port>]`;
+- loopback-only binding on `127.0.0.1`;
+- a threaded stdlib HTTP server;
+- validation at startup and before each API response;
+- the API V1 resources defined above;
+- bounded pagination and strict query parameter validation;
+- derived reverse relation, source, and run lookups;
+- a confined skill-owned asset directory;
+- explicit `405 read_only` responses for mutating methods;
+- `Cache-Control: no-store`, content type protection, and a restrictive
+  content security policy for HTML.
+
+Port `0` asks the operating system to select an available local port. The
+server reloads canonical memory for each API request, so valid external changes
+are visible without rebuilding or restarting the viewer.
 
 ## P2.0 Acceptance Criteria
 

@@ -354,6 +354,29 @@ python scripts/kiroku.py validate --dir ./kiroku
 Checks structural JSON Schema compliance and semantic rules. Returns exit code
 2 on errors.
 
+### Serve
+
+```bash
+python scripts/kiroku.py serve \
+  --dir /path/to/project/kiroku \
+  [--port 8765]
+```
+
+Starts the read-only local viewer foundation on `127.0.0.1`. The selected
+project memory remains in its own `kiroku/` directory; viewer assets stay in
+the skill. Use port `0` to let the operating system select an available port.
+
+The server validates `memory.json` at startup and before every API response,
+never writes to the selected directory, and exposes:
+
+- `/api/v1/meta`
+- `/api/v1/records` and `/api/v1/records/{id}`
+- `/api/v1/sources` and `/api/v1/sources/{id}`
+- `/api/v1/runs` and `/api/v1/runs/{id}`
+
+The landing page confirms that the API is available. The interactive memory
+interface is implemented separately in P2.2.
+
 ### Render
 
 ```bash
@@ -625,8 +648,13 @@ scripts/
     ├── schema.py              ← Custom JSON Schema validator (no deps)
     ├── records.py             ← Draft normalization, ID generation, semantics comparison
     ├── validation.py          ← Structural + semantic validation
+    ├── query.py               ← Shared record filtering and reverse indexes
+    ├── viewer.py              ← Loopback read-only HTTP API
     ├── rendering.py           ← Markdown view generation
     └── bootstrap.py           ← Agent bootstrap generation
+
+assets/
+└── viewer/                    ← Local viewer browser assets
 
 schemas/
 └── memory-v2.schema.json      ← Normative machine contract (~1040 lines)
@@ -634,7 +662,8 @@ schemas/
 references/
 ├── data-model.md              ← Detailed data model reference
 ├── record-draft.md            ← Draft contract for add/update/supersede
-└── provenance.md              ← Evidence and verification rules
+├── provenance.md              ← Evidence and verification rules
+└── viewer-contract.md         ← Read-only viewer and API contract
 ```
 
 ### Design Principles
