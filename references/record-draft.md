@@ -1,6 +1,7 @@
 # Record Draft Contract
 
-Use `add-record` with a JSON object containing only semantic record data.
+Use `add-record` or `update-record` with a JSON object containing only semantic
+record data.
 
 Required fields:
 
@@ -73,3 +74,22 @@ For direct agent output, use `--stdin`.
 The same key and semantic content is idempotent. The same key with changed
 content is rejected and must later be handled by `update-record`. Equivalent
 content under another key is also deduplicated.
+
+Update a record using the hash read from canonical memory:
+
+```bash
+python <skill-dir>/scripts/kiroku.py update-record \
+  --dir ./kiroku \
+  --run-id run_update_example \
+  --key canonical_memory \
+  --expect-hash sha256:... \
+  --file ./record-draft.json
+```
+
+An update is a complete semantic replacement, not a partial merge. The draft
+must retain the same `key` and `type`. KirokuForge preserves `id`, `created_at`,
+and timestamps of unchanged evidence, then refreshes `updated_at`,
+`generated_by`, and `content_hash`.
+
+`--expect-hash` is mandatory optimistic concurrency control. A stale hash
+rejects the operation without changing canonical memory.

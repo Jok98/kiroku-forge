@@ -155,6 +155,18 @@ python <skill-dir>/scripts/kiroku.py add-record \
 
 See [record-draft.md](record-draft.md) for accepted fields and defaults.
 
+Replace semantic content through `update-record`. It preserves record identity,
+requires the current hash, and rejects stale concurrent writes:
+
+```bash
+python <skill-dir>/scripts/kiroku.py update-record \
+  --dir ./kiroku \
+  --run-id run_update_example \
+  --key decision_service_only \
+  --expect-hash sha256:... \
+  --file ./record-draft.json
+```
+
 Allowed lifecycle states:
 
 - `proposed`

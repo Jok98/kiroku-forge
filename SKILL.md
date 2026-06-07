@@ -38,7 +38,7 @@ bootstrap are generated projections and must never be edited as sources.
 2. Read existing `kiroku/memory.json` when present.
 3. Register every input with `add-source`.
 4. Start the extraction or update with `start-run`.
-5. Extract durable information into atomic records with `add-record`.
+5. Create or replace durable information with `add-record` or `update-record`.
 6. Attach evidence to each claim and distinguish observation from inference.
 7. Preserve existing IDs during updates.
 8. Use relations for dependencies, contradictions, and supersession.
@@ -107,6 +107,17 @@ python <skill-dir>/scripts/kiroku.py add-record \
 The draft contract is documented in
 [references/record-draft.md](references/record-draft.md). Use `--stdin` to avoid
 temporary files when the agent already has the JSON payload.
+
+To replace an existing record, read its current `content_hash` and run:
+
+```bash
+python <skill-dir>/scripts/kiroku.py update-record \
+  --dir ./kiroku \
+  --run-id run_update_example \
+  --key canonical_memory \
+  --expect-hash sha256:... \
+  --file ./record-draft.json
+```
 
 Complete the run after all records have been added:
 
@@ -186,6 +197,7 @@ python <skill-dir>/scripts/kiroku.py validate --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py add-source --help
 python <skill-dir>/scripts/kiroku.py start-run --help
 python <skill-dir>/scripts/kiroku.py add-record --help
+python <skill-dir>/scripts/kiroku.py update-record --help
 python <skill-dir>/scripts/kiroku.py finish-run --help
 python <skill-dir>/scripts/kiroku.py render --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py bootstrap --dir ./kiroku

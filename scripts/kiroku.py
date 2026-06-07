@@ -10,7 +10,7 @@ import json
 import re
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -45,9 +45,18 @@ ACTOR_TYPES = ("agent", "user", "tool")
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace(
-        "+00:00", "Z"
+    return datetime.now(timezone.utc).isoformat(timespec="microseconds").replace(
+        "+00:00",
+        "Z",
     )
+
+
+def _now_after(timestamp: str) -> str:
+    current = datetime.now(timezone.utc)
+    previous = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    if current <= previous:
+        current = previous + timedelta(microseconds=1)
+    return current.isoformat(timespec="microseconds").replace("+00:00", "Z")
 
 
 def _slug(value: str) -> str:
@@ -462,6 +471,110 @@ def command_add_record(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_update_record(args: argparse.Namespace) -> int:
+    directory = Path(args.dir).resolve()
+    memory = _load(directory)
+    baseline = validate_memory(memory, SCHEMA_PATH)
+    if not baseline.ok:
+        print("[ERROR] canonical memory is invalid; record was not updated")
+        _print_result(baseline)
+        return 2
+
+    run = next((item for item in memory["runs"] if item["id"] == args.run_id), None)
+    if run is None:
+        print(f"[ERROR] unknown run: {args.run_id}")
+        return 2
+    if run["status"] != "running":
+        print(f"[ERROR] run {args.run_id} is not running")
+        return 2
+
+    existing = next(
+        (item for item in memory["records"] if item["key"] == args.key),
+        None,
+    )
+    if existing is None:
+        print(f"[ERROR] unknown record key: {args.key}")
+        return 2
+    if existing["content_hash"] != args.expect_hash:
+        print(
+            f"[ERROR] record {args.key!r} changed since it was read; "
+            f"expected {args.expect_hash}, current {existing['content_hash']}"
+        )
+        return 2
+
+    draft = _record_draft(args)
+    if draft.get("key") != args.key:
+        print(
+            f"[ERROR] record draft key must match --key {args.key!r}; "
+            f"got {draft.get('key')!r}"
+        )
+        return 2
+    if draft.get("type") != existing["type"]:
+        print(
+            f"[ERROR] record type is immutable for {args.key!r}; "
+            f"expected {existing['type']!r}, got {draft.get('type')!r}"
+        )
+        return 2
+    if draft.get("status") == "superseded" and existing["status"] != "superseded":
+        print("[ERROR] use supersede-record to mark a record as superseded")
+        return 2
+
+    updated = build_record(
+        draft,
+        run_id=args.run_id,
+        project_scope=memory["project"]["scope"],
+        now=_now_after(existing["updated_at"]),
+        existing_record=existing,
+    )
+    if record_semantics(
+        existing,
+        include_observed_at=True,
+    ) == record_semantics(
+        updated,
+        include_observed_at=True,
+    ):
+        print(f"[SAME] Record is unchanged: {existing['id']}")
+        return 0
+
+    duplicate = next(
+        (
+            item
+            for item in memory["records"]
+            if item["id"] != existing["id"]
+            and record_semantics(item, include_key=False)
+            == record_semantics(updated, include_key=False)
+        ),
+        None,
+    )
+    if duplicate:
+        print(
+            f"[ERROR] update would duplicate existing record {duplicate['id']}; "
+            "no changes written"
+        )
+        return 2
+
+    candidate = copy.deepcopy(memory)
+    index = next(
+        index
+        for index, item in enumerate(candidate["records"])
+        if item["id"] == existing["id"]
+    )
+    candidate["records"][index] = updated
+    result = validate_memory(candidate, SCHEMA_PATH)
+    if not result.ok:
+        print("[ERROR] update would make canonical memory invalid; no changes written")
+        _print_result(result)
+        return 2
+
+    write_json_if_changed(_memory_path(directory), candidate)
+    print(f"[OK] Updated record {updated['id']}")
+    print(f"     Previous hash: {existing['content_hash']}")
+    print(f"     Current hash:  {updated['content_hash']}")
+    for warning in result.warnings:
+        print(f"[WARN]  {warning}")
+    return 0
+
+
 def _render(directory: Path, memory: dict[str, Any]) -> int:
     changed = 0
     view_dir = directory / "views"
@@ -622,6 +735,19 @@ def build_parser() -> argparse.ArgumentParser:
     draft_input.add_argument("--file")
     draft_input.add_argument("--stdin", action="store_true")
     add_record.set_defaults(func=command_add_record)
+
+    update_record = subparsers.add_parser(
+        "update-record",
+        help="Replace the semantic content of an existing record",
+    )
+    update_record.add_argument("--dir", default="./kiroku")
+    update_record.add_argument("--run-id", required=True)
+    update_record.add_argument("--key", required=True)
+    update_record.add_argument("--expect-hash", required=True)
+    update_input = update_record.add_mutually_exclusive_group(required=True)
+    update_input.add_argument("--file")
+    update_input.add_argument("--stdin", action="store_true")
+    update_record.set_defaults(func=command_update_record)
 
     render = subparsers.add_parser("render", help="Generate Markdown views")
     render.add_argument("--dir", default="./kiroku")

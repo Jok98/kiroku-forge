@@ -7,7 +7,7 @@ import hashlib
 import re
 from typing import Any
 
-from .io import record_hash
+from .io import canonical_json, record_hash
 
 
 DRAFT_REQUIRED = {
@@ -40,12 +40,45 @@ def record_id(key: str) -> str:
     return f"rec_{_slug(key)}_{suffix}"
 
 
+def _evidence_identity(evidence: dict[str, Any]) -> str:
+    semantic = copy.deepcopy(evidence)
+    semantic.pop("observed_at", None)
+    return canonical_json(semantic)
+
+
+def _normalize_evidence(
+    evidence: Any,
+    *,
+    now: str,
+    existing_record: dict[str, Any] | None,
+) -> Any:
+    normalized = copy.deepcopy(evidence)
+    if not isinstance(normalized, list):
+        return normalized
+
+    previous: dict[str, list[str]] = {}
+    if existing_record is not None:
+        for item in existing_record.get("evidence", []):
+            if isinstance(item, dict) and isinstance(item.get("observed_at"), str):
+                previous.setdefault(_evidence_identity(item), []).append(
+                    item["observed_at"]
+                )
+
+    for item in normalized:
+        if not isinstance(item, dict) or "observed_at" in item:
+            continue
+        matches = previous.get(_evidence_identity(item), [])
+        item["observed_at"] = matches.pop(0) if matches else now
+    return normalized
+
+
 def build_record(
     draft: dict[str, Any],
     *,
     run_id: str,
     project_scope: list[str],
     now: str,
+    existing_record: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     missing = sorted(DRAFT_REQUIRED - draft.keys())
     if missing:
@@ -64,14 +97,14 @@ def build_record(
             "record draft key must match ^[a-z0-9][a-z0-9_-]{0,79}$"
         )
 
-    evidence = copy.deepcopy(draft.get("evidence", []))
-    if isinstance(evidence, list):
-        for item in evidence:
-            if isinstance(item, dict):
-                item.setdefault("observed_at", now)
+    evidence = _normalize_evidence(
+        draft.get("evidence", []),
+        now=now,
+        existing_record=existing_record,
+    )
 
     record: dict[str, Any] = {
-        "id": record_id(key),
+        "id": existing_record["id"] if existing_record else record_id(key),
         "key": key,
         "type": copy.deepcopy(draft["type"]),
         "status": copy.deepcopy(draft.get("status", "active")),
@@ -84,7 +117,7 @@ def build_record(
         "evidence": evidence,
         "relations": copy.deepcopy(draft.get("relations", [])),
         "payload": copy.deepcopy(draft["payload"]),
-        "created_at": now,
+        "created_at": existing_record["created_at"] if existing_record else now,
         "updated_at": now,
         "generated_by": run_id,
         "content_hash": "",
@@ -95,7 +128,12 @@ def build_record(
     return record
 
 
-def record_semantics(record: dict[str, Any], *, include_key: bool = True) -> dict[str, Any]:
+def record_semantics(
+    record: dict[str, Any],
+    *,
+    include_key: bool = True,
+    include_observed_at: bool = False,
+) -> dict[str, Any]:
     semantic = copy.deepcopy(record)
     for field in (
         "id",
@@ -108,7 +146,7 @@ def record_semantics(record: dict[str, Any], *, include_key: bool = True) -> dic
     if not include_key:
         semantic.pop("key", None)
     evidence = semantic.get("evidence")
-    if isinstance(evidence, list):
+    if not include_observed_at and isinstance(evidence, list):
         for item in evidence:
             if isinstance(item, dict):
                 item.pop("observed_at", None)
