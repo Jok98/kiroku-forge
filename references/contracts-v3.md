@@ -429,8 +429,21 @@ Locator kinds are:
 - `selector`;
 - `custom`.
 
-Each locator MUST carry the fields required by its kind. Line and page ranges
-MUST be ordered and positive.
+Locator fields are:
+
+| Kind | Required fields |
+|---|---|
+| `whole_source` | `kind` |
+| `lines` | `kind`, `start_line`, `end_line` |
+| `section` | `kind`, `name` |
+| `message` | `kind`, `message_id` |
+| `page` | `kind`, `start_page`, `end_page` |
+| `selector` | `kind`, `expression` |
+| `custom` | `kind`, `namespace`, `value` |
+
+Locators MUST NOT contain fields belonging to another locator kind. Line and
+page numbers are one-based positive integers. Range ends MUST be greater than
+or equal to range starts.
 
 An excerpt is a retrieval aid, not a replacement for the source. It MUST remain
 short and MUST NOT contain an unnecessary copy of raw source content.
@@ -1089,12 +1102,23 @@ Pipeline artifact IDs use:
 - `aud_` for AuditReport;
 - `ctx_` for ContextPack.
 
-Implementations MUST generate globally unique IDs. Callers MUST treat IDs as
-opaque.
+Nested pipeline entities use:
 
-Timestamps use RFC 3339 UTC with a `Z` suffix. A compiler MUST NOT change a
-timestamp solely because memory was read, validated, queried, rendered, or
-handed off.
+- `csrc_` for a captured source;
+- `can_` for a candidate;
+- `op_` for a ChangeSet operation;
+- `fnd_` for a reconciliation or audit finding.
+
+Implementations MUST generate globally unique IDs. Callers MUST treat IDs as
+opaque. An ID suffix starts with a lowercase ASCII letter or digit and MAY
+continue with lowercase ASCII letters, digits, underscores, or hyphens. A
+suffix contains at most 128 characters.
+
+Timestamps use calendar-valid RFC 3339 UTC with a `Z` suffix. JSON Schema
+constrains their lexical form; integrity validation MUST reject impossible
+calendar dates even when a schema implementation treats `format` as an
+annotation. A compiler MUST NOT change a timestamp solely because memory was
+read, validated, queried, rendered, or handed off.
 
 Hashes use lowercase SHA-256 with the form:
 

@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kiroku-forge.local/schemas/common-v1.schema.json",
+  "title": "KirokuForge Common Contracts",
+  "description": "Shared primitive contracts for KirokuForge pipeline artifacts and canonical memory.",
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "maxLength": 128
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\\.[0-9]+)?Z$"
+    },
+    "memoryId": {
+      "$ref": "#/$defs/_memId"
+    },
+    "sourceId": {
+      "$ref": "#/$defs/_srcId"
+    },
+    "recordId": {
+      "$ref": "#/$defs/_recId"
+    },
+    "compilationId": {
+      "$ref": "#/$defs/_cmpId"
+    },
+    "captureBundleId": {
+      "$ref": "#/$defs/_capId"
+    },
+    "candidateBundleId": {
+      "$ref": "#/$defs/_cndId"
+    },
+    "changeSetId": {
+      "$ref": "#/$defs/_chgId"
+    },
+    "auditReportId": {
+      "$ref": "#/$defs/_audId"
+    },
+    "contextPackId": {
+      "$ref": "#/$defs/_ctxId"
+    },
+    "capturedSourceId": {
+      "$ref": "#/$defs/_csrcId"
+    },
+    "candidateId": {
+      "$ref": "#/$defs/_canId"
+    },
+    "operationId": {
+      "$ref": "#/$defs/_opId"
+    },
+    "findingId": {
+      "$ref": "#/$defs/_fndId"
+    },
+    "canonicalEntityId": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/memoryId"
+        },
+        {
+          "$ref": "#/$defs/sourceId"
+        },
+        {
+          "$ref": "#/$defs/recordId"
+        },
+        {
+          "$ref": "#/$defs/compilationId"
+        }
+      ]
+    },
+    "artifactId": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/memoryId"
+        },
+        {
+          "$ref": "#/$defs/captureBundleId"
+        },
+        {
+          "$ref": "#/$defs/candidateBundleId"
+        },
+        {
+          "$ref": "#/$defs/changeSetId"
+        },
+        {
+          "$ref": "#/$defs/auditReportId"
+        },
+        {
+          "$ref": "#/$defs/contextPackId"
+        }
+      ]
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "name"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "human",
+            "agent",
+            "tool"
+          ]
+        },
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "version": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "session_ref": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "locator": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/wholeSourceLocator"
+        },
+        {
+          "$ref": "#/$defs/linesLocator"
+        },
+        {
+          "$ref": "#/$defs/sectionLocator"
+        },
+        {
+          "$ref": "#/$defs/messageLocator"
+        },
+        {
+          "$ref": "#/$defs/pageLocator"
+        },
+        {
+          "$ref": "#/$defs/selectorLocator"
+        },
+        {
+          "$ref": "#/$defs/customLocator"
+        }
+      ]
+    },
+    "wholeSourceLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "const": "whole_source"
+        }
+      }
+    },
+    "linesLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "start_line",
+        "end_line"
+      ],
+      "properties": {
+        "kind": {
+          "const": "lines"
+        },
+        "start_line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "end_line": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "sectionLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "name"
+      ],
+      "properties": {
+        "kind": {
+          "const": "section"
+        },
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "messageLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "message_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "message"
+        },
+        "message_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "pageLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "start_page",
+        "end_page"
+      ],
+      "properties": {
+        "kind": {
+          "const": "page"
+        },
+        "start_page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "end_page": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "selectorLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "expression"
+      ],
+      "properties": {
+        "kind": {
+          "const": "selector"
+        },
+        "expression": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "customLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "namespace",
+        "value"
+      ],
+      "properties": {
+        "kind": {
+          "const": "custom"
+        },
+        "namespace": {
+          "$ref": "#/$defs/slug"
+        },
+        "value": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "_memId": {
+      "type": "string",
+      "pattern": "^mem_[a-z0-9][a-z0-9_-]{0,127}$"
+    },
+    "_srcId": {
+      "type": "string",
+      "pattern": "^src_[a-z0-9][a-z0-9_-]{0,127}$"
+    },
+    "_recId": {
+      "type": "string",
+      "pattern": "^rec_[a-z0-9][a-z0-9_-]{0,127}$"
+    },
+    "_cmpId": {
+      "type": "string",
+      "pattern": "^cmp_[a-z0-9][a-z0-9_-]{0,127}$"
+    },
+    "_capId": {
+      "type": "string",
+      "pattern": "^cap_[a-z0-9][a-z0-9_-]{0,127}$"
+    },
+    "_cndId": {
+      "type": "string",
+      "pattern": "^cnd_[a-z0-9][a-z0-9_-]{0,127}$"
+    },
+    "_chgId": {
+      "type": "string",
+      "pattern": "^chg_[a-z0-9][a-z0-9_-]{0,127}$"
+    },
+    "_audId": {
+      "type": "string",
+      "pattern": "^aud_[a-z0-9][a-z0-9_-]{0,127}$"
+    },
+    "_ctxId": {
+      "type": "string",
+      "pattern": "^ctx_[a-z0-9][a-z0-9_-]{0,127}$"
+    },
+    "_csrcId": {
+      "type": "string",
+      "pattern": "^csrc_[a-z0-9][a-z0-9_-]{0,127}$"
+    },
+    "_canId": {
+      "type": "string",
+      "pattern": "^can_[a-z0-9][a-z0-9_-]{0,127}$"
+    },
+    "_opId": {
+      "type": "string",
+      "pattern": "^op_[a-z0-9][a-z0-9_-]{0,127}$"
+    },
+    "_fndId": {
+      "type": "string",
+      "pattern": "^fnd_[a-z0-9][a-z0-9_-]{0,127}$"
+    }
+  }
+}

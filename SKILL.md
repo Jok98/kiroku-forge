@@ -30,11 +30,12 @@ Only `COMPILE` may modify canonical memory.
 
 Read [references/contracts-v3.md](references/contracts-v3.md) before designing
 schemas, commands, validators, storage, projections, or viewer behavior. It is
-the semantic source of truth for v3.
+the semantic source of truth for v3. Reuse
+[schemas/common-v1.schema.json](schemas/common-v1.schema.json) for shared IDs,
+hashes, timestamps, actors, and evidence locators.
 
 ## Current State
 
-The previous v2 implementation has been removed. No executable command or data
-contract is currently implemented. The normative v3 contract is defined, but
-its JSON Schemas and executable behavior still need to be implemented and
-validated.
+The previous v2 implementation has been removed. The normative v3 contract and
+shared primitive schema are defined. Complete artifact schemas and executable
+behavior still need to be implemented and validated.

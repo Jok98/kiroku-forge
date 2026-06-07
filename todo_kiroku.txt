@@ -1,0 +1,172 @@
+• Conclusione
+  Conviene ricostruire KirokuForge attorno al concetto di memory compiler, non evolvere incrementalmente la v2. Non serve migrazione: possiamo sostituire direttamente struttura, schema, CLI e workflow.
+
+  Problemi Attuali
+
+  - Il workflow documentato è una sequenza CRUD (add-source, start-run, add-record) invece di una pipeline semantica: SKILL.md:39.
+  - start-run, fonti e record modificano immediatamente memory.json: scripts/kiroku.py:367.
+  - Non esiste una riconciliazione complessiva prima della scrittura.
+  - I 14 tipi e i 7 status globali permettono combinazioni prive di significato: schemas/memory-v2.schema.json:426.
+  - validate controlla soprattutto integrità, provenienza e riferimenti, non qualità della memoria: scripts/kiroku_core/validation.py:38.
+  - Il bootstrap seleziona semplicemente i primi record per priorità, senza obiettivo operativo: scripts/kiroku_core/bootstrap.py:38.
+  - Le viste Markdown riflettono la vecchia tassonomia e non distinguono realmente TODO e DONE: scripts/kiroku_core/rendering.py:9.
+
+  Architettura Target
+
+  CAPTURE -> CLASSIFY -> RECONCILE -> COMPILE -> VALIDATE -> HANDOFF
+
+  Solo COMPILE può modificare memory.json.
+
+  Gli altri stadi producono contratti intermedi:
+
+  CaptureBundle
+  CandidateBundle
+  ChangeSet
+  AuditReport
+  ContextPack
+
+  memory.json v3 dovrebbe contenere esclusivamente:
+
+  project
+  sources
+  records
+  compilations
+
+  Le compilazioni sono ricevute immutabili di operazioni concluse. Nessun run in stato running deve essere scritto nella memoria canonica.
+
+  Tassonomia
+  Tipi canonici consigliati:
+
+  fact
+  decision
+  assumption
+  constraint
+  preference
+  proposal
+  task
+  question
+  risk
+  event
+
+  Riorganizzazione:
+
+  - idea e rejected_idea diventano proposal.
+  - roadmap_item diventa task o proposal con horizon.
+  - implementation_detail diventa fact con scope e tag.
+  - conflict diventa un finding prodotto da RECONCILE o VALIDATE.
+
+  Gli status devono dipendere dal tipo:
+
+  task:       todo, in_progress, blocked, done, cancelled
+  proposal:   proposed, accepted, rejected, cancelled, superseded
+  question:   open, answered, obsolete
+  risk:       open, mitigated, accepted, closed
+  knowledge:  active, superseded, obsolete
+
+  TODO e DONE sono quindi viste operative:
+
+  - TODO: task todo, in_progress, blocked.
+  - DONE: task done.
+  - Cancelled: sezione distinta.
+
+  Operazioni Del ChangeSet
+  Eliminerei l’ambiguo update-record. RECONCILE dovrebbe produrre operazioni esplicite:
+
+  create
+  enrich_evidence
+  transition
+  supersede
+  link
+  noop
+  needs_review
+
+  Ogni operazione deve riferirsi all’hash atteso del record. COMPILE applica l’intero ChangeSet in memoria, valida il risultato e sostituisce atomicamente il file solo se tutto è valido.
+
+  Validazione
+  Separerei:
+
+  - validate: schema, ID, hash, riferimenti, provenienza, lifecycle.
+  - audit: qualità semantica.
+
+  L’audit deve rilevare:
+
+  - decisioni senza motivazione;
+  - record attivi contraddittori;
+  - TODO probabilmente obsoleti;
+  - task completati senza evidenza;
+  - task bloccati senza blocker;
+  - domande apparentemente risolte ma ancora aperte;
+  - rischi chiusi senza prova;
+  - duplicati semantici.
+
+  Gli elementi dubbi non vanno corretti automaticamente: diventano needs_review.
+
+  Handoff
+  agent-bootstrap.json dovrebbe diventare un ContextPack generato su richiesta usando:
+
+  goal + scope + budget + relazioni + stato operativo
+
+  Sezioni consigliate:
+
+  Mission
+  Decisioni e vincoli
+  TODO
+  Rischi e domande
+  Fatti rilevanti
+  DONE recenti
+  Modifiche recenti
+  Problemi di validazione
+  Fonti
+
+  Questo riduce il contesto senza perdere informazioni canoniche.
+
+  UI
+  Il viewer rimane read-only e legge direttamente memory.json.
+
+  Navigazione target:
+
+  Overview memoria
+  TODO
+  DONE
+  Knowledge
+  Decisions
+  Proposals
+  Questions & Risks
+  Audit
+  History
+  Sources
+
+  L’overview descrive la salute della memoria, non l’architettura completa del progetto: quella rimane responsabilità di strumenti come LLM Wiki.
+
+  Cosa Conservare
+
+  - JSON canonico unico.
+  - Scrittura atomica.
+  - Hash e identità stabili.
+  - Fonti, evidenze e locator.
+  - Query e indice delle relazioni.
+  - Server locale read-only e protezioni del viewer.
+
+  Cosa Riscrivere
+
+  - Schema.
+  - Tassonomia e lifecycle.
+  - CLI pubblica.
+  - Gestione dei run.
+  - Flusso di mutazione.
+  - Bootstrap/handoff.
+  - Validazione semantica.
+  - Viste e organizzazione UI.
+  - SKILL.md e documentazione operativa.
+
+  Roadmap
+
+  1. Definire contratti v3 e invarianti, senza implementare UI.
+  2. Implementare memory-v3, ChangeSet e compilazione atomica.
+  3. Implementare CAPTURE, CLASSIFY e RECONCILE.
+  4. Separare validate e audit.
+  5. Implementare HANDOFF orientato a goal e budget.
+  6. Ricostruire viewer con TODO/DONE e audit.
+  7. Riscrivere la skill intorno alla pipeline e aggiungere test end-to-end.
+
+  Il primo intervento concreto dovrebbe quindi essere la specifica completa dei contratti v3, perché schema, CLI, validatore e viewer dipenderanno tutti da quella decisione.
