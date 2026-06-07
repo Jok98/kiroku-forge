@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_from": "sha256:7637ffba77494600e86ebd09a91beba96adf7bcfe6b2a27531610b69efa52769",
+  "generated_from": "sha256:c52435e3368e8acfb3a24041c9ac193af6bd2c9844e8830f1593824e0cb2ce63",
   "scope_filter": null,
   "project": {
     "id": "project_kirokuforge",
@@ -298,14 +298,14 @@
       "confidence": "confirmed",
       "verification_status": "verified",
       "payload": {
-        "outcome": "The query command supports filtering by key, type, status, scope, tag, relation-target, and relation-type. Output formats: compact, full, ids. Sorting by title, type, status, created_at, updated_at. --count flag.",
+        "outcome": "The query command supports filtering by key, type, status, scope, tag, relation-target, and relation-type, combined as a single relation when both target and type are specified. Enum validation rejects unknown values. Output formats: compact, full, ids. Sorting by title, type, status, created_at, updated_at (datetime). --count flag.",
         "horizon": "now",
         "priority": "high"
       },
       "evidence_source_ids": [
-        "src_kiroku_forge_query_522b99efed65",
-        "src_kiroku_py_32b19fd05327",
-        "src_test_query_cli_py_8b0feb2a33c0"
+        "src_kiroku_forge_query_v2_768d745bae26",
+        "src_kiroku_py_c043f2f57ea3",
+        "src_test_query_cli_py_2b278b258c11"
       ],
       "relations": [
         {
@@ -397,18 +397,25 @@
       "revision": "2026-06-07"
     },
     {
-      "id": "src_test_query_cli_py_8b0feb2a33c0",
+      "id": "src_kiroku_py_c043f2f57ea3",
+      "kind": "repository_file",
+      "title": "KirokuForge CLI with query command",
+      "uri": "scripts/kiroku.py",
+      "revision": "7d0a16a393d5e3baa08beb11939ffeb60cebdd85"
+    },
+    {
+      "id": "src_test_query_cli_py_2b278b258c11",
       "kind": "repository_file",
       "title": "Query command tests",
       "uri": "tests/test_query_cli.py",
-      "revision": "e5989058c560ee49bd9cf3fdf0d336836f9d98a4"
+      "revision": "7d0a16a393d5e3baa08beb11939ffeb60cebdd85"
     },
     {
-      "id": "src_kiroku_forge_query_522b99efed65",
+      "id": "src_kiroku_forge_query_v2_768d745bae26",
       "kind": "test_result",
-      "title": "Query command test suite pass",
-      "uri": "command://python-unittest/kiroku-forge-query",
-      "revision": "e5989058c560ee49bd9cf3fdf0d336836f9d98a4"
+      "title": "Query command test suite pass (82 tests)",
+      "uri": "command://python-unittest/kiroku-forge-query-v2",
+      "revision": "7d0a16a393d5e3baa08beb11939ffeb60cebdd85"
     }
   ]
 }

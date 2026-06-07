@@ -80,3 +80,27 @@
 **Revision:** `e5989058c560ee49bd9cf3fdf0d336836f9d98a4`  
 **Integrity:** `verified`
 
+## KirokuForge CLI with query command
+
+**ID:** `src_kiroku_py_c043f2f57ea3`  
+**Kind:** `repository_file`  
+**URI:** `scripts/kiroku.py`  
+**Revision:** `7d0a16a393d5e3baa08beb11939ffeb60cebdd85`  
+**Integrity:** `verified`
+
+## Query command tests
+
+**ID:** `src_test_query_cli_py_2b278b258c11`  
+**Kind:** `repository_file`  
+**URI:** `tests/test_query_cli.py`  
+**Revision:** `7d0a16a393d5e3baa08beb11939ffeb60cebdd85`  
+**Integrity:** `verified`
+
+## Query command test suite pass (82 tests)
+
+**ID:** `src_kiroku_forge_query_v2_768d745bae26`  
+**Kind:** `test_result`  
+**URI:** `command://python-unittest/kiroku-forge-query-v2`  
+**Revision:** `7d0a16a393d5e3baa08beb11939ffeb60cebdd85`  
+**Integrity:** `verified`
+

@@ -159,6 +159,46 @@
         "size_bytes": 44,
         "encoding": "utf-8"
       }
+    },
+    {
+      "id": "src_kiroku_py_c043f2f57ea3",
+      "kind": "repository_file",
+      "title": "KirokuForge CLI with query command",
+      "uri": "scripts/kiroku.py",
+      "revision": "7d0a16a393d5e3baa08beb11939ffeb60cebdd85",
+      "integrity": "verified",
+      "content_hash": "sha256:0b8dd74f1df346bb8f1b45500d0f8e2b520bc51c2ba42bb9da756717045f7782",
+      "captured_at": "2026-06-07T01:46:58.829636Z",
+      "metadata": {
+        "size_bytes": 35626
+      }
+    },
+    {
+      "id": "src_test_query_cli_py_2b278b258c11",
+      "kind": "repository_file",
+      "title": "Query command tests",
+      "uri": "tests/test_query_cli.py",
+      "revision": "7d0a16a393d5e3baa08beb11939ffeb60cebdd85",
+      "integrity": "verified",
+      "content_hash": "sha256:0f31e085114b09a0ba0469cc2b60af11a7d15d4787f5c1f4a98e434f17f7648b",
+      "captured_at": "2026-06-07T01:46:58.904252Z",
+      "metadata": {
+        "size_bytes": 20139
+      }
+    },
+    {
+      "id": "src_kiroku_forge_query_v2_768d745bae26",
+      "kind": "test_result",
+      "title": "Query command test suite pass (82 tests)",
+      "uri": "command://python-unittest/kiroku-forge-query-v2",
+      "revision": "7d0a16a393d5e3baa08beb11939ffeb60cebdd85",
+      "integrity": "verified",
+      "content_hash": "sha256:250faa0cc6912def2e9d0508f074063d398c2f1543d406ecc14b7a4376dee3bc",
+      "captured_at": "2026-06-07T02:03:38.093161Z",
+      "metadata": {
+        "size_bytes": 45,
+        "encoding": "utf-8"
+      }
     }
   ],
   "runs": [
@@ -220,6 +260,44 @@
       "started_at": "2026-06-07T01:24:58.598980Z",
       "completed_at": "2026-06-07T01:25:29.400616Z",
       "summary": "P1 complete: query command implemented with key, type, status, scope, tag, relation-target, relation-type filters, sorting, and multiple output formats. Agent query roadmap item superseded. 77 tests pass.",
+      "warnings": []
+    },
+    {
+      "id": "run_update_20260607t014718329132z_ad984acd",
+      "operation": "update",
+      "status": "completed",
+      "actor": {
+        "type": "agent",
+        "name": "codex",
+        "version": null
+      },
+      "inputs": [
+        "src_kiroku_py_c043f2f57ea3",
+        "src_test_query_cli_py_2b278b258c11",
+        "src_kiroku_forge_query_522b99efed65"
+      ],
+      "started_at": "2026-06-07T01:47:18.329132Z",
+      "completed_at": "2026-06-07T01:47:56.844765Z",
+      "summary": "Provenance fix: evidence sources updated to revision 7d0a16a (commit containing the implementation).",
+      "warnings": []
+    },
+    {
+      "id": "run_update_20260607t020346843078z_3bad2d48",
+      "operation": "update",
+      "status": "completed",
+      "actor": {
+        "type": "agent",
+        "name": "codex",
+        "version": null
+      },
+      "inputs": [
+        "src_kiroku_forge_query_v2_768d745bae26",
+        "src_kiroku_py_c043f2f57ea3",
+        "src_test_query_cli_py_2b278b258c11"
+      ],
+      "started_at": "2026-06-07T02:03:46.843078Z",
+      "completed_at": "2026-06-07T02:04:22.152226Z",
+      "summary": "Provenance fix: test result evidence updated to source capturing the actual 82-test run at revision 7d0a16a. Stale sources (srctestqueryclipy at wrong rev, old 77-test result) preserved as inert history.",
       "warnings": []
     }
   ],
@@ -756,18 +834,18 @@
       "verification_status": "verified",
       "evidence": [
         {
-          "source_id": "src_test_query_cli_py_8b0feb2a33c0",
+          "source_id": "src_test_query_cli_py_2b278b258c11",
           "relation": "supports",
           "method": "direct_observation",
           "target": "/payload/outcome",
           "locator": {
             "kind": "whole_source"
           },
-          "note": "15 query command tests all pass.",
-          "observed_at": "2026-06-07T01:25:24.911592Z"
+          "note": "20 query command tests all pass.",
+          "observed_at": "2026-06-07T01:47:47.811048Z"
         },
         {
-          "source_id": "src_kiroku_forge_query_522b99efed65",
+          "source_id": "src_kiroku_forge_query_v2_768d745bae26",
           "relation": "supports",
           "method": "test_result",
           "target": "/payload/outcome",
@@ -775,19 +853,19 @@
             "kind": "command",
             "command": "python -m unittest discover -s tests -v"
           },
-          "note": "77 tests pass (62 existing + 15 query tests).",
-          "observed_at": "2026-06-07T01:25:24.911592Z"
+          "note": "82 tests pass (62 original + 20 query tests).",
+          "observed_at": "2026-06-07T02:03:58.225571Z"
         },
         {
-          "source_id": "src_kiroku_py_32b19fd05327",
-          "relation": "context",
+          "source_id": "src_kiroku_py_c043f2f57ea3",
+          "relation": "supports",
           "method": "direct_observation",
           "target": "/payload/outcome",
           "locator": {
             "kind": "whole_source"
           },
-          "note": "CLI now includes query subcommand with --key, --type, --status, --scope, --tag, --relation-target, --relation-type, --format, --sort, --sort-dir, --count.",
-          "observed_at": "2026-06-07T01:25:24.911592Z"
+          "note": "CLI includes query subcommand. Relation filters compose in a single relation. Enum validation rejects unknown values.",
+          "observed_at": "2026-06-07T01:47:47.811048Z"
         }
       ],
       "relations": [
@@ -801,14 +879,14 @@
         }
       ],
       "payload": {
-        "outcome": "The query command supports filtering by key, type, status, scope, tag, relation-target, and relation-type. Output formats: compact, full, ids. Sorting by title, type, status, created_at, updated_at. --count flag.",
+        "outcome": "The query command supports filtering by key, type, status, scope, tag, relation-target, and relation-type, combined as a single relation when both target and type are specified. Enum validation rejects unknown values. Output formats: compact, full, ids. Sorting by title, type, status, created_at, updated_at (datetime). --count flag.",
         "horizon": "now",
         "priority": "high"
       },
       "created_at": "2026-06-07T01:25:24.911592Z",
-      "updated_at": "2026-06-07T01:25:24.911592Z",
-      "generated_by": "run_update_20260607t012458598980z_2d4b5b67",
-      "content_hash": "sha256:21e6a211dd55742548b73f3cbdb4d5b985cec2ff93df7e977a7408c7af2004a2"
+      "updated_at": "2026-06-07T02:03:58.225571Z",
+      "generated_by": "run_update_20260607t020346843078z_3bad2d48",
+      "content_hash": "sha256:353730588d9f272e1f248eb0c08ab9a0e46a12b2c9caedddaef12a16a8a9e342"
     }
   ]
 }
