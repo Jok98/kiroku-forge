@@ -968,7 +968,8 @@ An operation receipt records:
 Receipt hashes form a linear chain. The first receipt has no previous receipt
 hash. It records base revision `0`, base state hash `null`, and previous receipt
 hash `null`. Later receipts require non-null base and previous receipt hashes.
-Receipt content MUST NOT duplicate complete records.
+`receipt_hash` covers every receipt field except `receipt_hash` itself using
+canonical JSON. Receipt content MUST NOT duplicate complete records.
 
 Completed receipts are immutable. Canonical memory MUST NOT contain a running
 or incomplete compilation.
@@ -997,6 +998,40 @@ Integrity validation MUST reject:
 - stale ChangeSet preconditions.
 
 Integrity findings block COMPILE.
+
+Integrity validators MUST report stable machine-readable codes. The initial
+code registry is:
+
+| Code | Meaning |
+|---|---|
+| `DUPLICATE_ID` | An ID is repeated in a namespace that requires uniqueness |
+| `UNKNOWN_SOURCE_REFERENCE` | Evidence or a receipt references an unknown source |
+| `UNKNOWN_RECORD_REFERENCE` | A relation references an unknown record |
+| `UNKNOWN_COMPILATION_REFERENCE` | Canonical data references an unknown compilation |
+| `RECORD_HASH_MISMATCH` | A stored record hash differs from canonical content |
+| `STATE_HASH_MISMATCH` | The root state hash differs from canonical memory state |
+| `RECEIPT_HASH_MISMATCH` | A receipt hash differs from canonical receipt content |
+| `RECEIPT_CHAIN_MISMATCH` | A receipt does not reference the preceding receipt hash |
+| `RECEIPT_REVISION_SEQUENCE` | Receipt revisions are missing, duplicated, or inconsistent |
+| `SOURCE_MUTATED` | An existing immutable source was changed |
+| `INVALID_TRANSITION` | A lifecycle transition is not permitted |
+| `MISSING_TRANSITION_REASON` | A required lifecycle reason is absent |
+| `MULTIPLE_KEY_HEADS` | A logical key has more than one current chain head |
+| `SUPERSESSION_BRANCH` | One predecessor has multiple direct successors |
+| `SUPERSESSION_CYCLE` | Supersession relations contain a cycle |
+| `RELATION_SELF_TARGET` | A relation targets its containing record |
+| `RELATION_DUPLICATE` | A record repeats the same relation type and target |
+| `LOCATOR_RANGE_INVALID` | A locator range ends before it starts |
+| `TIMESTAMP_INVALID` | A timestamp is not a real calendar instant |
+| `TIMESTAMP_ORDER_INVALID` | Related timestamps are chronologically inconsistent |
+| `NONCANONICAL_ORDER` | A canonical array or nested set is not canonically ordered |
+| `VERIFICATION_EVIDENCE_INVALID` | Verification state is unsupported by evidence |
+| `TASK_COMPLETION_EVIDENCE_MISSING` | A done task lacks direct completion evidence |
+| `BLOCKED_TASK_WITHOUT_BLOCKER` | A blocked task has no incoming blocker relation |
+| `STALE_CHANGESET` | A ChangeSet precondition does not match the base memory |
+
+One malformed object MAY produce multiple findings when multiple invariants are
+independently violated. Conformance fixtures SHOULD isolate one primary code.
 
 ## 15. Semantic Audit
 

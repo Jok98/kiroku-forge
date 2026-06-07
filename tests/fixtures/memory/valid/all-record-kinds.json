@@ -1,0 +1,457 @@
+{
+  "artifact_type": "memory",
+  "compilations": [
+    {
+      "actor": {
+        "name": "codex",
+        "session_ref": "session-fixtures",
+        "type": "agent",
+        "version": "1.0"
+      },
+      "base_revision": 0,
+      "base_state_hash": null,
+      "change_set_hash": "sha256:d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+      "change_set_id": "chg_initial",
+      "compiled_at": "2026-06-08T10:00:00Z",
+      "compiler": {
+        "name": "kiroku-compiler",
+        "version": "3.0.0-dev"
+      },
+      "id": "cmp_initial",
+      "input_source_ids": [
+        "src_contract"
+      ],
+      "operations": [
+        {
+          "affected_ids": [
+            "mem_fixture"
+          ],
+          "hash_changes": [
+            {
+              "id": "mem_fixture",
+              "previous_hash": null,
+              "result_hash": "sha256:67ca5ccb47c3e9e4f5e8b3590d82ee070b25c2d40dd223c28ff3fd7fc108aed7"
+            }
+          ],
+          "operation_id": "op_initialize",
+          "operation_type": "initialize_memory"
+        },
+        {
+          "affected_ids": [
+            "src_contract"
+          ],
+          "hash_changes": [],
+          "operation_id": "op_source",
+          "operation_type": "add_source"
+        },
+        {
+          "affected_ids": [
+            "rec_assumption",
+            "rec_constraint",
+            "rec_decision",
+            "rec_event",
+            "rec_fact",
+            "rec_preference",
+            "rec_proposal",
+            "rec_question",
+            "rec_risk",
+            "rec_task"
+          ],
+          "hash_changes": [
+            {
+              "id": "rec_assumption",
+              "previous_hash": null,
+              "result_hash": "sha256:ed686c761cf1d175a7fca824bbc6e54c3fb2d9ac1617f67a1848b50415c6f111"
+            },
+            {
+              "id": "rec_constraint",
+              "previous_hash": null,
+              "result_hash": "sha256:409e952948fe312ef2600469f31b833083fabf45f7854e105d98536b7363d0ea"
+            },
+            {
+              "id": "rec_decision",
+              "previous_hash": null,
+              "result_hash": "sha256:f092c9402ea9d1d0ae499055c09daea752356a3b0c8ef87e3c1973fe413709dd"
+            },
+            {
+              "id": "rec_event",
+              "previous_hash": null,
+              "result_hash": "sha256:4289c6b761661056b6f5498c7a813a91e1cca50a9e396559dd15efecfad97284"
+            },
+            {
+              "id": "rec_fact",
+              "previous_hash": null,
+              "result_hash": "sha256:bfcb749e628134406ce31584449a7acfa27ce700d037760957290da43d7dacc3"
+            },
+            {
+              "id": "rec_preference",
+              "previous_hash": null,
+              "result_hash": "sha256:22cec1b2aff44108325a101c54e3347698bb85cf5b4d5a0d6cc81d62922ff718"
+            },
+            {
+              "id": "rec_proposal",
+              "previous_hash": null,
+              "result_hash": "sha256:4aeabd012d48103db6fedffebc71e7a4dfa5e5228996cfbb325eab00fbe03d3f"
+            },
+            {
+              "id": "rec_question",
+              "previous_hash": null,
+              "result_hash": "sha256:f4a55e44dfa6a14be6cc410215da978fa27633c1204763c40d780ce7b914cd5d"
+            },
+            {
+              "id": "rec_risk",
+              "previous_hash": null,
+              "result_hash": "sha256:84f3d134771361df41511975a7366a1ef4c9459c4fecbaf929907159792bd4fd"
+            },
+            {
+              "id": "rec_task",
+              "previous_hash": null,
+              "result_hash": "sha256:dd311ecfc90c39168500f2fd3ece1133f4e85fb86e8543bc43931ac575efda0c"
+            }
+          ],
+          "operation_id": "op_records",
+          "operation_type": "create_record"
+        }
+      ],
+      "previous_receipt_hash": null,
+      "receipt_hash": "sha256:2ff2a9489b8472a8816959c245549c0cf3477ce1f42edafee926e7edfa4c47de",
+      "result_revision": 1,
+      "result_state_hash": "sha256:67ca5ccb47c3e9e4f5e8b3590d82ee070b25c2d40dd223c28ff3fd7fc108aed7",
+      "warnings": []
+    }
+  ],
+  "memory_id": "mem_fixture",
+  "project": {
+    "boundaries": {
+      "excluded": [
+        "Encyclopedic project documentation"
+      ],
+      "included": [
+        "Canonical project memory"
+      ]
+    },
+    "created_at": "2026-06-08T10:00:00Z",
+    "description": "Project used by the canonical memory fixture corpus.",
+    "goal": "Define deterministic memory validation behavior.",
+    "name": "KirokuForge fixture project",
+    "status": "active",
+    "updated_at": "2026-06-08T10:00:00Z"
+  },
+  "records": [
+    {
+      "content": {
+        "assumption": "Referenced raw sources remain available.",
+        "basis": "They are managed by the project.",
+        "impact_if_false": "Evidence cannot be reopened.",
+        "validation_plan": "Check source URIs before compilation."
+      },
+      "content_hash": "sha256:ed686c761cf1d175a7fca824bbc6e54c3fb2d9ac1617f67a1848b50415c6f111",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [],
+      "id": "rec_assumption",
+      "key": "source-availability",
+      "kind": "assumption",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "active",
+      "summary": "Canonical assumption used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Assumption fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "constraint": "KirokuForge must not depend on Git."
+      },
+      "content_hash": "sha256:409e952948fe312ef2600469f31b833083fabf45f7854e105d98536b7363d0ea",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [],
+      "id": "rec_constraint",
+      "key": "no-git-dependency",
+      "kind": "constraint",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "active",
+      "summary": "Canonical constraint used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Constraint fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "decision": "Use one structured memory.json as canonical state.",
+        "rationale": "Agents and the viewer need the same source of truth."
+      },
+      "content_hash": "sha256:f092c9402ea9d1d0ae499055c09daea752356a3b0c8ef87e3c1973fe413709dd",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [],
+      "id": "rec_decision",
+      "key": "canonical-json",
+      "kind": "decision",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "active",
+      "summary": "Canonical decision used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Decision fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "description": "The v3 contracts were approved.",
+        "occurred_at": "2026-06-08T10:00:00Z",
+        "significance": "Implementation can follow stable semantics."
+      },
+      "content_hash": "sha256:4289c6b761661056b6f5498c7a813a91e1cca50a9e396559dd15efecfad97284",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [],
+      "id": "rec_event",
+      "key": "contracts-approved",
+      "kind": "event",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "occurred",
+      "summary": "Canonical event used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Event fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "statement": "KirokuForge is a project-memory compiler."
+      },
+      "content_hash": "sha256:bfcb749e628134406ce31584449a7acfa27ce700d037760957290da43d7dacc3",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [
+        {
+          "locator": {
+            "kind": "section",
+            "name": "Canonical memory"
+          },
+          "method": "document_read",
+          "observed_at": "2026-06-08T10:00:00Z",
+          "relation": "supports",
+          "source_id": "src_contract"
+        }
+      ],
+      "id": "rec_fact",
+      "key": "memory-compiler",
+      "kind": "fact",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "active",
+      "summary": "Canonical fact used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Fact fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "verified"
+      }
+    },
+    {
+      "content": {
+        "preference": "Keep agent handoffs focused and compact."
+      },
+      "content_hash": "sha256:22cec1b2aff44108325a101c54e3347698bb85cf5b4d5a0d6cc81d62922ff718",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [],
+      "id": "rec_preference",
+      "key": "compact-handoff",
+      "kind": "preference",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "active",
+      "summary": "Canonical preference used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Preference fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "motivation": "Users need direct structured-memory inspection.",
+        "proposal": "Provide a local read-only memory viewer."
+      },
+      "content_hash": "sha256:4aeabd012d48103db6fedffebc71e7a4dfa5e5228996cfbb325eab00fbe03d3f",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [],
+      "id": "rec_proposal",
+      "key": "local-viewer",
+      "kind": "proposal",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "proposed",
+      "summary": "Canonical proposal used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Proposal fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "question": "Which audit findings should be blocking?",
+        "why_it_matters": "Compilation policy must be predictable."
+      },
+      "content_hash": "sha256:f4a55e44dfa6a14be6cc410215da978fa27633c1204763c40d780ce7b914cd5d",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [],
+      "id": "rec_question",
+      "key": "audit-policy",
+      "kind": "question",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "open",
+      "summary": "Canonical question used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Question fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "description": "A handoff may exceed the agent context budget.",
+        "impact": "high",
+        "likelihood": "medium"
+      },
+      "content_hash": "sha256:84f3d134771361df41511975a7366a1ef4c9459c4fecbaf929907159792bd4fd",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [],
+      "id": "rec_risk",
+      "key": "context-overflow",
+      "kind": "risk",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "open",
+      "summary": "Canonical risk used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Risk fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "acceptance_criteria": [
+          "All integrity fixtures produce expected codes."
+        ],
+        "objective": "Implement deterministic integrity validation.",
+        "priority": "high"
+      },
+      "content_hash": "sha256:dd311ecfc90c39168500f2fd3ece1133f4e85fb86e8543bc43931ac575efda0c",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [],
+      "id": "rec_task",
+      "key": "implement-integrity",
+      "kind": "task",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "todo",
+      "summary": "Canonical task used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Task fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    }
+  ],
+  "revision": 1,
+  "schema_version": "3.0.0",
+  "sources": [
+    {
+      "captured_at": "2026-06-08T10:00:00Z",
+      "content_hash": "sha256:c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+      "created_by": "cmp_initial",
+      "id": "src_contract",
+      "integrity": "verified",
+      "kind": "document",
+      "media_type": "text/markdown",
+      "metadata": {
+        "purpose": "normative contract"
+      },
+      "revision": "v3",
+      "title": "KirokuForge contracts",
+      "uri": "file:references/contracts-v3.md"
+    }
+  ],
+  "state_hash": "sha256:67ca5ccb47c3e9e4f5e8b3590d82ee070b25c2d40dd223c28ff3fd7fc108aed7"
+}

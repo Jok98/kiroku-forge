@@ -1,0 +1,510 @@
+{
+  "artifact_type": "memory",
+  "compilations": [
+    {
+      "actor": {
+        "name": "codex",
+        "session_ref": "session-fixtures",
+        "type": "agent",
+        "version": "1.0"
+      },
+      "base_revision": 0,
+      "base_state_hash": null,
+      "change_set_hash": "sha256:d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+      "change_set_id": "chg_initial",
+      "compiled_at": "2026-06-08T10:00:00Z",
+      "compiler": {
+        "name": "kiroku-compiler",
+        "version": "3.0.0-dev"
+      },
+      "id": "cmp_initial",
+      "input_source_ids": [
+        "src_contract"
+      ],
+      "operations": [
+        {
+          "affected_ids": [
+            "mem_fixture"
+          ],
+          "hash_changes": [
+            {
+              "id": "mem_fixture",
+              "previous_hash": null,
+              "result_hash": "sha256:777f460b38647acaaaa567ccc73bcfde6025f11385fa9c4391f951e54f256e27"
+            }
+          ],
+          "operation_id": "op_initialize",
+          "operation_type": "initialize_memory"
+        },
+        {
+          "affected_ids": [
+            "src_contract"
+          ],
+          "hash_changes": [],
+          "operation_id": "op_source",
+          "operation_type": "add_source"
+        },
+        {
+          "affected_ids": [
+            "rec_blocker",
+            "rec_assumption_invalid",
+            "rec_proposal_cancelled",
+            "rec_proposal_rejected",
+            "rec_question_answered",
+            "rec_risk_accepted",
+            "rec_risk_closed",
+            "rec_task_blocked",
+            "rec_task_cancelled",
+            "rec_task_done"
+          ],
+          "hash_changes": [
+            {
+              "id": "rec_blocker",
+              "previous_hash": null,
+              "result_hash": "sha256:a06a85f31467ac0e306a03eff88ff1c2400938d2c56dd453fdb3e639be3930de"
+            },
+            {
+              "id": "rec_assumption_invalid",
+              "previous_hash": null,
+              "result_hash": "sha256:8491c04b0d223477aa93afc4db05be6552e3bb37eaa86ed7b9ce27cf1f7f4ae5"
+            },
+            {
+              "id": "rec_proposal_cancelled",
+              "previous_hash": null,
+              "result_hash": "sha256:d1d4199a7389163bd2f8013673fb00d306a627fdeeae32d80a97d63fdf0148f9"
+            },
+            {
+              "id": "rec_proposal_rejected",
+              "previous_hash": null,
+              "result_hash": "sha256:28a5b523309f02442916353aae4bebce99a22e4133abfbc73f525478912ea943"
+            },
+            {
+              "id": "rec_question_answered",
+              "previous_hash": null,
+              "result_hash": "sha256:16e5ff151df136077bc791d013421550e58200f72bfd0e85daa0980beb7467c5"
+            },
+            {
+              "id": "rec_risk_accepted",
+              "previous_hash": null,
+              "result_hash": "sha256:49be20bc2b8c9d32fa2d9334e3cb8f878912c4f944af95a6b2ff7962c968886f"
+            },
+            {
+              "id": "rec_risk_closed",
+              "previous_hash": null,
+              "result_hash": "sha256:c4d25fe1eb47c0604b426b5d50147cc3e14bfc063de981a58970928da8054a0b"
+            },
+            {
+              "id": "rec_task_blocked",
+              "previous_hash": null,
+              "result_hash": "sha256:c6282d3d61f18ce4c4826902eae1d50822c70b71ee9c45b2eba899cdc333a79d"
+            },
+            {
+              "id": "rec_task_cancelled",
+              "previous_hash": null,
+              "result_hash": "sha256:699db19b330dc5450afb3bc77290d758a1a5a52f1844b74d1c643de83c66ed46"
+            },
+            {
+              "id": "rec_task_done",
+              "previous_hash": null,
+              "result_hash": "sha256:45386010146646f376f25ade8ae0f50965364431b69bb9cf7f8712ae7bf079e6"
+            }
+          ],
+          "operation_id": "op_records",
+          "operation_type": "create_record"
+        }
+      ],
+      "previous_receipt_hash": null,
+      "receipt_hash": "sha256:c662732270e94127d1ef6094c083da21551d6578d68bfa4aac6df1c4289af392",
+      "result_revision": 1,
+      "result_state_hash": "sha256:777f460b38647acaaaa567ccc73bcfde6025f11385fa9c4391f951e54f256e27",
+      "warnings": []
+    }
+  ],
+  "memory_id": "mem_fixture",
+  "project": {
+    "boundaries": {
+      "excluded": [
+        "Encyclopedic project documentation"
+      ],
+      "included": [
+        "Canonical project memory"
+      ]
+    },
+    "created_at": "2026-06-08T10:00:00Z",
+    "description": "Project used by the canonical memory fixture corpus.",
+    "goal": "Define deterministic memory validation behavior.",
+    "name": "KirokuForge fixture project",
+    "status": "active",
+    "updated_at": "2026-06-08T10:00:00Z"
+  },
+  "records": [
+    {
+      "content": {
+        "assumption": "Generated Markdown is required.",
+        "basis": "The previous viewer consumed Markdown.",
+        "impact_if_false": "The viewer can read JSON directly.",
+        "validation_plan": "Verify the viewer data source."
+      },
+      "content_hash": "sha256:8491c04b0d223477aa93afc4db05be6552e3bb37eaa86ed7b9ce27cf1f7f4ae5",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [
+        {
+          "locator": {
+            "kind": "section",
+            "name": "Canonical memory"
+          },
+          "method": "document_read",
+          "observed_at": "2026-06-08T10:00:00Z",
+          "relation": "refutes",
+          "source_id": "src_contract"
+        }
+      ],
+      "id": "rec_assumption_invalid",
+      "key": "markdown-required",
+      "kind": "assumption",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "invalidated",
+      "summary": "Canonical assumption used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Assumption fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "contradicted"
+      }
+    },
+    {
+      "content": {
+        "constraint": "Schema contracts must stabilize before implementation."
+      },
+      "content_hash": "sha256:a06a85f31467ac0e306a03eff88ff1c2400938d2c56dd453fdb3e639be3930de",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [],
+      "id": "rec_blocker",
+      "key": "schema-stability",
+      "kind": "constraint",
+      "relations": [
+        {
+          "target_id": "rec_task_blocked",
+          "type": "blocks"
+        }
+      ],
+      "scope": [
+        "project"
+      ],
+      "state": "active",
+      "summary": "Canonical constraint used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Constraint fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "cancellation_reason": "The v2 implementation was removed.",
+        "motivation": "Inspect early development state.",
+        "proposal": "Build an interim v2-compatible viewer."
+      },
+      "content_hash": "sha256:d1d4199a7389163bd2f8013673fb00d306a627fdeeae32d80a97d63fdf0148f9",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [],
+      "id": "rec_proposal_cancelled",
+      "key": "interim-viewer",
+      "kind": "proposal",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "cancelled",
+      "summary": "Canonical proposal used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Proposal fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "motivation": "Improve direct readability.",
+        "proposal": "Use Markdown as canonical memory.",
+        "rejection_reason": "Structured JSON must remain authoritative."
+      },
+      "content_hash": "sha256:28a5b523309f02442916353aae4bebce99a22e4133abfbc73f525478912ea943",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [],
+      "id": "rec_proposal_rejected",
+      "key": "canonical-markdown",
+      "kind": "proposal",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "rejected",
+      "summary": "Canonical proposal used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Proposal fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "answer": "No. memory.json is canonical.",
+        "question": "Is Markdown canonical?",
+        "why_it_matters": "Writers require one source of truth."
+      },
+      "content_hash": "sha256:16e5ff151df136077bc791d013421550e58200f72bfd0e85daa0980beb7467c5",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [
+        {
+          "locator": {
+            "kind": "section",
+            "name": "Canonical memory"
+          },
+          "method": "document_read",
+          "observed_at": "2026-06-08T10:00:00Z",
+          "relation": "supports",
+          "source_id": "src_contract"
+        }
+      ],
+      "id": "rec_question_answered",
+      "key": "markdown-canonical",
+      "kind": "question",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "answered",
+      "summary": "Canonical question used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Question fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "acceptance_rationale": "Heuristic findings remain non-blocking.",
+        "description": "Heuristic audit may report false positives.",
+        "impact": "low",
+        "likelihood": "medium"
+      },
+      "content_hash": "sha256:49be20bc2b8c9d32fa2d9334e3cb8f878912c4f944af95a6b2ff7962c968886f",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [],
+      "id": "rec_risk_accepted",
+      "key": "audit-false-positive",
+      "kind": "risk",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "accepted",
+      "summary": "Canonical risk used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Risk fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "description": "Done tasks may be recorded without evidence.",
+        "impact": "high",
+        "likelihood": "medium",
+        "resolution": "The schema requires direct evidence."
+      },
+      "content_hash": "sha256:c4d25fe1eb47c0604b426b5d50147cc3e14bfc063de981a58970928da8054a0b",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [
+        {
+          "locator": {
+            "kind": "section",
+            "name": "Canonical memory"
+          },
+          "method": "document_read",
+          "observed_at": "2026-06-08T10:00:00Z",
+          "relation": "supports",
+          "source_id": "src_contract"
+        }
+      ],
+      "id": "rec_risk_closed",
+      "key": "missing-done-evidence",
+      "kind": "risk",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "closed",
+      "summary": "Canonical risk used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Risk fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "acceptance_criteria": [
+          "ChangeSets compile atomically."
+        ],
+        "objective": "Implement the compiler.",
+        "priority": "high"
+      },
+      "content_hash": "sha256:c6282d3d61f18ce4c4826902eae1d50822c70b71ee9c45b2eba899cdc333a79d",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [],
+      "id": "rec_task_blocked",
+      "key": "implement-compiler",
+      "kind": "task",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "blocked",
+      "summary": "Canonical task used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Task fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "acceptance_criteria": [
+          "The v2 CLI remains operational."
+        ],
+        "cancellation_reason": "The product is being rebuilt as v3.",
+        "objective": "Maintain the v2 implementation.",
+        "priority": "low"
+      },
+      "content_hash": "sha256:699db19b330dc5450afb3bc77290d758a1a5a52f1844b74d1c643de83c66ed46",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [],
+      "id": "rec_task_cancelled",
+      "key": "maintain-v2",
+      "kind": "task",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "cancelled",
+      "summary": "Canonical task used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Task fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    },
+    {
+      "content": {
+        "acceptance_criteria": [
+          "The schema covers every record kind."
+        ],
+        "objective": "Define canonical memory shape.",
+        "outcome": "memory-v3.schema.json was validated.",
+        "priority": "high"
+      },
+      "content_hash": "sha256:45386010146646f376f25ade8ae0f50965364431b69bb9cf7f8712ae7bf079e6",
+      "created_at": "2026-06-08T10:00:00Z",
+      "created_by": "cmp_initial",
+      "evidence": [
+        {
+          "locator": {
+            "kind": "section",
+            "name": "Canonical memory"
+          },
+          "method": "document_read",
+          "observed_at": "2026-06-08T10:00:00Z",
+          "relation": "supports",
+          "source_id": "src_contract"
+        }
+      ],
+      "id": "rec_task_done",
+      "key": "define-memory-schema",
+      "kind": "task",
+      "relations": [],
+      "scope": [
+        "project"
+      ],
+      "state": "done",
+      "summary": "Canonical task used by the fixture corpus.",
+      "tags": [
+        "fixture"
+      ],
+      "title": "Task fixture",
+      "updated_at": "2026-06-08T10:00:00Z",
+      "updated_by": "cmp_initial",
+      "verification": {
+        "status": "unverified"
+      }
+    }
+  ],
+  "revision": 1,
+  "schema_version": "3.0.0",
+  "sources": [
+    {
+      "captured_at": "2026-06-08T10:00:00Z",
+      "content_hash": "sha256:c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+      "created_by": "cmp_initial",
+      "id": "src_contract",
+      "integrity": "verified",
+      "kind": "document",
+      "media_type": "text/markdown",
+      "metadata": {
+        "purpose": "normative contract"
+      },
+      "revision": "v3",
+      "title": "KirokuForge contracts",
+      "uri": "file:references/contracts-v3.md"
+    }
+  ],
+  "state_hash": "sha256:777f460b38647acaaaa567ccc73bcfde6025f11385fa9c4391f951e54f256e27"
+}

@@ -10,12 +10,15 @@ import fastjsonschema
 
 
 ROOT = Path(__file__).resolve().parents[1]
+FIXTURE_ROOT = ROOT / "tests" / "fixtures" / "memory"
 COMMON_PATH = ROOT / "schemas" / "common-v1.schema.json"
 MEMORY_PATH = ROOT / "schemas" / "memory-v3.schema.json"
 COMMON = json.loads(COMMON_PATH.read_text(encoding="utf-8"))
 MEMORY = json.loads(MEMORY_PATH.read_text(encoding="utf-8"))
+MINIMAL = json.loads(
+    (FIXTURE_ROOT / "valid" / "minimal.json").read_text(encoding="utf-8")
+)
 HASH = "sha256:" + "a1" * 32
-OTHER_HASH = "sha256:" + "b2" * 32
 NOW = "2026-06-08T10:00:00Z"
 
 
@@ -68,104 +71,7 @@ def record(
 
 
 def valid_memory() -> dict[str, Any]:
-    return {
-        "artifact_type": "memory",
-        "schema_version": "3.0.0",
-        "memory_id": "mem_example",
-        "revision": 1,
-        "state_hash": HASH,
-        "project": {
-            "name": "Example",
-            "description": "Project used to validate canonical memory.",
-            "goal": "Preserve durable operational knowledge.",
-            "status": "active",
-            "boundaries": {
-                "included": ["Durable project knowledge"],
-                "excluded": ["Encyclopedic project documentation"],
-            },
-            "created_at": NOW,
-            "updated_at": NOW,
-        },
-        "sources": [
-            {
-                "id": "src_contract",
-                "kind": "document",
-                "title": "KirokuForge contracts",
-                "uri": "file:references/contracts-v3.md",
-                "revision": "v3",
-                "integrity": "verified",
-                "content_hash": OTHER_HASH,
-                "captured_at": NOW,
-                "media_type": "text/markdown",
-                "metadata": {"purpose": "normative contract"},
-                "created_by": "cmp_initial",
-            }
-        ],
-        "records": [
-            record(
-                verification="verified",
-                evidence=[direct_evidence()],
-            )
-        ],
-        "compilations": [
-            {
-                "id": "cmp_initial",
-                "base_revision": 0,
-                "result_revision": 1,
-                "base_state_hash": None,
-                "result_state_hash": HASH,
-                "change_set_id": "chg_initial",
-                "change_set_hash": OTHER_HASH,
-                "actor": {
-                    "type": "agent",
-                    "name": "codex",
-                    "version": "1.0",
-                    "session_ref": "session-example",
-                },
-                "compiler": {
-                    "name": "kiroku-compiler",
-                    "version": "3.0.0-dev",
-                },
-                "input_source_ids": ["src_contract"],
-                "operations": [
-                    {
-                        "operation_id": "op_initialize",
-                        "operation_type": "initialize_memory",
-                        "affected_ids": ["mem_example"],
-                        "hash_changes": [
-                            {
-                                "id": "mem_example",
-                                "previous_hash": None,
-                                "result_hash": HASH,
-                            }
-                        ],
-                    },
-                    {
-                        "operation_id": "op_source",
-                        "operation_type": "add_source",
-                        "affected_ids": ["src_contract"],
-                        "hash_changes": [],
-                    },
-                    {
-                        "operation_id": "op_record",
-                        "operation_type": "create_record",
-                        "affected_ids": ["rec_fact"],
-                        "hash_changes": [
-                            {
-                                "id": "rec_fact",
-                                "previous_hash": None,
-                                "result_hash": HASH,
-                            }
-                        ],
-                    },
-                ],
-                "compiled_at": NOW,
-                "warnings": [],
-                "previous_receipt_hash": None,
-                "receipt_hash": OTHER_HASH,
-            }
-        ],
-    }
+    return copy.deepcopy(MINIMAL)
 
 
 class MemorySchemaTest(unittest.TestCase):
