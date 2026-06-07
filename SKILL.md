@@ -205,6 +205,7 @@ Available commands:
 
 ```bash
 python <skill-dir>/scripts/kiroku.py validate --dir ./kiroku
+python <skill-dir>/scripts/kiroku.py validate --dir ./kiroku --check-repository
 python <skill-dir>/scripts/kiroku.py add-source --help
 python <skill-dir>/scripts/kiroku.py start-run --help
 python <skill-dir>/scripts/kiroku.py add-record --help
@@ -216,6 +217,12 @@ python <skill-dir>/scripts/kiroku.py render --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py bootstrap --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py build --dir ./kiroku
 ```
+
+Use `validate --check-repository` before accepting repository-backed evidence
+as verified. It checks that each `repository_file` revision resolves to a Git
+commit, that its repository-relative URI exists at that revision, and that the
+committed blob matches `content_hash`. Pass `--repo <worktree>` when `kiroku/`
+is stored outside the repository being verified.
 
 `build` recalculates record hashes, validates memory, and generates:
 

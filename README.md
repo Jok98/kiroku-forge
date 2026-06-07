@@ -318,11 +318,20 @@ Output formats:
 ### Validate
 
 ```bash
-python scripts/kiroku.py validate --dir ./kiroku
+python scripts/kiroku.py validate \
+  --dir ./kiroku \
+  [--check-repository] \
+  [--repo /path/to/worktree]
 ```
 
 Checks structural JSON Schema compliance and semantic rules. Returns exit code
 2 on errors.
+
+`--check-repository` additionally audits every `repository_file` source against
+Git. It verifies that the revision resolves to a commit, the repository-relative
+URI exists as a blob at that revision, and the blob SHA-256 matches
+`content_hash`. The repository defaults to the parent of `--dir`; use `--repo`
+when memory is stored elsewhere.
 
 ### Render
 

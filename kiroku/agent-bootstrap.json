@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_from": "sha256:c52435e3368e8acfb3a24041c9ac193af6bd2c9844e8830f1593824e0cb2ce63",
+  "generated_from": "sha256:838d8aa05c7afcbf1851cb7054ca49280e4ce08d0b377e8fb3e77602d609bfdd",
   "scope_filter": null,
   "project": {
     "id": "project_kirokuforge",
@@ -306,37 +306,6 @@
         "src_kiroku_forge_query_v2_768d745bae26",
         "src_kiroku_py_c043f2f57ea3",
         "src_test_query_cli_py_2b278b258c11"
-      ],
-      "relations": [
-        {
-          "type": "depends_on",
-          "target_id": "rec_p0_controlled_writes_complete_fb377628b080"
-        },
-        {
-          "type": "supersedes",
-          "target_id": "rec_agent_query_command_6b4bb1d09eb1"
-        }
-      ]
-    },
-    {
-      "id": "rec_agent_query_command_6b4bb1d09eb1",
-      "key": "agent_query_command",
-      "type": "roadmap_item",
-      "status": "superseded",
-      "title": "Add selective agent queries",
-      "summary": "The next efficiency capability is filtered record retrieval without loading all canonical memory.",
-      "scope": [
-        "kiroku-forge"
-      ],
-      "confidence": "medium",
-      "verification_status": "unverified",
-      "payload": {
-        "outcome": "Provide a query command for key, type, status, scope, tag, and relation filters with compact structured output.",
-        "horizon": "next",
-        "priority": "high"
-      },
-      "evidence_source_ids": [
-        "src_kiroku_py_32b19fd05327"
       ],
       "relations": [
         {

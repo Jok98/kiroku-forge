@@ -1,21 +1,5 @@
 # Actions
 
-<!-- record:rec_agent_query_command_6b4bb1d09eb1 -->
-## Add selective agent queries
-
-**ID:** `rec_agent_query_command_6b4bb1d09eb1`  
-**Key:** `agent_query_command`  
-**Type:** `roadmap_item` | **Status:** `superseded` | **Verification:** `unverified`  
-
-The next efficiency capability is filtered record retrieval without loading all canonical memory.
-
-**Outcome:** Provide a query command for key, type, status, scope, tag, and relation filters with compact structured output.  
-**Horizon:** next  
-**Priority:** high
-
-**Evidence:**
-- `src_kiroku_py_32b19fd05327`: context via inference
-
 <!-- record:rec_agent_query_command_completed_56db657db32c -->
 ## Add selective agent queries
 
