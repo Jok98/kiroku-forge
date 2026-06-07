@@ -300,6 +300,47 @@ class ViewerServerTests(unittest.TestCase):
         self.assertIn('value="verified" selected', explorer)
         self.assertIn('name="sort_dir"', explorer)
         self.assertIn('value="desc" selected', explorer)
+        self.assertIn("<h2", explorer)
+        self.assertIn("Record Status Legend</h2>", explorer)
+        self.assertEqual(7, explorer.count('class="status-legend-item"'))
+        self.assertIn(
+            "Status describes the lifecycle of a record, not how strongly "
+            "it is verified.",
+            explorer,
+        )
+        self.assertIn(
+            "Replaced by a newer record and retained only as history.",
+            explorer,
+        )
+        self.assertIn(
+            "Planned work finished and supported by completion evidence.",
+            explorer,
+        )
+
+        grouped = self.browser_dom("/records?sort=type&sort_dir=asc")
+        self.assertEqual(3, grouped.count('class="record-type-group"'))
+        self.assertIn(
+            '<h2 id="record-type-decision">Decision</h2>',
+            grouped,
+        )
+        self.assertIn(
+            '<h2 id="record-type-risk">Risk</h2>',
+            grouped,
+        )
+        self.assertIn(
+            '<h2 id="record-type-task">Task</h2>',
+            grouped,
+        )
+        self.assertIn('aria-label="Decision records"', grouped)
+        self.assertIn("1 record on this page", grouped)
+        self.assertLess(
+            grouped.index('id="record-type-decision"'),
+            grouped.index('id="record-type-risk"'),
+        )
+        self.assertLess(
+            grouped.index('id="record-type-risk"'),
+            grouped.index('id="record-type-task"'),
+        )
 
         related = self.browser_dom(
             "/records?key=task_add_validation"

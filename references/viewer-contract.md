@@ -191,6 +191,8 @@ P2.2 provides a dependency-free browser interface over API V1:
 
 - a project dashboard with record, source, and run distributions;
 - a record explorer exposing every shared query filter and supported sort;
+- record results grouped into labelled sections by record type;
+- a lifecycle legend explaining every supported record status;
 - bookmarkable filter, sort, and pagination state in the URL;
 - record details with payload, evidence locators, provenance, and relations;
 - source and run indexes with stable detail deep links;

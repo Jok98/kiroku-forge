@@ -140,7 +140,15 @@ async function loadMeta() {
 }
 
 function badgeStatus(status) {
-  const map = { active: "badge-active", completed: "badge-completed", proposed: "badge-proposed", superseded: "badge-superseded" };
+  const map = {
+    active: "badge-active",
+    cancelled: "badge-cancelled",
+    completed: "badge-completed",
+    obsolete: "badge-obsolete",
+    proposed: "badge-proposed",
+    resolved: "badge-resolved",
+    superseded: "badge-superseded",
+  };
   return dom.badge(status, map[status] || "badge-proposed");
 }
 
@@ -239,6 +247,44 @@ function distributionBlock(title, dist) {
   );
 }
 
+const RECORD_STATUS_DESCRIPTIONS = {
+  proposed: "Suggested but not yet adopted or started.",
+  active: "Current and applicable, or work presently in progress.",
+  resolved: "Concluded with an outcome; no further resolution work is expected.",
+  completed: "Planned work finished and supported by completion evidence.",
+  superseded: "Replaced by a newer record and retained only as history.",
+  obsolete: "No longer applicable and not replaced by another record.",
+  cancelled: "Intentionally stopped or no longer being pursued.",
+};
+
+function renderStatusLegend(statuses) {
+  var section = dom.el("aside", {
+    className: "status-legend",
+    aria: { labelledby: "record-status-legend-title" },
+  });
+  section.appendChild(dom.el("h2", {
+    id: "record-status-legend-title",
+    textContent: "Record Status Legend",
+  }));
+  section.appendChild(dom.el("p", {
+    className: "status-legend-intro",
+    textContent: "Status describes the lifecycle of a record, not how strongly it is verified.",
+  }));
+
+  var list = dom.el("div", { className: "status-legend-list" });
+  for (var i = 0; i < statuses.length; i++) {
+    var status = statuses[i];
+    list.appendChild(dom.el("div", { className: "status-legend-item" },
+      badgeStatus(status),
+      dom.el("span", {
+        textContent: RECORD_STATUS_DESCRIPTIONS[status] || "Record lifecycle state.",
+      }),
+    ));
+  }
+  section.appendChild(list);
+  return section;
+}
+
 /* ── Record Explorer ──────────────────────── */
 
 async function renderRecordExplorer() {
@@ -255,6 +301,7 @@ async function renderRecordExplorer() {
     m.appendChild(dom.el("div", { className: "page-header" },
       dom.el("h1", { textContent: "Records" }),
     ));
+    m.appendChild(renderStatusLegend(sf.statuses));
 
     /* Filter bar with all supported filters */
     var filterBar = dom.el("div", { className: "filter-bar" });
@@ -382,7 +429,6 @@ async function renderRecordExplorer() {
 
     var state = {
       container: resultsArea,
-      meta: meta,
       buildQuery: buildQuery,
     };
 
@@ -411,7 +457,7 @@ function loadExplorerData(state, offset) {
   dom.clear(area);
   area.appendChild(loadingMsg());
   API.records(q).then(function(data) {
-    renderResults(area, data, function(newOffset) { loadExplorerData(state, newOffset); }, state.meta);
+    renderResults(area, data, function(newOffset) { loadExplorerData(state, newOffset); });
   }).catch(function(err) {
     dom.clear(area);
     area.appendChild(dom.el("div", { className: "error-banner", textContent: err.message }));
@@ -433,7 +479,7 @@ function selectFilter(id, name, value, options) {
 /* sortable columns: only those supported by core */
 var SORTABLE_COLUMNS = { title: 1, type: 1, status: 1 };
 
-function renderResults(area, data, onPage, meta) {
+function renderResults(area, data, onPage) {
   dom.clear(area);
 
   if (!data.data || !data.data.length) {
@@ -444,13 +490,64 @@ function renderResults(area, data, onPage, meta) {
     return;
   }
 
+  var groups = groupRecordsByType(data.data);
+  for (var groupIndex = 0; groupIndex < groups.length; groupIndex++) {
+    var group = groups[groupIndex];
+    var headingId = "record-type-" + group.type;
+    var countLabel = group.records.length === 1 ? "1 record" : group.records.length + " records";
+    var section = dom.el("section", {
+      className: "record-type-group",
+      aria: { labelledby: headingId },
+    });
+    section.appendChild(dom.el("div", { className: "record-type-header" },
+      dom.el("h2", {
+        id: headingId,
+        textContent: formatEnumLabel(group.type),
+      }),
+      dom.el("span", {
+        className: "record-type-count",
+        textContent: countLabel + " on this page",
+      }),
+    ));
+    section.appendChild(renderRecordTable(group.type, group.records));
+    area.appendChild(section);
+  }
+  area.appendChild(renderPagination(data.page, onPage));
+}
+
+function groupRecordsByType(records) {
+  var grouped = Object.create(null);
+  for (var i = 0; i < records.length; i++) {
+    var record = records[i];
+    if (!grouped[record.type]) grouped[record.type] = [];
+    grouped[record.type].push(record);
+  }
+
+  var types = Object.keys(grouped).sort();
+  var params = new URLSearchParams(window.location.search);
+  if (params.get("sort") === "type" && params.get("sort_dir") === "desc") {
+    types.reverse();
+  }
+
+  return types.map(function(type) {
+    return { type: type, records: grouped[type] };
+  });
+}
+
+function formatEnumLabel(value) {
+  return value.replace(/_/g, " ").replace(/\b\w/g, function(letter) {
+    return letter.toUpperCase();
+  });
+}
+
+function renderRecordTable(type, records) {
   var tbl = dom.el("table", { className: "result-table" });
+  tbl.setAttribute("aria-label", formatEnumLabel(type) + " records");
   var thead = dom.el("thead");
   var headerRow = dom.el("tr");
 
   var columns = [
     ["Title", "title"],
-    ["Type", "type"],
     ["Status", "status"],
     ["Scope", null],
     ["Verification", null],
@@ -484,23 +581,21 @@ function renderResults(area, data, onPage, meta) {
   tbl.appendChild(thead);
 
   var tbody = dom.el("tbody");
-  for (var j = 0; j < data.data.length; j++) {
-    var r = data.data[j];
+  for (var j = 0; j < records.length; j++) {
+    var r = records[j];
     var tr = dom.el("tr");
     tr.appendChild(dom.el("td", null,
       dom.el("a", { href: "/records/" + r.id, textContent: r.title, onClick: (function(id) { return function(e) { e.preventDefault(); Router.navigate("/records/" + id); }; })(r.id) }),
       dom.el("br"),
       dom.el("small", { className: "muted", textContent: r.summary }),
     ));
-    tr.appendChild(dom.el("td", null, dom.el("code", { className: "code-sm", textContent: r.type })));
     tr.appendChild(dom.el("td", null, badgeStatus(r.status)));
     tr.appendChild(dom.el("td", null, ...(r.scope || []).map(function(s) { return dom.tagE(s); })));
     tr.appendChild(dom.el("td", null, badgeVerification(r.verification_status)));
     tbody.appendChild(tr);
   }
   tbl.appendChild(tbody);
-  area.appendChild(tbl);
-  area.appendChild(renderPagination(data.page, onPage));
+  return tbl;
 }
 
 /* ── Record Detail ────────────────────────── */
