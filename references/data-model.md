@@ -38,7 +38,7 @@ The project contains stable identity and scope:
 - `domain`: business or technical domain.
 - `status`: `active`, `paused`, `completed`, or `archived`.
 - `goal`: durable target.
-- `scope`: repository, module, or product scopes.
+- `scope`: system, module, or product scopes.
 - `created_at`, `updated_at`: RFC 3339 UTC timestamps.
 
 ## Sources
@@ -56,9 +56,10 @@ Supported source kinds:
 - `test_result`
 - `agent_observation`
 
-Use `uri` as a stable locator. Repository files should use repository-relative
-paths. Use `revision` for a commit, document version, message revision, or other
-immutable identifier when available.
+Use `uri` as a stable locator. Project files should use stable paths. Use
+`revision` for a document version, message revision, release identifier, or
+other immutable source identifier when available. KirokuForge treats revisions
+as opaque values and does not resolve them through external versioning tools.
 
 Set `integrity` to:
 
@@ -80,20 +81,6 @@ python <skill-dir>/scripts/kiroku.py add-source \
 Source identity is `kind + uri + revision`. Registering the same identity and
 content is idempotent. Different content with the same identity is rejected;
 provide a new revision or URI.
-
-Use strict repository verification when repository-backed evidence must be
-audited against Git:
-
-```bash
-python <skill-dir>/scripts/kiroku.py validate \
-  --dir ./kiroku \
-  --check-repository
-```
-
-For every `repository_file`, this requires an immutable Git revision, resolves
-the repository-relative `uri` at that revision, and compares the committed
-blob with `content_hash`. Use `--repo <worktree>` when the memory directory is
-not directly inside the repository being verified.
 
 ## Runs
 

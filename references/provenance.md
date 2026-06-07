@@ -91,7 +91,7 @@ Use:
 
 The source should identify the conversation and message.
 
-### Repository observation
+### Project file observation
 
 Use `repository_file`, include its revision when available, and locate exact
 lines.

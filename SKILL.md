@@ -1,6 +1,6 @@
 ---
 name: kiroku-forge
-description: Transform conversations, planning sessions, repository evidence, notes, and technical investigations into durable, provenance-backed project memory. Use when Codex must create, update, review, validate, or render reusable project knowledge such as decisions, facts, assumptions, tasks, risks, constraints, preferences, open questions, rejected ideas, and implementation context. Do not use for generic summaries unless the result is intended to become persistent project memory.
+description: Transform conversations, planning sessions, project files, notes, and technical investigations into durable, provenance-backed project memory. Use when Codex must create, update, review, validate, or render reusable project knowledge such as decisions, facts, assumptions, tasks, risks, constraints, preferences, open questions, rejected ideas, and implementation context. Do not use for generic summaries unless the result is intended to become persistent project memory.
 license: MIT
 metadata:
   project: KirokuForge
@@ -78,7 +78,7 @@ python <skill-dir>/scripts/kiroku.py add-source \
   --kind repository_file \
   --title "Security configuration" \
   --file src/main/java/example/SecurityConfiguration.java \
-  --revision "<git-commit>"
+  --revision "<source-revision>"
 ```
 
 For conversations, URLs, or tool output, provide a stable `--uri`. Use `--text`
@@ -186,8 +186,8 @@ Evidence must identify:
 - locator inside the source;
 - observation time.
 
-Prefer repository-relative paths and immutable revisions. Preserve raw input
-outside generated views and reference it through `sources`.
+Prefer stable source paths and immutable revision identifiers. Preserve raw
+input outside generated views and reference it through `sources`.
 
 ## Update Rules
 
@@ -205,7 +205,6 @@ Available commands:
 
 ```bash
 python <skill-dir>/scripts/kiroku.py validate --dir ./kiroku
-python <skill-dir>/scripts/kiroku.py validate --dir ./kiroku --check-repository
 python <skill-dir>/scripts/kiroku.py add-source --help
 python <skill-dir>/scripts/kiroku.py start-run --help
 python <skill-dir>/scripts/kiroku.py add-record --help
@@ -217,12 +216,6 @@ python <skill-dir>/scripts/kiroku.py render --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py bootstrap --dir ./kiroku
 python <skill-dir>/scripts/kiroku.py build --dir ./kiroku
 ```
-
-Use `validate --check-repository` before accepting repository-backed evidence
-as verified. It checks that each `repository_file` revision resolves to a Git
-commit, that its repository-relative URI exists at that revision, and that the
-committed blob matches `content_hash`. Pass `--repo <worktree>` when `kiroku/`
-is stored outside the repository being verified.
 
 `build` recalculates record hashes, validates memory, and generates:
 
@@ -250,7 +243,7 @@ written only when their content changes.
 - Keep temporary command results as `event` records or source evidence, not
   stable facts.
 - Use concise titles and payloads.
-- Use repository terminology exactly where compatibility matters.
+- Use project terminology exactly where compatibility matters.
 - Prefer explicit uncertainty over false precision.
 - Ensure another agent can answer both "what is true?" and "why do we believe
   it?" without rereading the full conversation.

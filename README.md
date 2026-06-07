@@ -2,7 +2,7 @@
 
 **Durable, provenance-backed project memory for agents and humans.**
 
-KirokuForge transforms conversations, planning sessions, repository evidence,
+KirokuForge transforms conversations, planning sessions, project files,
 notes, and technical investigations into structured, versioned, and verifiable
 project knowledge. It is designed so that a future agent can answer both *"what
 is true?"* and *"why do we believe it?"* without re-reading the full
@@ -97,7 +97,7 @@ kiroku/
 | `domain`      | Business or technical domain                 |
 | `status`      | `active`, `paused`, `completed`, `archived`  |
 | `goal`        | Durable project target                       |
-| `scope`       | List of repository/module/product scopes     |
+| `scope`       | List of system/module/product scopes         |
 
 ### Sources
 
@@ -110,7 +110,7 @@ conclusions. Sources are immutable once registered.
 | `user_input`         | `conversation://project/message-42`        |
 | `repository_file`    | `src/main/java/example/SecurityConfig.java` |
 | `document`           | `docs/architecture.md`                     |
-| `command_output`     | `command://git-log/project`                |
+| `command_output`     | `command://analysis/project`               |
 | `url`                | `https://example.com/rfc/1234`             |
 | `test_result`        | `command://pytest/project`                 |
 | `agent_observation`  | `observation://project/2026-06-07`         |
@@ -184,7 +184,7 @@ python scripts/kiroku.py add-source \
   --title "Security configuration" \
   [--file path/to/file | --text "content" | --stdin] \
   [--uri "stable/identifier"] \
-  [--revision "<git-commit>"] \
+  [--revision "<source-revision>"] \
   [--metadata KEY=VALUE ...]
 ```
 
@@ -318,20 +318,11 @@ Output formats:
 ### Validate
 
 ```bash
-python scripts/kiroku.py validate \
-  --dir ./kiroku \
-  [--check-repository] \
-  [--repo /path/to/worktree]
+python scripts/kiroku.py validate --dir ./kiroku
 ```
 
 Checks structural JSON Schema compliance and semantic rules. Returns exit code
 2 on errors.
-
-`--check-repository` additionally audits every `repository_file` source against
-Git. It verifies that the revision resolves to a commit, the repository-relative
-URI exists as a blob at that revision, and the blob SHA-256 matches
-`content_hash`. The repository defaults to the parent of `--dir`; use `--repo`
-when memory is stored elsewhere.
 
 ### Render
 
@@ -388,7 +379,7 @@ python scripts/kiroku.py add-source --dir ./kiroku \
 
 python scripts/kiroku.py add-source --dir ./kiroku \
   --kind repository_file --title "Current architecture" \
-  --file src/architecture.md --revision "$(git rev-parse HEAD)"
+  --file src/architecture.md --revision "architecture-v1"
 
 # 3. Start a run
 python scripts/kiroku.py start-run --dir ./kiroku \
@@ -671,7 +662,7 @@ python scripts/kiroku.py query --dir ./kiroku \
 2. Keep temporary command results as `event` records or source evidence, not
    stable facts.
 3. Use concise titles and payloads.
-4. Use repository terminology exactly where compatibility matters.
+4. Use project terminology exactly where compatibility matters.
 5. Prefer explicit uncertainty over false precision.
 6. Ensure another agent can answer both *"what is true?"* and *"why do we
    believe it?"* without rereading the full conversation.

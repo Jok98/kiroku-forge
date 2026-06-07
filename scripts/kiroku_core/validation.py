@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import hashlib
-import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Any
 
 from .io import record_hash
@@ -35,95 +33,6 @@ def _duplicates(values: list[str]) -> set[str]:
 
 def _timestamp(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
-
-
-def _git(
-    repository_root: Path,
-    *args: str,
-) -> subprocess.CompletedProcess[bytes]:
-    return subprocess.run(
-        ["git", "-C", str(repository_root), *args],
-        capture_output=True,
-        check=False,
-    )
-
-
-def validate_repository_sources(
-    memory: dict[str, Any],
-    repository_root: Path,
-) -> ValidationResult:
-    result = ValidationResult()
-    repository_root = repository_root.resolve()
-
-    try:
-        top_level = _git(repository_root, "rev-parse", "--show-toplevel")
-    except OSError as exc:
-        result.errors.append(f"cannot execute git: {exc}")
-        return result
-
-    if top_level.returncode != 0:
-        detail = top_level.stderr.decode("utf-8", errors="replace").strip()
-        result.errors.append(
-            f"repository verification requires a Git worktree at "
-            f"{repository_root}: {detail or 'not a Git repository'}"
-        )
-        return result
-
-    git_root = Path(
-        top_level.stdout.decode("utf-8", errors="strict").strip()
-    ).resolve()
-
-    for source in memory["sources"]:
-        if source["kind"] != "repository_file":
-            continue
-
-        source_id = source["id"]
-        revision = source.get("revision")
-        if not revision:
-            result.errors.append(
-                f"{source_id}: repository source requires revision for Git verification"
-            )
-            continue
-
-        content_hash = source.get("content_hash")
-        if source["integrity"] != "verified" or not content_hash:
-            result.errors.append(
-                f"{source_id}: repository source requires verified content_hash "
-                "for Git verification"
-            )
-            continue
-
-        uri = source["uri"]
-        path = PurePosixPath(uri)
-        if path.is_absolute() or ".." in path.parts:
-            result.errors.append(
-                f"{source_id}: repository source URI must be repository-relative: {uri}"
-            )
-            continue
-
-        commit = _git(git_root, "cat-file", "-e", f"{revision}^{{commit}}")
-        if commit.returncode != 0:
-            result.errors.append(
-                f"{source_id}: Git revision does not resolve to a commit: {revision}"
-            )
-            continue
-
-        blob = _git(git_root, "cat-file", "blob", f"{revision}:{uri}")
-        if blob.returncode != 0:
-            result.errors.append(
-                f"{source_id}: repository file not found at "
-                f"{revision}:{uri}"
-            )
-            continue
-
-        actual_hash = "sha256:" + hashlib.sha256(blob.stdout).hexdigest()
-        if actual_hash != content_hash:
-            result.errors.append(
-                f"{source_id}: repository content_hash mismatch at "
-                f"{revision}:{uri}; expected {content_hash}, got {actual_hash}"
-            )
-
-    return result
 
 
 def validate_memory(

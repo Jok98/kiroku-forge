@@ -25,11 +25,7 @@ from kiroku_core.io import (
 )
 from kiroku_core.rendering import render_views
 from kiroku_core.records import build_record, record_semantics
-from kiroku_core.validation import (
-    ValidationResult,
-    validate_memory,
-    validate_repository_sources,
-)
+from kiroku_core.validation import ValidationResult, validate_memory
 
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
@@ -226,24 +222,12 @@ def command_init(args: argparse.Namespace) -> int:
 
 def command_validate(args: argparse.Namespace) -> int:
     directory = Path(args.dir).resolve()
-    if args.repo is not None and not args.check_repository:
-        print("[ERROR] --repo requires --check-repository")
-        return 2
     try:
         memory = _load(directory)
     except (OSError, ValueError) as exc:
         print(f"[ERROR] {exc}")
         return 2
     result = validate_memory(memory, SCHEMA_PATH)
-    if result.ok and args.check_repository:
-        repository_root = (
-            Path(args.repo).resolve()
-            if args.repo is not None
-            else directory.parent
-        )
-        repository_result = validate_repository_sources(memory, repository_root)
-        result.errors.extend(repository_result.errors)
-        result.warnings.extend(repository_result.warnings)
     _print_result(result)
     return 0 if result.ok else 2
 
@@ -974,15 +958,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     validate = subparsers.add_parser("validate", help="Validate canonical memory")
     validate.add_argument("--dir", default="./kiroku")
-    validate.add_argument(
-        "--check-repository",
-        action="store_true",
-        help="Verify repository_file revisions, paths, and hashes against Git",
-    )
-    validate.add_argument(
-        "--repo",
-        help="Git worktree to verify; defaults to the parent of --dir",
-    )
     validate.set_defaults(func=command_validate)
 
     add_source = subparsers.add_parser(
