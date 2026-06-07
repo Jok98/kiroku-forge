@@ -535,7 +535,8 @@ class ViewerRequestHandler(BaseHTTPRequestHandler):
         if response.content_type.startswith("text/html"):
             self.send_header(
                 "Content-Security-Policy",
-                "default-src 'self'; object-src 'none'; base-uri 'none'; "
+                "default-src 'self'; style-src 'self'; "
+                "object-src 'none'; base-uri 'none'; "
                 "frame-ancestors 'none'",
             )
         for name, value in response.headers:

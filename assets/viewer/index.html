@@ -3,18 +3,12 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Kiroku Local Viewer</title>
+    <title>Kiroku Viewer</title>
     <link rel="stylesheet" href="/assets/app.css">
   </head>
   <body>
-    <main>
-      <p class="eyebrow">KirokuForge</p>
-      <h1>Local viewer API is ready</h1>
-      <p>
-        This P2.1 foundation exposes validated, read-only project memory on
-        localhost. The interactive browser interface is delivered in P2.2.
-      </p>
-      <a href="/api/v1/meta">Inspect API metadata</a>
-    </main>
+    <nav id="top-nav" aria-label="Main navigation"></nav>
+    <main id="viewer-main" aria-live="polite"></main>
+    <script src="/assets/app.js"></script>
   </body>
 </html>

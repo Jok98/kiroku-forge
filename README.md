@@ -362,7 +362,7 @@ python scripts/kiroku.py serve \
   [--port 8765]
 ```
 
-Starts the read-only local viewer foundation on `127.0.0.1`. The selected
+Starts the read-only local viewer on `127.0.0.1`. The selected
 project memory remains in its own `kiroku/` directory; viewer assets stay in
 the skill. Use port `0` to let the operating system select an available port.
 
@@ -374,8 +374,10 @@ never writes to the selected directory, and exposes:
 - `/api/v1/sources` and `/api/v1/sources/{id}`
 - `/api/v1/runs` and `/api/v1/runs/{id}`
 
-The landing page confirms that the API is available. The interactive memory
-interface is implemented separately in P2.2.
+Open the printed local URL in a browser. The interface includes a project
+dashboard, a bookmarkable record explorer with shared query filters, record
+details with evidence and relations, source details, and run details. Browser
+navigation and API requests are read-only.
 
 ### Render
 

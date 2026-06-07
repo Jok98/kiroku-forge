@@ -185,6 +185,22 @@ Port `0` asks the operating system to select an available local port. The
 server reloads canonical memory for each API request, so valid external changes
 are visible without rebuilding or restarting the viewer.
 
+## P2.2 Implementation
+
+P2.2 provides a dependency-free browser interface over API V1:
+
+- a project dashboard with record, source, and run distributions;
+- a record explorer exposing every shared query filter and supported sort;
+- bookmarkable filter, sort, and pagination state in the URL;
+- record details with payload, evidence locators, provenance, and relations;
+- source and run indexes with stable detail deep links;
+- safe DOM construction without rendering memory strings as HTML;
+- skill-owned static assets compatible with the restrictive CSP;
+- browser-level tests for explorer queries and record, source, and run routes.
+
+The interface remains a projection over `memory.json`. It does not add a
+browser-side writer or another persistence format.
+
 ## P2.0 Acceptance Criteria
 
 - Query behavior is independent of argparse and reusable by the future server.

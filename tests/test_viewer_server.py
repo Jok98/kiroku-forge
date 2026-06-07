@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import shutil
+import subprocess
 import sys
 import tempfile
 import threading
@@ -23,6 +25,7 @@ from kiroku_core.viewer import (  # noqa: E402
 SCHEMA = ROOT / "schemas" / "memory-v2.schema.json"
 ASSETS = ROOT / "assets" / "viewer"
 FIXTURE = ROOT / "tests" / "fixtures" / "valid-memory.json"
+CHROMIUM = shutil.which("chromium") or shutil.which("chromium-browser")
 
 
 class ViewerServerTests(unittest.TestCase):
@@ -82,6 +85,42 @@ class ViewerServerTests(unittest.TestCase):
     ) -> tuple[int, dict[str, str], dict]:
         status, headers, body = self.request(path, method=method)
         return status, headers, json.loads(body)
+
+    def browser_dom(self, path: str) -> str:
+        if CHROMIUM is None:
+            self.skipTest("Chromium is not available")
+        profile = tempfile.mkdtemp(
+            prefix="chromium-profile-",
+            dir=self.temporary.name,
+        )
+        result = subprocess.run(
+            [
+                CHROMIUM,
+                "--headless",
+                "--no-sandbox",
+                "--disable-gpu",
+                "--disable-background-networking",
+                "--disable-component-update",
+                "--disable-sync",
+                "--metrics-recording-only",
+                "--no-first-run",
+                "--no-default-browser-check",
+                f"--user-data-dir={profile}",
+                "--virtual-time-budget=3000",
+                "--dump-dom",
+                self.base_url + path,
+            ],
+            capture_output=True,
+            check=False,
+            text=True,
+            timeout=15,
+        )
+        self.assertEqual(0, result.returncode, result.stderr[-2000:])
+        self.assertNotIn(
+            "violates the following Content Security Policy",
+            result.stderr,
+        )
+        return result.stdout
 
     def test_server_binds_only_to_ipv4_loopback(self) -> None:
         self.assertEqual("127.0.0.1", self.server.server_address[0])
@@ -184,9 +223,110 @@ class ViewerServerTests(unittest.TestCase):
 
         self.assertEqual(200, index_status)
         self.assertIn("text/html", index_headers["Content-Type"])
-        self.assertIn(b"Local viewer API is ready", index)
+        self.assertIn(b"Kiroku Viewer", index)
         self.assertEqual(200, css_status)
         self.assertIn(b"color-scheme", css)
+
+    def test_all_browser_routes_return_spa_shell(self) -> None:
+        routes = [
+            "/",
+            "/records",
+            "/records/rec_example",
+            "/sources",
+            "/sources/src_example",
+            "/runs",
+            "/runs/run_example",
+        ]
+        for route in routes:
+            with self.subTest(route=route):
+                status, headers, body = self.request(route)
+                self.assertEqual(200, status)
+                self.assertIn("text/html", headers["Content-Type"])
+                self.assertIn(b"<script src=\"/assets/app.js\"></script>", body)
+                self.assertIn(b"<nav id=\"top-nav\"", body)
+
+    def test_js_and_css_assets_are_served(self) -> None:
+        js_status, js_headers, js_body = self.request("/assets/app.js")
+        css_status, css_headers, css_body = self.request("/assets/app.css")
+
+        self.assertEqual(200, js_status)
+        self.assertIn("javascript", js_headers.get("Content-Type", "").lower())
+        self.assertIn(b'"use strict"', js_body)
+
+        self.assertEqual(200, css_status)
+        self.assertIn("css", css_headers.get("Content-Type", "").lower())
+        self.assertIn(b"color-scheme", css_body)
+
+    def test_spa_shell_contains_no_memory_data_inline(self) -> None:
+        status, headers, body = self.request("/")
+        self.assertEqual(200, status)
+
+        body_str = body.decode("utf-8")
+        self.assertNotIn("canonical_json", body_str)
+        self.assertNotIn("Example Project", body_str)
+        self.assertNotIn("memory.json", body_str)
+
+    def test_spa_uses_safe_dom_rendering_without_inline_styles(self) -> None:
+        status, _, body = self.request("/assets/app.js")
+        self.assertEqual(200, status)
+
+        script = body.decode("utf-8")
+        self.assertNotIn(".innerHTML", script)
+        self.assertNotIn("style:", script)
+        self.assertIn("k.slice(2).toLowerCase()", script)
+
+    def test_csp_header_on_html_responses(self) -> None:
+        status, headers, _ = self.request("/")
+        self.assertEqual(200, status)
+        self.assertIn("Content-Security-Policy", headers)
+        csp = headers["Content-Security-Policy"]
+        self.assertIn("default-src 'self'", csp)
+        self.assertIn("object-src 'none'", csp)
+        self.assertIn("style-src 'self'", csp)
+        self.assertNotIn("'unsafe-inline'", csp)
+
+    @unittest.skipUnless(CHROMIUM, "Chromium is not available")
+    def test_browser_executes_explorer_filters_and_deep_links(self) -> None:
+        explorer = self.browser_dom(
+            "/records?tag=architecture"
+            "&verification_status=verified"
+            "&sort=title"
+            "&sort_dir=desc"
+        )
+
+        self.assertIn("Canonical JSON memory", explorer)
+        self.assertNotIn("error-banner", explorer)
+        self.assertIn('name="verification_status"', explorer)
+        self.assertIn('value="verified" selected', explorer)
+        self.assertIn('name="sort_dir"', explorer)
+        self.assertIn('value="desc" selected', explorer)
+
+        related = self.browser_dom(
+            "/records?key=task_add_validation"
+            "&relation_target=rec_decision_canonical_json"
+            "&relation_type=implements"
+        )
+        self.assertIn("Add semantic validation", related)
+        self.assertNotIn("Canonical JSON memory</a>", related)
+        self.assertIn('name="key"', related)
+        self.assertIn('name="relation_target"', related)
+        self.assertIn('name="relation_type"', related)
+        self.assertIn('value="implements" selected', related)
+
+        record = self.browser_dom(
+            "/records/rec_decision_canonical_json"
+        )
+        self.assertIn("<h1>Canonical JSON memory</h1>", record)
+        self.assertIn("Locator:", record)
+        self.assertIn("message_id=message-1", record)
+        self.assertIn("Observed:", record)
+
+        source = self.browser_dom("/sources/src_user_message")
+        self.assertIn("<h1>Initial project decision</h1>", source)
+
+        run = self.browser_dom("/runs/run_initial_extract")
+        self.assertIn("<h1>Run Detail</h1>", run)
+        self.assertIn("run_initial_extract", run)
 
     def test_requests_do_not_modify_selected_memory_directory(self) -> None:
         before = {
