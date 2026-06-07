@@ -316,8 +316,11 @@ python scripts/kiroku.py query \
   [--status active] \
   [--scope my-scope] \
   [--tag architecture] \
+  [--confidence confirmed] \
+  [--verification-status verified] \
   [--relation-target rec_xxxx] \
   [--relation-type depends_on] \
+  [--search "canonical memory"] \
   [--format compact|full|ids] \
   [--sort title|type|status|created_at|updated_at] \
   [--sort-dir asc|desc] \
@@ -327,7 +330,13 @@ python scripts/kiroku.py query \
 Filters compose conjunctively. `--relation-target` and `--relation-type`
 compose within the **same relation** (not across different relations on the
 same record). Enum values (`--type`, `--status`, `--relation-type`) are
-validated and unknown values are rejected with a clear error.
+validated, as are `--confidence` and `--verification-status`; unknown values
+are rejected with a clear error.
+
+`--search` is case-insensitive and searches key, title, summary, scope, tags,
+and payload content. CLI and local viewer queries share the implementation in
+`scripts/kiroku_core/query.py`; the viewer boundary is defined in
+[`references/viewer-contract.md`](references/viewer-contract.md).
 
 Output formats:
 - `compact` (default): id, key, type, status, title, summary, scope,

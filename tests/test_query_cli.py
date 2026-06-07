@@ -340,6 +340,29 @@ class QueryCliTests(unittest.TestCase):
             self.assertEqual(1, len(output))
             self.assertEqual("canonical_memory", output[0]["key"])
 
+    def test_query_viewer_filters_share_cli_semantics(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            memory_dir = self.populated_dir(root)
+
+            result = run_cli(
+                "query",
+                "--dir",
+                str(memory_dir),
+                "--confidence",
+                "medium",
+                "--verification-status",
+                "unverified",
+                "--search",
+                "selective agent queries",
+                cwd=root,
+            )
+
+            self.assertEqual(0, result.returncode)
+            output = json.loads(result.stdout)
+            self.assertEqual(1, len(output))
+            self.assertEqual("query_command_p1", output[0]["key"])
+
     def test_query_filter_by_relation_target(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

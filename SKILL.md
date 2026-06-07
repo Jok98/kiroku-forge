@@ -22,6 +22,8 @@ bootstrap are generated projections and must never be edited as sources.
   evidence or assigning confidence.
 - Read [references/record-draft.md](references/record-draft.md) before using
   `add-record`.
+- Read [references/viewer-contract.md](references/viewer-contract.md) when
+  implementing or integrating the local memory viewer.
 - The normative machine contract is
   [schemas/memory-v2.schema.json](schemas/memory-v2.schema.json).
 
