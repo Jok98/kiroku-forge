@@ -108,6 +108,54 @@
       "invariant": "Compilation revisions are contiguous.",
       "layer": "integrity",
       "path": "invalid/integrity/receipt-revision-gap.json"
+    },
+    {
+      "code": "RECEIPT_HASH_MISMATCH",
+      "invariant": "Stored receipt hashes match canonical content.",
+      "layer": "integrity",
+      "path": "invalid/integrity/receipt-hash-mismatch.json"
+    },
+    {
+      "code": "RECEIPT_CHAIN_MISMATCH",
+      "invariant": "Receipt base state hashes form a linear chain.",
+      "layer": "integrity",
+      "path": "invalid/integrity/receipt-chain-mismatch.json"
+    },
+    {
+      "code": "RELATION_DUPLICATE",
+      "invariant": "Relation type and target tuples are unique.",
+      "layer": "integrity",
+      "path": "invalid/integrity/relation-duplicate.json"
+    },
+    {
+      "code": "TIMESTAMP_ORDER_INVALID",
+      "invariant": "Record updates do not precede creation.",
+      "layer": "integrity",
+      "path": "invalid/integrity/timestamp-order-invalid.json"
+    },
+    {
+      "code": "VERIFICATION_EVIDENCE_INVALID",
+      "invariant": "Verified records have no direct refutation.",
+      "layer": "integrity",
+      "path": "invalid/integrity/verification-evidence-invalid.json"
+    },
+    {
+      "code": "SUPERSESSION_KEY_MISMATCH",
+      "invariant": "Supersession connects records with one key.",
+      "layer": "integrity",
+      "path": "invalid/integrity/supersession-key-mismatch.json"
+    },
+    {
+      "code": "SUPERSESSION_CYCLE",
+      "invariant": "Supersession chains are acyclic.",
+      "layer": "integrity",
+      "path": "invalid/integrity/supersession-cycle.json"
+    },
+    {
+      "code": "SUPERSESSION_BRANCH",
+      "invariant": "Supersession chains remain linear.",
+      "layer": "integrity",
+      "path": "invalid/integrity/supersession-branch.json"
     }
   ],
   "memory_schema": "schemas/memory-v3.schema.json",

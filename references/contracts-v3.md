@@ -1024,6 +1024,7 @@ code registry is:
 | `INVALID_TRANSITION` | A lifecycle transition is not permitted |
 | `MISSING_TRANSITION_REASON` | A required lifecycle reason is absent |
 | `MULTIPLE_KEY_HEADS` | A logical key has more than one current chain head |
+| `SUPERSESSION_KEY_MISMATCH` | A supersession relation connects different logical keys |
 | `SUPERSESSION_BRANCH` | One predecessor has multiple direct successors |
 | `SUPERSESSION_CYCLE` | Supersession relations contain a cycle |
 | `RELATION_SELF_TARGET` | A relation targets its containing record |

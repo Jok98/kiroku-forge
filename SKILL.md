@@ -44,12 +44,14 @@ Use [scripts/kiroku_core/schema.py](scripts/kiroku_core/schema.py) for offline
 runtime schema validation and
 [scripts/kiroku_core/findings.py](scripts/kiroku_core/findings.py) for stable
 validation results.
+Use [scripts/kiroku_core/integrity.py](scripts/kiroku_core/integrity.py) for
+deterministic multi-finding integrity validation of canonical memory.
 
 ## Current State
 
 The previous v2 implementation has been removed. The normative v3 contract and
 canonical memory schema are defined. Pipeline artifact schemas, integrity
-validation, and remaining executable behavior still need to be implemented.
-Canonical serialization, ordering, hashing, and offline memory-schema
-validation are implemented, and the fixture corpus defines expected validation
-outcomes.
+validation for non-memory artifacts, and remaining executable behavior still
+need to be implemented. Canonical serialization, ordering, hashing, offline
+memory-schema validation, and memory integrity validation are implemented. The
+fixture corpus defines expected validation outcomes.

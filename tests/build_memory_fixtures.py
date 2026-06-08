@@ -683,6 +683,73 @@ def build_integrity_invalid(
     revision_gap["compilations"][-1]["result_revision"] = 3
     cases["receipt-revision-gap.json"] = refresh_after_mutation(revision_gap)
 
+    bad_receipt_hash = copy.deepcopy(minimal)
+    bad_receipt_hash["compilations"][0]["warnings"] = [
+        "Receipt changed without refreshing its hash."
+    ]
+    cases["receipt-hash-mismatch.json"] = bad_receipt_hash
+
+    bad_receipt_chain = copy.deepcopy(history)
+    bad_receipt_chain["compilations"][1]["base_state_hash"] = (
+        "sha256:" + "f0" * 32
+    )
+    refresh_receipt_hashes(bad_receipt_chain)
+    cases["receipt-chain-mismatch.json"] = bad_receipt_chain
+
+    duplicate_relation = copy.deepcopy(history)
+    duplicate_relation["records"][1]["relations"].extend(
+        [
+            {"type": "related_to", "target_id": "rec_storage_v1"},
+            {
+                "type": "related_to",
+                "target_id": "rec_storage_v1",
+                "note": "Same tuple with a different note.",
+            },
+        ]
+    )
+    cases["relation-duplicate.json"] = refresh_after_mutation(
+        duplicate_relation
+    )
+
+    timestamp_order = copy.deepcopy(minimal)
+    timestamp_order["records"][0]["updated_at"] = "2026-06-08T09:00:00Z"
+    cases["timestamp-order-invalid.json"] = refresh_after_mutation(
+        timestamp_order
+    )
+
+    verification_conflict = copy.deepcopy(minimal)
+    verification_conflict["records"][0]["evidence"].append(
+        evidence(relation="refutes")
+    )
+    cases["verification-evidence-invalid.json"] = refresh_after_mutation(
+        verification_conflict
+    )
+
+    supersession_key = copy.deepcopy(history)
+    supersession_key["records"][1]["key"] = "different-key"
+    cases["supersession-key-mismatch.json"] = refresh_after_mutation(
+        supersession_key
+    )
+
+    supersession_cycle = copy.deepcopy(history)
+    supersession_cycle["records"][0]["relations"] = [
+        {"type": "supersedes", "target_id": "rec_storage_v2"}
+    ]
+    cases["supersession-cycle.json"] = refresh_after_mutation(
+        supersession_cycle
+    )
+
+    supersession_branch = copy.deepcopy(history)
+    competing_successor = copy.deepcopy(supersession_branch["records"][1])
+    competing_successor["id"] = "rec_storage_v3"
+    competing_successor["content"]["statement"] = (
+        "A competing record supersedes the same predecessor."
+    )
+    supersession_branch["records"].append(competing_successor)
+    cases["supersession-branch.json"] = refresh_after_mutation(
+        supersession_branch
+    )
+
     return cases
 
 
@@ -817,6 +884,54 @@ def manifest() -> dict[str, Any]:
                 "layer": "integrity",
                 "code": "RECEIPT_REVISION_SEQUENCE",
                 "invariant": "Compilation revisions are contiguous.",
+            },
+            {
+                "path": "invalid/integrity/receipt-hash-mismatch.json",
+                "layer": "integrity",
+                "code": "RECEIPT_HASH_MISMATCH",
+                "invariant": "Stored receipt hashes match canonical content.",
+            },
+            {
+                "path": "invalid/integrity/receipt-chain-mismatch.json",
+                "layer": "integrity",
+                "code": "RECEIPT_CHAIN_MISMATCH",
+                "invariant": "Receipt base state hashes form a linear chain.",
+            },
+            {
+                "path": "invalid/integrity/relation-duplicate.json",
+                "layer": "integrity",
+                "code": "RELATION_DUPLICATE",
+                "invariant": "Relation type and target tuples are unique.",
+            },
+            {
+                "path": "invalid/integrity/timestamp-order-invalid.json",
+                "layer": "integrity",
+                "code": "TIMESTAMP_ORDER_INVALID",
+                "invariant": "Record updates do not precede creation.",
+            },
+            {
+                "path": "invalid/integrity/verification-evidence-invalid.json",
+                "layer": "integrity",
+                "code": "VERIFICATION_EVIDENCE_INVALID",
+                "invariant": "Verified records have no direct refutation.",
+            },
+            {
+                "path": "invalid/integrity/supersession-key-mismatch.json",
+                "layer": "integrity",
+                "code": "SUPERSESSION_KEY_MISMATCH",
+                "invariant": "Supersession connects records with one key.",
+            },
+            {
+                "path": "invalid/integrity/supersession-cycle.json",
+                "layer": "integrity",
+                "code": "SUPERSESSION_CYCLE",
+                "invariant": "Supersession chains are acyclic.",
+            },
+            {
+                "path": "invalid/integrity/supersession-branch.json",
+                "layer": "integrity",
+                "code": "SUPERSESSION_BRANCH",
+                "invariant": "Supersession chains remain linear.",
             },
         ],
     }

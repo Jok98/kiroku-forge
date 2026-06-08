@@ -10,6 +10,7 @@ from .canonical import (
 )
 from .hashing import receipt_hash, record_hash, sha256_hash, state_hash
 from .findings import Finding, ValidationResult, finding_sort_key
+from .integrity import validate_memory_integrity
 from .schema import (
     SCHEMA_VIOLATION,
     SchemaContractError,
@@ -35,4 +36,5 @@ __all__ = [
     "sha256_hash",
     "state_hash",
     "validate_memory_schema",
+    "validate_memory_integrity",
 ]
