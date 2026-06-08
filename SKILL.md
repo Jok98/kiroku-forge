@@ -57,13 +57,16 @@ runtime schema validation and
 validation results.
 Use [scripts/kiroku_core/integrity.py](scripts/kiroku_core/integrity.py) for
 deterministic multi-finding integrity validation of canonical memory.
+Use [scripts/kiroku_core/change_set.py](scripts/kiroku_core/change_set.py) to
+validate ChangeSet hashes, base preconditions, immutable source identities, and
+lifecycle transitions before compilation.
 
 ## Current State
 
 The previous v2 implementation has been removed. The normative v3 contract and
-all canonical and pipeline artifact schemas are defined. Runtime schema and
-integrity validation for non-memory artifacts, plus the remaining executable
+all canonical and pipeline artifact schemas are defined. Runtime validation for
+pipeline artifacts other than ChangeSet, plus the remaining executable
 pipeline behavior, still need to be implemented. Canonical serialization,
-ordering, hashing, offline memory-schema validation, and memory integrity
-validation are implemented. The fixture corpora define expected schema and
-memory-integrity outcomes.
+ordering, hashing, offline schema validation, memory integrity validation, and
+ChangeSet precondition and lifecycle validation are implemented. The fixture
+corpora define expected schema and integrity outcomes.

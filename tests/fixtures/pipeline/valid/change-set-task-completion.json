@@ -1,0 +1,61 @@
+{
+  "actor": {
+    "name": "codex",
+    "session_ref": "session-pipeline-fixtures",
+    "type": "agent",
+    "version": "1.0"
+  },
+  "artifact_hash": "sha256:a64948c7142f971176e2033d6711a34efb928501b3fe3fa8e44dca3b4a6746f0",
+  "artifact_type": "change_set",
+  "base_revision": 1,
+  "base_state_hash": "sha256:777f460b38647acaaaa567ccc73bcfde6025f11385fa9c4391f951e54f256e27",
+  "candidate_resolutions": [],
+  "change_set_id": "chg_complete_task",
+  "findings": [],
+  "generated_at": "2026-06-08T12:00:00Z",
+  "input_bundles": [
+    {
+      "artifact_hash": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "artifact_id": "cnd_pipeline",
+      "artifact_type": "candidate_bundle"
+    }
+  ],
+  "operations": [
+    {
+      "evidence": {
+        "locator": {
+          "kind": "section",
+          "name": "Compiler tests"
+        },
+        "method": "test_result",
+        "observed_at": "2026-06-08T12:00:00Z",
+        "relation": "supports",
+        "source_id": "src_contract"
+      },
+      "expected_record_hash": "sha256:c6282d3d61f18ce4c4826902eae1d50822c70b71ee9c45b2eba899cdc333a79d",
+      "operation_id": "op_completion_evidence",
+      "operation_type": "add_evidence",
+      "record_id": "rec_task_blocked"
+    },
+    {
+      "content": {
+        "acceptance_criteria": [
+          "ChangeSets compile atomically."
+        ],
+        "objective": "Implement the compiler.",
+        "outcome": "The compiler tests passed.",
+        "priority": "high"
+      },
+      "expected_record_hash": "sha256:c6282d3d61f18ce4c4826902eae1d50822c70b71ee9c45b2eba899cdc333a79d",
+      "operation_id": "op_complete_task",
+      "operation_type": "transition_record",
+      "record_id": "rec_task_blocked",
+      "target_state": "done",
+      "transition_reason": "The compiler acceptance criteria passed."
+    }
+  ],
+  "schema_version": "1.0.0",
+  "source_resolutions": [],
+  "summary": "Update an existing canonical memory.",
+  "target_memory_id": "mem_fixture"
+}

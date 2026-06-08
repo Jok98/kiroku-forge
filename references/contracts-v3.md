@@ -941,7 +941,7 @@ Operation payloads are:
 | `add_evidence`, `remove_evidence` | record ID, expected hash, and exact evidence item |
 | `set_verification` | record ID, expected hash, and verification object |
 | `add_relation`, `remove_relation` | record ID, expected hash, and exact relation |
-| `transition_record` | record ID, expected hash, target state, reason, and state-specific content changes |
+| `transition_record` | record ID, expected hash, target state, reason, and complete target-state content |
 | `supersede_record` | predecessor ID, expected hash, complete successor draft, and reason |
 
 ### 12.2 Supersession
@@ -1042,10 +1042,13 @@ code registry is:
 | Code | Meaning |
 |---|---|
 | `SCHEMA_VIOLATION` | An artifact does not satisfy its JSON Schema contract |
+| `ARTIFACT_HASH_MISMATCH` | A pipeline artifact hash differs from canonical content |
 | `DUPLICATE_ID` | An ID is repeated in a namespace that requires uniqueness |
 | `UNKNOWN_SOURCE_REFERENCE` | Evidence or a receipt references an unknown source |
 | `UNKNOWN_RECORD_REFERENCE` | A relation references an unknown record |
 | `UNKNOWN_COMPILATION_REFERENCE` | Canonical data references an unknown compilation |
+| `UNKNOWN_OPERATION_REFERENCE` | A ChangeSet resolution references an unknown operation |
+| `UNKNOWN_FINDING_REFERENCE` | A ChangeSet resolution references an unknown finding |
 | `RECORD_HASH_MISMATCH` | A stored record hash differs from canonical content |
 | `STATE_HASH_MISMATCH` | The root state hash differs from canonical memory state |
 | `RECEIPT_HASH_MISMATCH` | A receipt hash differs from canonical receipt content |
@@ -1075,6 +1078,24 @@ JSONPath rooted at `$`. A validator MAY stop after the first schema violation
 because later integrity checks require a structurally valid artifact. Failure
 to load or resolve the local schema contract is a pipeline execution failure,
 not a finding about the artifact.
+
+ChangeSet validation evaluates all root and record preconditions against the
+same immutable base `Memory`. A mismatch in target memory ID, base revision,
+base state hash, or expected record hash produces `STALE_CHANGESET`. If the
+target memory is absent or unexpectedly present, checks that depend on its
+records and sources MUST NOT run.
+
+An `add_source` operation that allocates an ID already present in base memory
+produces `SOURCE_MUTATED`, even when some submitted fields match. Unchanged
+sources use source resolution `reuse`; changed source content receives a new
+canonical source ID.
+
+Transition validation MUST check the kind-specific lifecycle edge and validate
+the complete resulting record after all operations in the same ChangeSet are
+applied in order. Evidence added in that ChangeSet may satisfy terminal-state
+requirements. A missing explicit reason produces `MISSING_TRANSITION_REASON`;
+a forbidden edge or invalid target-state record produces
+`INVALID_TRANSITION`.
 
 One malformed object MAY produce multiple findings when multiple invariants are
 independently violated. Conformance fixtures SHOULD isolate one primary code.

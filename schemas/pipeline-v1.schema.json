@@ -1966,8 +1966,7 @@
         "record_id",
         "expected_record_hash",
         "target_state",
-        "transition_reason",
-        "content_changes"
+        "content"
       ],
       "properties": {
         "operation_id": {
@@ -1988,7 +1987,7 @@
         "transition_reason": {
           "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
         },
-        "content_changes": {
+        "content": {
           "type": "object",
           "additionalProperties": true
         }

@@ -18,6 +18,8 @@ from .findings import Finding, ValidationResult
 ROOT = Path(__file__).resolve().parents[2]
 COMMON_SCHEMA_PATH = ROOT / "schemas" / "common-v1.schema.json"
 MEMORY_SCHEMA_PATH = ROOT / "schemas" / "memory-v3.schema.json"
+PIPELINE_SCHEMA_PATH = ROOT / "schemas" / "pipeline-v1.schema.json"
+CHANGE_SET_SCHEMA_PATH = ROOT / "schemas" / "change-set-v1.schema.json"
 SCHEMA_VIOLATION = "SCHEMA_VIOLATION"
 
 SchemaValidator = Callable[[Any], Any]
@@ -69,20 +71,18 @@ def _verify_local_references(
             )
 
 
-def compile_memory_schema(
-    memory_schema_path: Path = MEMORY_SCHEMA_PATH,
-    common_schema_path: Path = COMMON_SCHEMA_PATH,
+def _compile_local_schema(
+    root_schema_path: Path,
+    dependency_paths: tuple[Path, ...],
 ) -> SchemaValidator:
-    """Compile the memory schema using only explicitly supplied local schemas."""
-
-    memory_schema = _load_schema(memory_schema_path)
-    common_schema = _load_schema(common_schema_path)
+    root_schema = _load_schema(root_schema_path)
+    dependencies = [_load_schema(path) for path in dependency_paths]
     schemas = {
-        memory_schema["$id"]: memory_schema,
-        common_schema["$id"]: common_schema,
+        schema["$id"]: schema
+        for schema in [root_schema, *dependencies]
     }
-    if len(schemas) != 2:
-        raise SchemaContractError("memory and common schemas must have unique $id")
+    if len(schemas) != len(dependencies) + 1:
+        raise SchemaContractError("local schemas must have unique $id values")
 
     allowed_documents = set(schemas)
     for schema in schemas.values():
@@ -99,7 +99,7 @@ def compile_memory_schema(
 
     try:
         return fastjsonschema.compile(
-            memory_schema,
+            root_schema,
             handlers={
                 "http": resolve_local,
                 "https": resolve_local,
@@ -111,13 +111,101 @@ def compile_memory_schema(
         raise
     except Exception as exc:
         raise SchemaContractError(
-            f"cannot compile memory schema: {exc}"
+            f"cannot compile schema {root_schema_path}: {exc}"
+        ) from exc
+
+
+def compile_memory_schema(
+    memory_schema_path: Path = MEMORY_SCHEMA_PATH,
+    common_schema_path: Path = COMMON_SCHEMA_PATH,
+) -> SchemaValidator:
+    """Compile the memory schema using only explicitly supplied local schemas."""
+
+    return _compile_local_schema(
+        memory_schema_path,
+        (common_schema_path,),
+    )
+
+
+def compile_change_set_schema(
+    change_set_schema_path: Path = CHANGE_SET_SCHEMA_PATH,
+    pipeline_schema_path: Path = PIPELINE_SCHEMA_PATH,
+    memory_schema_path: Path = MEMORY_SCHEMA_PATH,
+    common_schema_path: Path = COMMON_SCHEMA_PATH,
+) -> SchemaValidator:
+    """Compile the ChangeSet schema and its local dependency graph."""
+
+    return _compile_local_schema(
+        change_set_schema_path,
+        (
+            pipeline_schema_path,
+            memory_schema_path,
+            common_schema_path,
+        ),
+    )
+
+
+def compile_pipeline_definition(
+    definition: str,
+    pipeline_schema_path: Path = PIPELINE_SCHEMA_PATH,
+    memory_schema_path: Path = MEMORY_SCHEMA_PATH,
+    common_schema_path: Path = COMMON_SCHEMA_PATH,
+) -> SchemaValidator:
+    """Compile one shared pipeline definition with local dependencies."""
+
+    pipeline_schema = _load_schema(pipeline_schema_path)
+    wrapper = {
+        "$schema": pipeline_schema["$schema"],
+        "$id": (
+            "https://kiroku-forge.local/runtime/"
+            f"{definition}.schema.json"
+        ),
+        "$ref": f"{pipeline_schema['$id']}#/$defs/{definition}",
+    }
+    schemas = {
+        wrapper["$id"]: wrapper,
+        pipeline_schema["$id"]: pipeline_schema,
+    }
+    for path in (memory_schema_path, common_schema_path):
+        schema = _load_schema(path)
+        schemas[schema["$id"]] = schema
+
+    allowed_documents = set(schemas)
+    for schema in schemas.values():
+        _verify_local_references(schema, allowed_documents)
+
+    def resolve_local(uri: str) -> dict[str, Any]:
+        document_uri, _ = urldefrag(uri)
+        try:
+            return schemas[document_uri]
+        except KeyError as exc:
+            raise SchemaContractError(
+                f"schema resolution is restricted to local documents: {uri}"
+            ) from exc
+
+    try:
+        return fastjsonschema.compile(
+            wrapper,
+            handlers={"http": resolve_local, "https": resolve_local},
+            use_default=False,
+            detailed_exceptions=True,
+        )
+    except SchemaContractError:
+        raise
+    except Exception as exc:
+        raise SchemaContractError(
+            f"cannot compile pipeline definition {definition!r}: {exc}"
         ) from exc
 
 
 @lru_cache(maxsize=1)
 def _default_validator() -> SchemaValidator:
     return compile_memory_schema()
+
+
+@lru_cache(maxsize=1)
+def _default_change_set_validator() -> SchemaValidator:
+    return compile_change_set_schema()
 
 
 def _path_and_entities(
@@ -131,14 +219,26 @@ def _path_and_entities(
     current = instance
     path = "$"
     nearest_entity: str | None = None
+    entity_fields = (
+        "id",
+        "operation_id",
+        "candidate_id",
+        "captured_source_id",
+        "change_set_id",
+        "memory_id",
+        "capture_bundle_id",
+        "candidate_bundle_id",
+        "audit_report_id",
+        "context_pack_id",
+    )
 
     for component in components:
         if isinstance(current, dict):
-            entity_id = current.get("id")
-            if isinstance(entity_id, str):
-                nearest_entity = entity_id
-            elif path == "$" and isinstance(current.get("memory_id"), str):
-                nearest_entity = current["memory_id"]
+            for field in entity_fields:
+                entity_id = current.get(field)
+                if isinstance(entity_id, str):
+                    nearest_entity = entity_id
+                    break
 
             key = str(component)
             if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", key):
@@ -163,11 +263,11 @@ def _path_and_entities(
         current = None
 
     if isinstance(current, dict):
-        entity_id = current.get("id")
-        if isinstance(entity_id, str):
-            nearest_entity = entity_id
-        elif path == "$" and isinstance(current.get("memory_id"), str):
-            nearest_entity = current["memory_id"]
+        for field in entity_fields:
+            entity_id = current.get(field)
+            if isinstance(entity_id, str):
+                nearest_entity = entity_id
+                break
 
     entity_ids = (nearest_entity,) if nearest_entity is not None else ()
     return path, entity_ids
@@ -222,6 +322,32 @@ def validate_memory_schema(
         active_validator(memory)
     except fastjsonschema.JsonSchemaException as exc:
         path, entity_ids = _path_and_entities(memory, exc.path)
+        return ValidationResult(
+            (
+                Finding(
+                    code=SCHEMA_VIOLATION,
+                    severity="error",
+                    path=path,
+                    message=_schema_message(exc, path),
+                    entity_ids=entity_ids,
+                ),
+            )
+        )
+    return ValidationResult()
+
+
+def validate_change_set_schema(
+    change_set: Any,
+    *,
+    validator: SchemaValidator | None = None,
+) -> ValidationResult:
+    """Validate ChangeSet shape without mutation or remote resolution."""
+
+    active_validator = validator or _default_change_set_validator()
+    try:
+        active_validator(change_set)
+    except fastjsonschema.JsonSchemaException as exc:
+        path, entity_ids = _path_and_entities(change_set, exc.path)
         return ValidationResult(
             (
                 Finding(

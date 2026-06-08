@@ -1,0 +1,44 @@
+{
+  "actor": {
+    "name": "codex",
+    "session_ref": "session-pipeline-fixtures",
+    "type": "agent",
+    "version": "1.0"
+  },
+  "artifact_hash": "sha256:1f23fdb970d06b85eac2be8eb5cc7a0e5835d54273e85c21bb665c112ce64367",
+  "artifact_type": "change_set",
+  "base_revision": 1,
+  "base_state_hash": "sha256:777f460b38647acaaaa567ccc73bcfde6025f11385fa9c4391f951e54f256e27",
+  "candidate_resolutions": [],
+  "change_set_id": "chg_complete_task",
+  "findings": [],
+  "generated_at": "2026-06-08T12:00:00Z",
+  "input_bundles": [
+    {
+      "artifact_hash": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "artifact_id": "cnd_pipeline",
+      "artifact_type": "candidate_bundle"
+    }
+  ],
+  "operations": [
+    {
+      "content": {
+        "acceptance_criteria": [
+          "ChangeSets compile atomically."
+        ],
+        "objective": "Implement the compiler.",
+        "priority": "high"
+      },
+      "expected_record_hash": "sha256:c6282d3d61f18ce4c4826902eae1d50822c70b71ee9c45b2eba899cdc333a79d",
+      "operation_id": "op_complete_task",
+      "operation_type": "transition_record",
+      "record_id": "rec_task_blocked",
+      "target_state": "done",
+      "transition_reason": "The compiler acceptance criteria passed."
+    }
+  ],
+  "schema_version": "1.0.0",
+  "source_resolutions": [],
+  "summary": "Update an existing canonical memory.",
+  "target_memory_id": "mem_fixture"
+}

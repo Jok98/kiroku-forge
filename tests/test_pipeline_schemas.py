@@ -81,7 +81,7 @@ class PipelineFixtureCorpusTest(unittest.TestCase):
     def test_manifest_lists_every_fixture_exactly_once(self) -> None:
         listed = {
             item["path"]
-            for group in ("valid", "invalid")
+            for group in ("valid", "invalid", "integrity_invalid")
             for item in MANIFEST[group]
         }
         actual = {
@@ -92,7 +92,10 @@ class PipelineFixtureCorpusTest(unittest.TestCase):
         self.assertEqual(listed, actual)
         self.assertEqual(
             len(listed),
-            len(MANIFEST["valid"]) + len(MANIFEST["invalid"]),
+            sum(
+                len(MANIFEST[group])
+                for group in ("valid", "invalid", "integrity_invalid")
+            ),
         )
 
     def test_valid_fixtures_pass_their_public_schema(self) -> None:
@@ -113,6 +116,14 @@ class PipelineFixtureCorpusTest(unittest.TestCase):
                     fastjsonschema.JsonSchemaException
                 ):
                     compile_schema(schema)(load_fixture(item["path"]))
+
+    def test_integrity_invalid_fixtures_pass_public_schema(self) -> None:
+        for item in MANIFEST["integrity_invalid"]:
+            schema = json.loads(
+                (ROOT / item["schema"]).read_text(encoding="utf-8")
+            )
+            with self.subTest(path=item["path"]):
+                compile_schema(schema)(load_fixture(item["path"]))
 
     def test_valid_fixture_artifact_hashes_match_content(self) -> None:
         for item in MANIFEST["valid"]:
@@ -304,7 +315,7 @@ class PipelineSchemaContractTest(unittest.TestCase):
                 "expected_record_hash": HASH,
                 "target_state": "obsolete",
                 "transition_reason": "The fact is no longer current.",
-                "content_changes": {},
+                "content": record["content"],
             },
             {
                 "operation_id": "op_supersede",

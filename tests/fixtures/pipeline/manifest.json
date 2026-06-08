@@ -1,5 +1,70 @@
 {
   "generated_by": "tests/build_pipeline_fixtures.py",
+  "integrity_invalid": [
+    {
+      "artifact_type": "change_set",
+      "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+      "code": "STALE_CHANGESET",
+      "path": "invalid/integrity/change-set-stale-revision.json",
+      "schema": "schemas/change-set-v1.schema.json"
+    },
+    {
+      "artifact_type": "change_set",
+      "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+      "code": "STALE_CHANGESET",
+      "path": "invalid/integrity/change-set-stale-state-hash.json",
+      "schema": "schemas/change-set-v1.schema.json"
+    },
+    {
+      "artifact_type": "change_set",
+      "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+      "code": "STALE_CHANGESET",
+      "path": "invalid/integrity/change-set-stale-record-hash.json",
+      "schema": "schemas/change-set-v1.schema.json"
+    },
+    {
+      "artifact_type": "change_set",
+      "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+      "code": "INVALID_TRANSITION",
+      "path": "invalid/integrity/change-set-invalid-transition.json",
+      "schema": "schemas/change-set-v1.schema.json"
+    },
+    {
+      "artifact_type": "change_set",
+      "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+      "code": "MISSING_TRANSITION_REASON",
+      "path": "invalid/integrity/change-set-missing-transition-reason.json",
+      "schema": "schemas/change-set-v1.schema.json"
+    },
+    {
+      "artifact_type": "change_set",
+      "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+      "code": "INVALID_TRANSITION",
+      "path": "invalid/integrity/change-set-invalid-target-content.json",
+      "schema": "schemas/change-set-v1.schema.json"
+    },
+    {
+      "artifact_type": "change_set",
+      "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+      "code": "INVALID_TRANSITION",
+      "path": "invalid/integrity/change-set-missing-completion-evidence.json",
+      "schema": "schemas/change-set-v1.schema.json"
+    },
+    {
+      "artifact_type": "change_set",
+      "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+      "code": "SOURCE_MUTATED",
+      "path": "invalid/integrity/change-set-source-mutated.json",
+      "schema": "schemas/change-set-v1.schema.json"
+    },
+    {
+      "artifact_type": "change_set",
+      "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+      "code": "ARTIFACT_HASH_MISMATCH",
+      "path": "invalid/integrity/change-set-artifact-hash-mismatch.json",
+      "schema": "schemas/change-set-v1.schema.json"
+    }
+  ],
   "invalid": [
     {
       "artifact_type": "capture_bundle",
@@ -42,6 +107,12 @@
     {
       "artifact_type": "change_set",
       "path": "valid/change-set.json",
+      "schema": "schemas/change-set-v1.schema.json"
+    },
+    {
+      "artifact_type": "change_set",
+      "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+      "path": "valid/change-set-task-completion.json",
       "schema": "schemas/change-set-v1.schema.json"
     },
     {

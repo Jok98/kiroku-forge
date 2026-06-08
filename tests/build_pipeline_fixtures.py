@@ -23,6 +23,16 @@ MEMORY = json.loads(
         ROOT / "tests" / "fixtures" / "memory" / "valid" / "minimal.json"
     ).read_text(encoding="utf-8")
 )
+LIFECYCLE_MEMORY = json.loads(
+    (
+        ROOT
+        / "tests"
+        / "fixtures"
+        / "memory"
+        / "valid"
+        / "lifecycle-states.json"
+    ).read_text(encoding="utf-8")
+)
 
 
 def actor() -> dict[str, Any]:
@@ -249,6 +259,77 @@ def change_set(
     )
 
 
+def existing_change_set(
+    operations: list[dict[str, Any]],
+    *,
+    change_set_id: str,
+) -> dict[str, Any]:
+    return finalize(
+        {
+            "artifact_type": "change_set",
+            "schema_version": "1.0.0",
+            "change_set_id": change_set_id,
+            "artifact_hash": HASH,
+            "generated_at": NOW,
+            "actor": actor(),
+            "target_memory_id": LIFECYCLE_MEMORY["memory_id"],
+            "base_revision": LIFECYCLE_MEMORY["revision"],
+            "base_state_hash": LIFECYCLE_MEMORY["state_hash"],
+            "input_bundles": [
+                {
+                    "artifact_type": "candidate_bundle",
+                    "artifact_id": "cnd_pipeline",
+                    "artifact_hash": HASH,
+                }
+            ],
+            "summary": "Update an existing canonical memory.",
+            "source_resolutions": [],
+            "candidate_resolutions": [],
+            "operations": operations,
+            "findings": [],
+        }
+    )
+
+
+def valid_task_completion_change_set() -> dict[str, Any]:
+    task = next(
+        record
+        for record in LIFECYCLE_MEMORY["records"]
+        if record["id"] == "rec_task_blocked"
+    )
+    evidence_item = {
+        "source_id": "src_contract",
+        "relation": "supports",
+        "method": "test_result",
+        "locator": {"kind": "section", "name": "Compiler tests"},
+        "observed_at": NOW,
+    }
+    return existing_change_set(
+        [
+            {
+                "operation_id": "op_completion_evidence",
+                "operation_type": "add_evidence",
+                "record_id": task["id"],
+                "expected_record_hash": task["content_hash"],
+                "evidence": evidence_item,
+            },
+            {
+                "operation_id": "op_complete_task",
+                "operation_type": "transition_record",
+                "record_id": task["id"],
+                "expected_record_hash": task["content_hash"],
+                "target_state": "done",
+                "transition_reason": "The compiler acceptance criteria passed.",
+                "content": {
+                    **copy.deepcopy(task["content"]),
+                    "outcome": "The compiler tests passed.",
+                },
+            },
+        ],
+        change_set_id="chg_complete_task",
+    )
+
+
 def audit_report() -> dict[str, Any]:
     return finalize(
         {
@@ -400,7 +481,11 @@ def context_pack(audit: dict[str, Any]) -> dict[str, Any]:
     )
 
 
-def fixtures() -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
+def fixtures() -> tuple[
+    dict[str, dict[str, Any]],
+    dict[str, dict[str, Any]],
+    dict[str, dict[str, Any]],
+]:
     capture = capture_bundle()
     candidates = candidate_bundle(capture)
     changes = change_set(capture, candidates)
@@ -411,6 +496,9 @@ def fixtures() -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
         "valid/capture-bundle.json": capture,
         "valid/candidate-bundle.json": candidates,
         "valid/change-set.json": changes,
+        "valid/change-set-task-completion.json": (
+            valid_task_completion_change_set()
+        ),
         "valid/audit-report.json": audit,
         "valid/context-pack.json": context,
     }
@@ -441,7 +529,93 @@ def fixtures() -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
         "invalid/audit-detector-missing-version.json": bad_audit,
         "invalid/context-section-order.json": bad_context,
     }
-    return valid, invalid
+
+    valid_existing = valid["valid/change-set-task-completion.json"]
+
+    stale_revision = copy.deepcopy(valid_existing)
+    stale_revision["base_revision"] += 1
+    finalize(stale_revision)
+
+    stale_state_hash = copy.deepcopy(valid_existing)
+    stale_state_hash["base_state_hash"] = "sha256:" + "f0" * 32
+    finalize(stale_state_hash)
+
+    stale_record_hash = copy.deepcopy(valid_existing)
+    stale_record_hash["operations"][0]["expected_record_hash"] = (
+        "sha256:" + "f0" * 32
+    )
+    finalize(stale_record_hash)
+
+    invalid_transition = copy.deepcopy(valid_existing)
+    transition = invalid_transition["operations"][1]
+    transition["target_state"] = "obsolete"
+    transition["content"] = copy.deepcopy(
+        next(
+            record["content"]
+            for record in LIFECYCLE_MEMORY["records"]
+            if record["id"] == "rec_task_blocked"
+        )
+    )
+    finalize(invalid_transition)
+
+    missing_reason = copy.deepcopy(valid_existing)
+    del missing_reason["operations"][1]["transition_reason"]
+    finalize(missing_reason)
+
+    invalid_target_content = copy.deepcopy(valid_existing)
+    invalid_target_content["operations"] = [
+        copy.deepcopy(invalid_target_content["operations"][1])
+    ]
+    invalid_target_content["operations"][0]["content"].pop("outcome")
+    finalize(invalid_target_content)
+
+    missing_completion_evidence = copy.deepcopy(valid_existing)
+    missing_completion_evidence["operations"] = [
+        copy.deepcopy(missing_completion_evidence["operations"][1])
+    ]
+    finalize(missing_completion_evidence)
+
+    source_mutated = existing_change_set(
+        [
+            {
+                "operation_id": "op_mutate_source",
+                "operation_type": "add_source",
+                "source": {
+                    key: copy.deepcopy(value)
+                    for key, value in LIFECYCLE_MEMORY["sources"][0].items()
+                    if key != "created_by"
+                }
+                | {"title": "Mutated source title"},
+            }
+        ],
+        change_set_id="chg_mutate_source",
+    )
+
+    artifact_hash_mismatch = copy.deepcopy(valid_existing)
+    artifact_hash_mismatch["summary"] = "Changed after hashing."
+
+    integrity_invalid = {
+        "invalid/integrity/change-set-stale-revision.json": stale_revision,
+        "invalid/integrity/change-set-stale-state-hash.json": stale_state_hash,
+        "invalid/integrity/change-set-stale-record-hash.json": stale_record_hash,
+        "invalid/integrity/change-set-invalid-transition.json": (
+            invalid_transition
+        ),
+        "invalid/integrity/change-set-missing-transition-reason.json": (
+            missing_reason
+        ),
+        "invalid/integrity/change-set-invalid-target-content.json": (
+            invalid_target_content
+        ),
+        "invalid/integrity/change-set-missing-completion-evidence.json": (
+            missing_completion_evidence
+        ),
+        "invalid/integrity/change-set-source-mutated.json": source_mutated,
+        "invalid/integrity/change-set-artifact-hash-mismatch.json": (
+            artifact_hash_mismatch
+        ),
+    }
+    return valid, invalid, integrity_invalid
 
 
 def manifest() -> dict[str, Any]:
@@ -463,6 +637,12 @@ def manifest() -> dict[str, Any]:
                 "artifact_type": "change_set",
                 "schema": "schemas/change-set-v1.schema.json",
                 "path": "valid/change-set.json",
+            },
+            {
+                "artifact_type": "change_set",
+                "schema": "schemas/change-set-v1.schema.json",
+                "path": "valid/change-set-task-completion.json",
+                "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
             },
             {
                 "artifact_type": "audit_report",
@@ -502,6 +682,71 @@ def manifest() -> dict[str, Any]:
                 "path": "invalid/context-section-order.json",
             },
         ],
+        "integrity_invalid": [
+            {
+                "artifact_type": "change_set",
+                "schema": "schemas/change-set-v1.schema.json",
+                "path": "invalid/integrity/change-set-stale-revision.json",
+                "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+                "code": "STALE_CHANGESET",
+            },
+            {
+                "artifact_type": "change_set",
+                "schema": "schemas/change-set-v1.schema.json",
+                "path": "invalid/integrity/change-set-stale-state-hash.json",
+                "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+                "code": "STALE_CHANGESET",
+            },
+            {
+                "artifact_type": "change_set",
+                "schema": "schemas/change-set-v1.schema.json",
+                "path": "invalid/integrity/change-set-stale-record-hash.json",
+                "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+                "code": "STALE_CHANGESET",
+            },
+            {
+                "artifact_type": "change_set",
+                "schema": "schemas/change-set-v1.schema.json",
+                "path": "invalid/integrity/change-set-invalid-transition.json",
+                "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+                "code": "INVALID_TRANSITION",
+            },
+            {
+                "artifact_type": "change_set",
+                "schema": "schemas/change-set-v1.schema.json",
+                "path": "invalid/integrity/change-set-missing-transition-reason.json",
+                "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+                "code": "MISSING_TRANSITION_REASON",
+            },
+            {
+                "artifact_type": "change_set",
+                "schema": "schemas/change-set-v1.schema.json",
+                "path": "invalid/integrity/change-set-invalid-target-content.json",
+                "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+                "code": "INVALID_TRANSITION",
+            },
+            {
+                "artifact_type": "change_set",
+                "schema": "schemas/change-set-v1.schema.json",
+                "path": "invalid/integrity/change-set-missing-completion-evidence.json",
+                "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+                "code": "INVALID_TRANSITION",
+            },
+            {
+                "artifact_type": "change_set",
+                "schema": "schemas/change-set-v1.schema.json",
+                "path": "invalid/integrity/change-set-source-mutated.json",
+                "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+                "code": "SOURCE_MUTATED",
+            },
+            {
+                "artifact_type": "change_set",
+                "schema": "schemas/change-set-v1.schema.json",
+                "path": "invalid/integrity/change-set-artifact-hash-mismatch.json",
+                "base_memory": "tests/fixtures/memory/valid/lifecycle-states.json",
+                "code": "ARTIFACT_HASH_MISMATCH",
+            },
+        ],
     }
 
 
@@ -515,10 +760,14 @@ def render(value: Any) -> str:
 
 
 def expected_files() -> dict[Path, str]:
-    valid, invalid = fixtures()
+    valid, invalid, integrity_invalid = fixtures()
     files = {
         FIXTURE_ROOT / path: render(value)
-        for path, value in {**valid, **invalid}.items()
+        for path, value in {
+            **valid,
+            **invalid,
+            **integrity_invalid,
+        }.items()
     }
     files[FIXTURE_ROOT / "manifest.json"] = render(manifest())
     return files
