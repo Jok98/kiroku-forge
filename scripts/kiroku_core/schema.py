@@ -20,6 +20,7 @@ COMMON_SCHEMA_PATH = ROOT / "schemas" / "common-v1.schema.json"
 MEMORY_SCHEMA_PATH = ROOT / "schemas" / "memory-v3.schema.json"
 PIPELINE_SCHEMA_PATH = ROOT / "schemas" / "pipeline-v1.schema.json"
 CAPTURE_BUNDLE_SCHEMA_PATH = ROOT / "schemas" / "capture-bundle-v1.schema.json"
+CANDIDATE_BUNDLE_SCHEMA_PATH = ROOT / "schemas" / "candidate-bundle-v1.schema.json"
 CHANGE_SET_SCHEMA_PATH = ROOT / "schemas" / "change-set-v1.schema.json"
 SCHEMA_VIOLATION = "SCHEMA_VIOLATION"
 
@@ -164,6 +165,24 @@ def compile_capture_bundle_schema(
     )
 
 
+def compile_candidate_bundle_schema(
+    candidate_bundle_schema_path: Path = CANDIDATE_BUNDLE_SCHEMA_PATH,
+    pipeline_schema_path: Path = PIPELINE_SCHEMA_PATH,
+    memory_schema_path: Path = MEMORY_SCHEMA_PATH,
+    common_schema_path: Path = COMMON_SCHEMA_PATH,
+) -> SchemaValidator:
+    """Compile the CandidateBundle schema and its local dependency graph."""
+
+    return _compile_local_schema(
+        candidate_bundle_schema_path,
+        (
+            pipeline_schema_path,
+            memory_schema_path,
+            common_schema_path,
+        ),
+    )
+
+
 def compile_pipeline_definition(
     definition: str,
     pipeline_schema_path: Path = PIPELINE_SCHEMA_PATH,
@@ -230,6 +249,11 @@ def _default_change_set_validator() -> SchemaValidator:
 @lru_cache(maxsize=1)
 def _default_capture_bundle_validator() -> SchemaValidator:
     return compile_capture_bundle_schema()
+
+
+@lru_cache(maxsize=1)
+def _default_candidate_bundle_validator() -> SchemaValidator:
+    return compile_candidate_bundle_schema()
 
 
 def _path_and_entities(
@@ -398,6 +422,32 @@ def validate_capture_bundle_schema(
         active_validator(capture_bundle)
     except fastjsonschema.JsonSchemaException as exc:
         path, entity_ids = _path_and_entities(capture_bundle, exc.path)
+        return ValidationResult(
+            (
+                Finding(
+                    code=SCHEMA_VIOLATION,
+                    severity="error",
+                    path=path,
+                    message=_schema_message(exc, path),
+                    entity_ids=entity_ids,
+                ),
+            )
+        )
+    return ValidationResult()
+
+
+def validate_candidate_bundle_schema(
+    candidate_bundle: Any,
+    *,
+    validator: SchemaValidator | None = None,
+) -> ValidationResult:
+    """Validate CandidateBundle shape without mutation or remote resolution."""
+
+    active_validator = validator or _default_candidate_bundle_validator()
+    try:
+        active_validator(candidate_bundle)
+    except fastjsonschema.JsonSchemaException as exc:
+        path, entity_ids = _path_and_entities(candidate_bundle, exc.path)
         return ValidationResult(
             (
                 Finding(

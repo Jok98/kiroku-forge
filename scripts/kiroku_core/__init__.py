@@ -25,16 +25,24 @@ from .compiler import (
     compile_change_set,
     compile_memory_file,
 )
+from .reconcile import (
+    ReconcileResult,
+    candidate_bundle_hash,
+    change_set_hash,
+    reconcile_candidates,
+)
 from .hashing import receipt_hash, record_hash, sha256_hash, state_hash
 from .findings import Finding, ValidationResult, finding_sort_key
 from .integrity import validate_memory_integrity
 from .schema import (
     SCHEMA_VIOLATION,
     SchemaContractError,
+    compile_candidate_bundle_schema,
     compile_capture_bundle_schema,
     compile_change_set_schema,
     compile_memory_schema,
     compile_pipeline_definition,
+    validate_candidate_bundle_schema,
     validate_capture_bundle_schema,
     validate_change_set_schema,
     validate_memory_schema,
@@ -47,14 +55,17 @@ __all__ = [
     "CompileResult",
     "CompileLockError",
     "CompilePersistenceError",
+    "ReconcileResult",
     "Finding",
     "SCHEMA_VIOLATION",
     "SchemaContractError",
     "ValidationResult",
     "canonical_bytes",
     "canonical_dumps",
+    "candidate_bundle_hash",
     "capture_bundle_hash",
     "capture_sources",
+    "change_set_hash",
     "canonicalize_record",
     "canonicalize_memory",
     "compile_change_set",
@@ -62,10 +73,12 @@ __all__ = [
     "compile_memory_schema",
     "compile_change_set_schema",
     "compile_capture_bundle_schema",
+    "compile_candidate_bundle_schema",
     "compile_pipeline_definition",
     "finding_sort_key",
     "is_canonical_memory",
     "receipt_hash",
+    "reconcile_candidates",
     "record_hash",
     "sha256_hash",
     "source_content_hash",
@@ -73,6 +86,7 @@ __all__ = [
     "validate_memory_schema",
     "validate_memory_integrity",
     "validate_capture_bundle_schema",
+    "validate_candidate_bundle_schema",
     "validate_change_set",
     "validate_change_set_schema",
 ]
