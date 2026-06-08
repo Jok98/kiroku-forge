@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 import subprocess
@@ -10,6 +9,8 @@ from pathlib import Path
 from typing import Any
 
 import fastjsonschema
+
+from scripts.kiroku_core.hashing import receipt_hash, record_hash, state_hash
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,20 +34,6 @@ def load_schema(uri: str) -> dict[str, Any]:
 
 
 VALIDATE = fastjsonschema.compile(MEMORY, handlers={"https": load_schema})
-
-
-def canonical_hash(value: Any) -> str:
-    payload = json.dumps(
-        value,
-        ensure_ascii=False,
-        separators=(",", ":"),
-        sort_keys=True,
-    ).encode("utf-8")
-    return f"sha256:{hashlib.sha256(payload).hexdigest()}"
-
-
-def hash_without(value: dict[str, Any], field: str) -> str:
-    return canonical_hash({key: item for key, item in value.items() if key != field})
 
 
 class MemoryFixtureCorpusTest(unittest.TestCase):
@@ -102,18 +89,11 @@ class MemoryFixtureCorpusTest(unittest.TestCase):
                 ):
                     self.assertEqual(
                         record["content_hash"],
-                        hash_without(record, "content_hash"),
+                        record_hash(record),
                     )
 
-            state_payload = {
-                "memory_id": memory["memory_id"],
-                "revision": memory["revision"],
-                "project": memory["project"],
-                "sources": memory["sources"],
-                "records": memory["records"],
-            }
             with self.subTest(path=item["path"], component="state"):
-                self.assertEqual(memory["state_hash"], canonical_hash(state_payload))
+                self.assertEqual(memory["state_hash"], state_hash(memory))
 
             previous_hash = None
             for receipt in memory["compilations"]:
@@ -125,7 +105,7 @@ class MemoryFixtureCorpusTest(unittest.TestCase):
                     self.assertEqual(receipt["previous_receipt_hash"], previous_hash)
                     self.assertEqual(
                         receipt["receipt_hash"],
-                        hash_without(receipt, "receipt_hash"),
+                        receipt_hash(receipt),
                     )
                 previous_hash = receipt["receipt_hash"]
 

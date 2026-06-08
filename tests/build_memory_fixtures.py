@@ -2,36 +2,25 @@ from __future__ import annotations
 
 import argparse
 import copy
-import hashlib
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.kiroku_core.canonical import canonicalize_memory
+from scripts.kiroku_core.hashing import receipt_hash, record_hash, state_hash
+
+
 FIXTURE_ROOT = ROOT / "tests" / "fixtures" / "memory"
 NOW = "2026-06-08T10:00:00Z"
 LATER = "2026-06-08T11:00:00Z"
 SOURCE_HASH = "sha256:" + "c3" * 32
 CHANGESET_HASH = "sha256:" + "d4" * 32
-
-
-def canonical_bytes(value: Any) -> bytes:
-    return json.dumps(
-        value,
-        ensure_ascii=False,
-        separators=(",", ":"),
-        sort_keys=True,
-    ).encode("utf-8")
-
-
-def canonical_hash(value: Any) -> str:
-    return f"sha256:{hashlib.sha256(canonical_bytes(value)).hexdigest()}"
-
-
-def hash_without(value: dict[str, Any], field: str) -> str:
-    payload = {key: item for key, item in value.items() if key != field}
-    return canonical_hash(payload)
 
 
 def evidence(
@@ -221,42 +210,11 @@ def memory(records: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def sort_nested(candidate: dict[str, Any]) -> None:
-    project = candidate["project"]
-    project["boundaries"]["included"].sort()
-    project["boundaries"]["excluded"].sort()
-    candidate["sources"].sort(key=lambda item: item["id"])
-    for item in candidate["records"]:
-        item["scope"].sort()
-        item["tags"].sort()
-        item["evidence"].sort(
-            key=lambda entry: (
-                entry["source_id"],
-                entry["relation"],
-                entry["method"],
-                canonical_bytes(entry["locator"]),
-            )
-        )
-        item["relations"].sort(key=lambda entry: (entry["type"], entry["target_id"]))
-    candidate["records"].sort(key=lambda item: item["id"])
-    candidate["compilations"].sort(key=lambda item: item["result_revision"])
-
-
-def state_payload(candidate: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "memory_id": candidate["memory_id"],
-        "revision": candidate["revision"],
-        "project": candidate["project"],
-        "sources": candidate["sources"],
-        "records": candidate["records"],
-    }
-
-
 def refresh_receipt_hashes(candidate: dict[str, Any]) -> None:
     previous_hash = None
     for item in candidate["compilations"]:
         item["previous_receipt_hash"] = previous_hash
-        item["receipt_hash"] = hash_without(item, "receipt_hash")
+        item["receipt_hash"] = receipt_hash(item)
         previous_hash = item["receipt_hash"]
 
 
@@ -278,11 +236,11 @@ def finalize(
     refresh_records: bool = True,
 ) -> dict[str, Any]:
     if sort_canonical:
-        sort_nested(candidate)
+        candidate = canonicalize_memory(candidate)
     if refresh_records:
         for item in candidate["records"]:
-            item["content_hash"] = hash_without(item, "content_hash")
-    candidate["state_hash"] = canonical_hash(state_payload(candidate))
+            item["content_hash"] = record_hash(item)
+    candidate["state_hash"] = state_hash(candidate)
     candidate["compilations"][-1]["result_state_hash"] = candidate["state_hash"]
     update_operation_hashes(candidate)
     refresh_receipt_hashes(candidate)

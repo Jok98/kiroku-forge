@@ -30,7 +30,7 @@
             {
               "id": "mem_fixture",
               "previous_hash": null,
-              "result_hash": "sha256:a2b9df00b2dd308969c2a0ae6232eb88f8b61078885b67568c02969e0425970d"
+              "result_hash": "sha256:67ca5ccb47c3e9e4f5e8b3590d82ee070b25c2d40dd223c28ff3fd7fc108aed7"
             }
           ],
           "operation_id": "op_initialize",
@@ -114,9 +114,9 @@
         }
       ],
       "previous_receipt_hash": null,
-      "receipt_hash": "sha256:30980a1a859f374134e84982f54202c8ef153e6e1110b68414608a407310cee6",
+      "receipt_hash": "sha256:2ff2a9489b8472a8816959c245549c0cf3477ce1f42edafee926e7edfa4c47de",
       "result_revision": 1,
-      "result_state_hash": "sha256:a2b9df00b2dd308969c2a0ae6232eb88f8b61078885b67568c02969e0425970d",
+      "result_state_hash": "sha256:67ca5ccb47c3e9e4f5e8b3590d82ee070b25c2d40dd223c28ff3fd7fc108aed7",
       "warnings": []
     }
   ],
@@ -453,5 +453,5 @@
       "uri": "file:references/contracts-v3.md"
     }
   ],
-  "state_hash": "sha256:a2b9df00b2dd308969c2a0ae6232eb88f8b61078885b67568c02969e0425970d"
+  "state_hash": "sha256:67ca5ccb47c3e9e4f5e8b3590d82ee070b25c2d40dd223c28ff3fd7fc108aed7"
 }

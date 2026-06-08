@@ -327,6 +327,12 @@ Nested canonical collections MUST use these orders:
 Lists whose order carries meaning, such as alternatives, acceptance criteria,
 consequences, and mitigations, preserve authored order.
 
+Canonicalization MUST be deterministic, idempotent, and non-mutating. It
+produces a semantically equivalent copy, orders only the set-like collections
+listed above, and preserves authored order everywhere else. Lexicographic
+ordering uses Unicode code point order. Evidence locator ties use canonical
+UTF-8 locator bytes.
+
 Numbers with fractional values SHOULD NOT appear in canonical memory. Ordinal
 enums SHOULD represent likelihood, impact, priority, and similar concepts.
 

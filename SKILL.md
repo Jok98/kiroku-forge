@@ -37,10 +37,14 @@ hashes, timestamps, actors, and evidence locators. Validate canonical
 [schemas/memory-v3.schema.json](schemas/memory-v3.schema.json).
 Use [tests/fixtures/memory/manifest.json](tests/fixtures/memory/manifest.json)
 as the conformance matrix for schema and integrity behavior.
+Use [scripts/kiroku_core/canonical.py](scripts/kiroku_core/canonical.py) and
+[scripts/kiroku_core/hashing.py](scripts/kiroku_core/hashing.py) for canonical
+serialization, memory ordering, and SHA-256 hashes.
 
 ## Current State
 
 The previous v2 implementation has been removed. The normative v3 contract and
 canonical memory schema are defined. Pipeline artifact schemas, integrity
-validation, and executable behavior still need to be implemented. The canonical
-fixture corpus defines their expected validation outcomes.
+validation, and executable behavior still need to be implemented. Canonical
+serialization, ordering, and hashing are implemented, and the fixture corpus
+defines expected validation outcomes.
