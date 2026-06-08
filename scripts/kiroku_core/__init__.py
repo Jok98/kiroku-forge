@@ -11,7 +11,13 @@ from .canonical import (
 from .change_set import (
     validate_change_set,
 )
-from .compiler import CompileResult, compile_change_set
+from .compiler import (
+    CompileLockError,
+    CompilePersistenceError,
+    CompileResult,
+    compile_change_set,
+    compile_memory_file,
+)
 from .hashing import receipt_hash, record_hash, sha256_hash, state_hash
 from .findings import Finding, ValidationResult, finding_sort_key
 from .integrity import validate_memory_integrity
@@ -28,6 +34,8 @@ from .schema import (
 __all__ = [
     "CanonicalizationError",
     "CompileResult",
+    "CompileLockError",
+    "CompilePersistenceError",
     "Finding",
     "SCHEMA_VIOLATION",
     "SchemaContractError",
@@ -37,6 +45,7 @@ __all__ = [
     "canonicalize_record",
     "canonicalize_memory",
     "compile_change_set",
+    "compile_memory_file",
     "compile_memory_schema",
     "compile_change_set_schema",
     "compile_pipeline_definition",

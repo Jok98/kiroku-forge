@@ -1,13 +1,25 @@
 from __future__ import annotations
 
 import copy
+import fcntl
 import json
+import tempfile
 import unittest
 from pathlib import Path
 from typing import Any
 
-from scripts.kiroku_core.compiler import compile_change_set
-from scripts.kiroku_core.hashing import receipt_hash, record_hash, sha256_hash, state_hash
+from scripts.kiroku_core.canonical import canonical_bytes
+from scripts.kiroku_core.compiler import (
+    CompileLockError,
+    compile_change_set,
+    compile_memory_file,
+)
+from scripts.kiroku_core.hashing import (
+    receipt_hash,
+    record_hash,
+    sha256_hash,
+    state_hash,
+)
 from scripts.kiroku_core.integrity import validate_memory_integrity
 
 
@@ -408,6 +420,109 @@ class CompileExistingMemoryTest(unittest.TestCase):
         self.assertFalse(result.ok)
         self.assertIsNone(result.memory)
         self.assertIn("DUPLICATE_ID", {finding.code for finding in result.findings})
+
+
+class CompileMemoryFileTest(unittest.TestCase):
+    def test_initialization_writes_canonical_memory_file(self) -> None:
+        change_set = load_pipeline("valid/change-set.json")
+        with tempfile.TemporaryDirectory() as directory:
+            memory_path = Path(directory) / "memory.json"
+
+            result = compile_memory_file(
+                memory_path,
+                change_set,
+                compilation_id="cmp_file_initial",
+                compiled_at=COMPILED_AT,
+            )
+
+            self.assertTrue(result.ok, result.to_dict())
+            self.assertTrue(memory_path.exists())
+            assert result.memory is not None
+            self.assertEqual(memory_path.read_bytes(), canonical_bytes(result.memory))
+            self.assertEqual(load_json(memory_path), result.memory)
+            self.assertEqual(validate_memory_integrity(result.memory).findings, ())
+
+    def test_existing_memory_file_is_atomically_replaced_on_success(self) -> None:
+        base = load_memory("valid/lifecycle-states.json")
+        change_set = load_pipeline("valid/change-set-task-completion.json")
+        with tempfile.TemporaryDirectory() as directory:
+            memory_path = Path(directory) / "memory.json"
+            memory_path.write_bytes(canonical_bytes(base))
+
+            result = compile_memory_file(
+                memory_path,
+                change_set,
+                compilation_id="cmp_file_complete_task",
+                compiled_at=COMPILED_AT,
+            )
+
+            self.assertTrue(result.ok, result.to_dict())
+            assert result.memory is not None
+            written = load_json(memory_path)
+            self.assertEqual(written, result.memory)
+            self.assertEqual(written["revision"], base["revision"] + 1)
+            self.assertEqual(memory_path.read_bytes(), canonical_bytes(result.memory))
+
+    def test_validation_error_leaves_memory_file_unchanged(self) -> None:
+        base = load_memory("valid/lifecycle-states.json")
+        change_set = load_pipeline("valid/change-set-task-completion.json")
+        change_set["base_revision"] += 1
+        refresh_artifact_hash(change_set)
+        with tempfile.TemporaryDirectory() as directory:
+            memory_path = Path(directory) / "memory.json"
+            original_bytes = canonical_bytes(base)
+            memory_path.write_bytes(original_bytes)
+
+            result = compile_memory_file(
+                memory_path,
+                change_set,
+                compilation_id="cmp_file_stale",
+                compiled_at=COMPILED_AT,
+            )
+
+            self.assertFalse(result.ok)
+            self.assertIsNone(result.memory)
+            self.assertIn("STALE_CHANGESET", {finding.code for finding in result.findings})
+            self.assertEqual(memory_path.read_bytes(), original_bytes)
+
+    def test_prospective_memory_error_leaves_memory_file_unchanged(self) -> None:
+        base = load_memory("valid/lifecycle-states.json")
+        change_set = load_pipeline("valid/change-set-task-completion.json")
+        with tempfile.TemporaryDirectory() as directory:
+            memory_path = Path(directory) / "memory.json"
+            original_bytes = canonical_bytes(base)
+            memory_path.write_bytes(original_bytes)
+
+            result = compile_memory_file(
+                memory_path,
+                change_set,
+                compilation_id="cmp_initial",
+                compiled_at=COMPILED_AT,
+            )
+
+            self.assertFalse(result.ok)
+            self.assertIsNone(result.memory)
+            self.assertIn("DUPLICATE_ID", {finding.code for finding in result.findings})
+            self.assertEqual(memory_path.read_bytes(), original_bytes)
+
+    def test_concurrent_compiler_lock_is_refused(self) -> None:
+        base = load_memory("valid/lifecycle-states.json")
+        change_set = load_pipeline("valid/change-set-task-completion.json")
+        with tempfile.TemporaryDirectory() as directory:
+            memory_path = Path(directory) / "memory.json"
+            lock_path = Path(directory) / "memory.json.lock"
+            memory_path.write_bytes(canonical_bytes(base))
+            with lock_path.open("a+b") as lock_file:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                with self.assertRaises(CompileLockError):
+                    compile_memory_file(
+                        memory_path,
+                        change_set,
+                        compilation_id="cmp_file_locked",
+                        compiled_at=COMPILED_AT,
+                        lock_path=lock_path,
+                    )
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
 
 if __name__ == "__main__":

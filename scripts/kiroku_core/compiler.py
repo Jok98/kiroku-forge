@@ -1,12 +1,18 @@
-"""Pure in-memory compilation of KirokuForge ChangeSets."""
+"""Compilation of KirokuForge ChangeSets."""
 
 from __future__ import annotations
 
 import copy
+import fcntl
+import json
+import os
+import tempfile
+from contextlib import contextmanager
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Iterable, Sequence
 
-from .canonical import canonicalize_memory
+from .canonical import canonical_bytes, canonicalize_memory
 from .change_set import validate_change_set
 from .findings import Finding, ValidationResult
 from .hashing import receipt_hash, record_hash, state_hash
@@ -17,6 +23,15 @@ DEFAULT_COMPILER = {
     "name": "kiroku-compiler",
     "version": "3.0.0-dev",
 }
+STALE_CHANGESET = "STALE_CHANGESET"
+
+
+class CompilePersistenceError(RuntimeError):
+    """Raised when persistence fails outside artifact validation."""
+
+
+class CompileLockError(CompilePersistenceError):
+    """Raised when another compiler owns the memory lock."""
 
 
 @dataclass(frozen=True)
@@ -60,6 +75,21 @@ class CompileResult:
 
 def _finding_result(result: ValidationResult) -> CompileResult:
     return CompileResult(memory=None, findings=result.findings)
+
+
+def _compile_finding(
+    code: str,
+    path: str,
+    message: str,
+    *entity_ids: str,
+) -> Finding:
+    return Finding(
+        code=code,
+        severity="error",
+        path=path,
+        message=f"{path}: {message}",
+        entity_ids=tuple(entity_ids),
+    )
 
 
 def _remove_exact(items: list[Any], target: Any) -> None:
@@ -445,3 +475,130 @@ def compile_change_set(
         return _finding_result(integrity)
 
     return CompileResult(memory=prospective)
+
+
+def _default_lock_path(memory_path: Path) -> Path:
+    return memory_path.with_name(f"{memory_path.name}.lock")
+
+
+@contextmanager
+def _exclusive_lock(lock_path: Path):
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with lock_path.open("a+b") as lock_file:
+        try:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise CompileLockError(
+                f"memory compilation lock is already held: {lock_path}"
+            ) from exc
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+
+def _load_memory_file(memory_path: Path) -> dict[str, Any] | None:
+    if not memory_path.exists():
+        return None
+    try:
+        with memory_path.open("r", encoding="utf-8") as file:
+            value = json.load(file)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise CompilePersistenceError(
+            f"cannot read canonical memory {memory_path}: {exc}"
+        ) from exc
+    if not isinstance(value, dict):
+        raise CompilePersistenceError(
+            f"canonical memory {memory_path} must contain a JSON object"
+        )
+    return value
+
+
+def _fsync_directory(path: Path) -> None:
+    directory_fd = os.open(path, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(directory_fd)
+    finally:
+        os.close(directory_fd)
+
+
+def _write_memory_atomic(memory_path: Path, memory: dict[str, Any]) -> None:
+    parent = memory_path.parent
+    parent.mkdir(parents=True, exist_ok=True)
+    temp_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            "wb",
+            dir=parent,
+            prefix=f".{memory_path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as temp_file:
+            temp_path = Path(temp_file.name)
+            temp_file.write(canonical_bytes(memory))
+            temp_file.flush()
+            os.fsync(temp_file.fileno())
+        os.replace(temp_path, memory_path)
+        temp_path = None
+        _fsync_directory(parent)
+    except OSError as exc:
+        raise CompilePersistenceError(
+            f"cannot atomically write canonical memory {memory_path}: {exc}"
+        ) from exc
+    finally:
+        if temp_path is not None:
+            try:
+                temp_path.unlink()
+            except FileNotFoundError:
+                pass
+
+
+def compile_memory_file(
+    memory_path: Path | str,
+    change_set: Any,
+    *,
+    compilation_id: str,
+    compiled_at: str,
+    compiler: dict[str, Any] | None = None,
+    warnings: Sequence[str] = (),
+    lock_path: Path | str | None = None,
+) -> CompileResult:
+    """Compile a ChangeSet and atomically replace ``memory.json`` on success."""
+
+    active_memory_path = Path(memory_path)
+    active_lock_path = (
+        Path(lock_path)
+        if lock_path is not None
+        else _default_lock_path(active_memory_path)
+    )
+
+    with _exclusive_lock(active_lock_path):
+        base_memory = _load_memory_file(active_memory_path)
+        result = compile_change_set(
+            change_set,
+            base_memory,
+            compilation_id=compilation_id,
+            compiled_at=compiled_at,
+            compiler=compiler,
+            warnings=warnings,
+        )
+        if not result.ok:
+            return result
+
+        if base_memory is None and active_memory_path.exists():
+            return CompileResult(
+                memory=None,
+                findings=(
+                    _compile_finding(
+                        STALE_CHANGESET,
+                        "$.target_memory_id",
+                        "initialization expected no memory, but memory appeared",
+                        change_set["change_set_id"],
+                        result.memory["memory_id"] if result.memory else "",
+                    ),
+                ),
+            )
+
+        assert result.memory is not None
+        _write_memory_atomic(active_memory_path, result.memory)
+        return result
