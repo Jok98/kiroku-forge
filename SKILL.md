@@ -40,11 +40,16 @@ as the conformance matrix for schema and integrity behavior.
 Use [scripts/kiroku_core/canonical.py](scripts/kiroku_core/canonical.py) and
 [scripts/kiroku_core/hashing.py](scripts/kiroku_core/hashing.py) for canonical
 serialization, memory ordering, and SHA-256 hashes.
+Use [scripts/kiroku_core/schema.py](scripts/kiroku_core/schema.py) for offline
+runtime schema validation and
+[scripts/kiroku_core/findings.py](scripts/kiroku_core/findings.py) for stable
+validation results.
 
 ## Current State
 
 The previous v2 implementation has been removed. The normative v3 contract and
 canonical memory schema are defined. Pipeline artifact schemas, integrity
-validation, and executable behavior still need to be implemented. Canonical
-serialization, ordering, and hashing are implemented, and the fixture corpus
-defines expected validation outcomes.
+validation, and remaining executable behavior still need to be implemented.
+Canonical serialization, ordering, hashing, and offline memory-schema
+validation are implemented, and the fixture corpus defines expected validation
+outcomes.

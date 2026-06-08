@@ -1010,6 +1010,7 @@ code registry is:
 
 | Code | Meaning |
 |---|---|
+| `SCHEMA_VIOLATION` | An artifact does not satisfy its JSON Schema contract |
 | `DUPLICATE_ID` | An ID is repeated in a namespace that requires uniqueness |
 | `UNKNOWN_SOURCE_REFERENCE` | Evidence or a receipt references an unknown source |
 | `UNKNOWN_RECORD_REFERENCE` | A relation references an unknown record |
@@ -1035,6 +1036,13 @@ code registry is:
 | `TASK_COMPLETION_EVIDENCE_MISSING` | A done task lacks direct completion evidence |
 | `BLOCKED_TASK_WITHOUT_BLOCKER` | A blocked task has no incoming blocker relation |
 | `STALE_CHANGESET` | A ChangeSet precondition does not match the base memory |
+
+Schema validation runs before cross-entity integrity checks. A schema finding
+MUST include code `SCHEMA_VIOLATION`, severity `error`, and a deterministic
+JSONPath rooted at `$`. A validator MAY stop after the first schema violation
+because later integrity checks require a structurally valid artifact. Failure
+to load or resolve the local schema contract is a pipeline execution failure,
+not a finding about the artifact.
 
 One malformed object MAY produce multiple findings when multiple invariants are
 independently violated. Conformance fixtures SHOULD isolate one primary code.
