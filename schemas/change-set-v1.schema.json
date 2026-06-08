@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kiroku-forge.local/schemas/change-set-v1.schema.json",
+  "title": "KirokuForge ChangeSet V1",
+  "$ref": "pipeline-v1.schema.json#/$defs/changeSet"
+}

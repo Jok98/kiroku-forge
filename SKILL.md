@@ -35,8 +35,19 @@ the semantic source of truth for v3. Reuse
 hashes, timestamps, actors, and evidence locators. Validate canonical
 `memory.json` shape with
 [schemas/memory-v3.schema.json](schemas/memory-v3.schema.json).
+Validate pipeline artifacts with
+[schemas/capture-bundle-v1.schema.json](schemas/capture-bundle-v1.schema.json),
+[schemas/candidate-bundle-v1.schema.json](schemas/candidate-bundle-v1.schema.json),
+[schemas/change-set-v1.schema.json](schemas/change-set-v1.schema.json),
+[schemas/audit-report-v1.schema.json](schemas/audit-report-v1.schema.json), and
+[schemas/context-pack-v1.schema.json](schemas/context-pack-v1.schema.json).
+Their shared definitions are in
+[schemas/pipeline-v1.schema.json](schemas/pipeline-v1.schema.json).
 Use [tests/fixtures/memory/manifest.json](tests/fixtures/memory/manifest.json)
 as the conformance matrix for schema and integrity behavior.
+Use
+[tests/fixtures/pipeline/manifest.json](tests/fixtures/pipeline/manifest.json)
+as the pipeline artifact schema conformance matrix.
 Use [scripts/kiroku_core/canonical.py](scripts/kiroku_core/canonical.py) and
 [scripts/kiroku_core/hashing.py](scripts/kiroku_core/hashing.py) for canonical
 serialization, memory ordering, and SHA-256 hashes.
@@ -50,8 +61,9 @@ deterministic multi-finding integrity validation of canonical memory.
 ## Current State
 
 The previous v2 implementation has been removed. The normative v3 contract and
-canonical memory schema are defined. Pipeline artifact schemas, integrity
-validation for non-memory artifacts, and remaining executable behavior still
-need to be implemented. Canonical serialization, ordering, hashing, offline
-memory-schema validation, and memory integrity validation are implemented. The
-fixture corpus defines expected validation outcomes.
+all canonical and pipeline artifact schemas are defined. Runtime schema and
+integrity validation for non-memory artifacts, plus the remaining executable
+pipeline behavior, still need to be implemented. Canonical serialization,
+ordering, hashing, offline memory-schema validation, and memory integrity
+validation are implemented. The fixture corpora define expected schema and
+memory-integrity outcomes.

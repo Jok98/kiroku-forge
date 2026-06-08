@@ -74,16 +74,21 @@ KirokuForge defines the following artifacts:
 Only `Memory` is canonical. Deleting any other artifact MUST NOT change the
 meaning of canonical memory.
 
-Each artifact MUST declare:
+Each non-canonical pipeline artifact MUST declare:
 
 - `artifact_type`;
 - its own `schema_version`;
 - a stable artifact ID;
+- `artifact_hash`, except canonical `Memory`, which uses `state_hash`;
 - `generated_at`;
 - the actor that generated it.
 
 The memory schema begins at `3.0.0`. Pipeline artifact schemas begin at
 `1.0.0` and evolve independently.
+
+A pipeline `artifact_hash` covers every artifact field except `artifact_hash`
+itself using canonical JSON. References to pipeline artifacts contain the
+artifact type, stable ID, and artifact hash.
 
 ## 4. Actors
 
@@ -123,6 +128,16 @@ Inputs:
 Output:
 
 - one `CaptureBundle`.
+
+A `CaptureBundle` contains its selection scope and one or more captured
+sources. Each captured source contains a capture-local ID, source descriptor,
+capture timestamp, status, and material:
+
+- status is `new`, `changed`, `unchanged`, or `unavailable`;
+- available material is inline content or a retrievable reference;
+- unavailable material contains a reason and no content hash;
+- `unchanged` identifies its matching canonical source;
+- `changed` identifies the previous canonical source snapshot.
 
 CAPTURE MUST:
 
@@ -811,6 +826,7 @@ compilation receipts, not event records.
 ## 11. Candidate Bundle
 
 A `CandidateBundle` references its input `CaptureBundle` by ID and hash.
+It contains optional classification instructions and an array of candidates.
 
 Each candidate contains:
 
@@ -840,7 +856,7 @@ A ChangeSet contains:
 - `base_revision`, or null for initialization;
 - `base_state_hash`, or null for initialization;
 - actor;
-- references and hashes for input bundles;
+- `input_bundles` references containing artifact type, ID, and hash;
 - summary;
 - candidate resolutions;
 - ordered operations;
@@ -912,6 +928,21 @@ conflict. Operation order is significant after all base preconditions pass.
 
 Operations MUST have stable operation IDs. Candidate resolutions reference the
 operation IDs that implement them.
+
+Operation payloads are:
+
+| Operation | Payload |
+|---|---|
+| `initialize_memory` | preallocated memory ID and complete project draft |
+| `update_project` | non-empty project metadata changes |
+| `add_source` | complete canonical source draft without compilation metadata |
+| `create_record` | complete canonical record draft without compilation metadata or hash |
+| `amend_record` | record ID, expected hash, and title, summary, scope, or tag changes |
+| `add_evidence`, `remove_evidence` | record ID, expected hash, and exact evidence item |
+| `set_verification` | record ID, expected hash, and verification object |
+| `add_relation`, `remove_relation` | record ID, expected hash, and exact relation |
+| `transition_record` | record ID, expected hash, target state, reason, and state-specific content changes |
+| `supersede_record` | predecessor ID, expected hash, complete successor draft, and reason |
 
 ### 12.2 Supersession
 
@@ -1064,6 +1095,11 @@ Each audit finding contains:
 - detector name, type, and version;
 - recommended action.
 
+An `AuditReport` references the exact memory ID, revision, and state hash it
+audited. It contains the applied audit policy and an ordered finding array.
+Age-based TODO staleness is enabled only when the policy declares
+`stale_todo_after_days`.
+
 Detector types are:
 
 - `rule`;
@@ -1118,6 +1154,11 @@ A `ContextPack` contains these ordered sections:
 12. relevant audit findings;
 13. selected sources;
 14. omitted record counts and retrieval hints.
+
+The structured artifact stores this order in the constant `section_order`
+array and stores section payloads in the `sections` object. This avoids relying
+on JSON object member order. It also embeds the handoff request and the exact
+memory snapshot reference used for selection.
 
 Selection MUST consider:
 

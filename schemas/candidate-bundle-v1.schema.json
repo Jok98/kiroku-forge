@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kiroku-forge.local/schemas/candidate-bundle-v1.schema.json",
+  "title": "KirokuForge CandidateBundle V1",
+  "$ref": "pipeline-v1.schema.json#/$defs/candidateBundle"
+}

@@ -46,6 +46,11 @@ class CommonSchemaTest(unittest.TestCase):
         self.assert_invalid("sha256", "sha256:" + "A1" * 32)
         self.assert_invalid("sha256", "sha256:" + "a1" * 31)
 
+    def test_finding_code_uses_stable_machine_readable_form(self) -> None:
+        self.assert_valid("findingCode", "STALE_CHANGESET")
+        self.assert_invalid("findingCode", "stale_changeset")
+        self.assert_invalid("findingCode", "STALE-CHANGESET")
+
     def test_timestamp_requires_utc_z_form(self) -> None:
         self.assert_valid("utcTimestamp", "2026-06-08T12:34:56Z")
         self.assert_valid("utcTimestamp", "2026-06-08T12:34:56.123Z")

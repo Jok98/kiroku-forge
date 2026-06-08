@@ -1,0 +1,2913 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kiroku-forge.local/schemas/pipeline-v1.schema.json",
+  "title": "KirokuForge Pipeline Artifact Contracts V1",
+  "description": "Shared structural contracts for non-canonical KirokuForge pipeline artifacts.",
+  "$defs": {
+    "nonEmptyStringArray": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+      }
+    },
+    "slugArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common-v1.schema.json#/$defs/slug"
+      }
+    },
+    "nonEmptySlugArray": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common-v1.schema.json#/$defs/slug"
+      }
+    },
+    "nullableHash": {
+      "oneOf": [
+        {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullableMemoryId": {
+      "oneOf": [
+        {
+          "$ref": "common-v1.schema.json#/$defs/memoryId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullableRevision": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sourceKind": {
+      "enum": [
+        "conversation",
+        "repository_file",
+        "document",
+        "web_page",
+        "user_statement",
+        "tool_output",
+        "observation",
+        "other"
+      ]
+    },
+    "recordKind": {
+      "enum": [
+        "fact",
+        "decision",
+        "assumption",
+        "constraint",
+        "preference",
+        "proposal",
+        "task",
+        "question",
+        "risk",
+        "event"
+      ]
+    },
+    "evidenceRelation": {
+      "enum": [
+        "supports",
+        "refutes",
+        "contextualizes"
+      ]
+    },
+    "evidenceMethod": {
+      "enum": [
+        "user_statement",
+        "direct_observation",
+        "document_read",
+        "code_inspection",
+        "test_result",
+        "tool_result",
+        "inference"
+      ]
+    },
+    "typedArtifactReference": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/captureBundleReference"
+        },
+        {
+          "$ref": "#/$defs/candidateBundleReference"
+        }
+      ]
+    },
+    "captureBundleReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_type",
+        "artifact_id",
+        "artifact_hash"
+      ],
+      "properties": {
+        "artifact_type": {
+          "const": "capture_bundle"
+        },
+        "artifact_id": {
+          "$ref": "common-v1.schema.json#/$defs/captureBundleId"
+        },
+        "artifact_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        }
+      }
+    },
+    "candidateBundleReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_type",
+        "artifact_id",
+        "artifact_hash"
+      ],
+      "properties": {
+        "artifact_type": {
+          "const": "candidate_bundle"
+        },
+        "artifact_id": {
+          "$ref": "common-v1.schema.json#/$defs/candidateBundleId"
+        },
+        "artifact_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        }
+      }
+    },
+    "auditReportReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "artifact_hash"
+      ],
+      "properties": {
+        "artifact_id": {
+          "$ref": "common-v1.schema.json#/$defs/auditReportId"
+        },
+        "artifact_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        }
+      }
+    },
+    "memoryReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "memory_id",
+        "revision",
+        "state_hash"
+      ],
+      "properties": {
+        "memory_id": {
+          "$ref": "common-v1.schema.json#/$defs/memoryId"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "state_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        }
+      }
+    },
+    "selectionScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description"
+      ],
+      "properties": {
+        "description": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "included": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "excluded": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        }
+      }
+    },
+    "inlineMaterial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "content"
+      ],
+      "properties": {
+        "mode": {
+          "const": "inline"
+        },
+        "content": {
+          "type": "string"
+        }
+      }
+    },
+    "referenceMaterial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "uri"
+      ],
+      "properties": {
+        "mode": {
+          "const": "reference"
+        },
+        "uri": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "unavailableMaterial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "reason"
+      ],
+      "properties": {
+        "mode": {
+          "const": "unavailable"
+        },
+        "reason": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "capturedSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "uri",
+        "status",
+        "captured_at",
+        "material"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common-v1.schema.json#/$defs/capturedSourceId"
+        },
+        "kind": {
+          "$ref": "#/$defs/sourceKind"
+        },
+        "title": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "uri": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "revision": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "status": {
+          "enum": [
+            "new",
+            "changed",
+            "unchanged",
+            "unavailable"
+          ]
+        },
+        "content_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "captured_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "media_type": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "material": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/inlineMaterial"
+            },
+            {
+              "$ref": "#/$defs/referenceMaterial"
+            },
+            {
+              "$ref": "#/$defs/unavailableMaterial"
+            }
+          ]
+        },
+        "matched_source_id": {
+          "$ref": "common-v1.schema.json#/$defs/sourceId"
+        },
+        "previous_source_id": {
+          "$ref": "common-v1.schema.json#/$defs/sourceId"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "unavailable"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "material": {
+                "$ref": "#/$defs/unavailableMaterial"
+              }
+            },
+            "not": {
+              "required": [
+                "content_hash"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "content_hash"
+            ],
+            "properties": {
+              "material": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/inlineMaterial"
+                  },
+                  {
+                    "$ref": "#/$defs/referenceMaterial"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "unchanged"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "matched_source_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "changed"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "previous_source_id"
+            ]
+          }
+        }
+      ]
+    },
+    "captureBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_type",
+        "schema_version",
+        "capture_bundle_id",
+        "artifact_hash",
+        "generated_at",
+        "actor",
+        "selection_scope",
+        "sources"
+      ],
+      "properties": {
+        "artifact_type": {
+          "const": "capture_bundle"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "capture_bundle_id": {
+          "$ref": "common-v1.schema.json#/$defs/captureBundleId"
+        },
+        "artifact_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "generated_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "actor": {
+          "$ref": "common-v1.schema.json#/$defs/actor"
+        },
+        "selection_scope": {
+          "$ref": "#/$defs/selectionScope"
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/capturedSource"
+          }
+        }
+      }
+    },
+    "capturedEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "captured_source_id",
+        "relation",
+        "method",
+        "locator",
+        "observed_at"
+      ],
+      "properties": {
+        "captured_source_id": {
+          "$ref": "common-v1.schema.json#/$defs/capturedSourceId"
+        },
+        "relation": {
+          "$ref": "#/$defs/evidenceRelation"
+        },
+        "method": {
+          "$ref": "#/$defs/evidenceMethod"
+        },
+        "locator": {
+          "$ref": "common-v1.schema.json#/$defs/locator"
+        },
+        "observed_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "excerpt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "pattern": "\\S"
+        },
+        "note": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "canonicalEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "relation",
+        "method",
+        "locator",
+        "observed_at"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "common-v1.schema.json#/$defs/sourceId"
+        },
+        "relation": {
+          "$ref": "#/$defs/evidenceRelation"
+        },
+        "method": {
+          "$ref": "#/$defs/evidenceMethod"
+        },
+        "locator": {
+          "$ref": "common-v1.schema.json#/$defs/locator"
+        },
+        "observed_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "excerpt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "pattern": "\\S"
+        },
+        "note": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "verification": {
+      "$ref": "memory-v3.schema.json#/$defs/verification"
+    },
+    "relation": {
+      "$ref": "memory-v3.schema.json#/$defs/relation"
+    },
+    "kindStateContentRules": {
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "fact"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "active",
+                  "obsolete"
+                ]
+              },
+              "content": {
+                "$ref": "memory-v3.schema.json#/$defs/factContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "decision"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "active",
+                  "obsolete"
+                ]
+              },
+              "content": {
+                "$ref": "memory-v3.schema.json#/$defs/decisionContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "assumption"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "active",
+                  "invalidated",
+                  "obsolete"
+                ]
+              },
+              "content": {
+                "$ref": "memory-v3.schema.json#/$defs/assumptionContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "constraint"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "active",
+                  "obsolete"
+                ]
+              },
+              "content": {
+                "$ref": "memory-v3.schema.json#/$defs/constraintContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "preference"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "active",
+                  "obsolete"
+                ]
+              },
+              "content": {
+                "$ref": "memory-v3.schema.json#/$defs/preferenceContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "proposal"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "proposed",
+                      "accepted"
+                    ]
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/proposalContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "state": {
+                    "const": "rejected"
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/rejectedProposalContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "state": {
+                    "const": "cancelled"
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/cancelledProposalContent"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "task"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "todo",
+                      "in_progress",
+                      "blocked"
+                    ]
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/taskContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "state": {
+                    "const": "done"
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/doneTaskContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "state": {
+                    "const": "cancelled"
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/cancelledTaskContent"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "question"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "open",
+                      "obsolete"
+                    ]
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/questionContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "state": {
+                    "const": "answered"
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/answeredQuestionContent"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "risk"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "open",
+                      "mitigated"
+                    ]
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/riskContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "state": {
+                    "const": "accepted"
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/acceptedRiskContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "state": {
+                    "const": "closed"
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/closedRiskContent"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "event"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "const": "occurred"
+              },
+              "content": {
+                "$ref": "memory-v3.schema.json#/$defs/eventContent"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "proposed_key",
+        "kind",
+        "proposed_state",
+        "title",
+        "summary",
+        "scope",
+        "tags",
+        "content",
+        "evidence",
+        "classification_rationale",
+        "classification_confidence"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common-v1.schema.json#/$defs/candidateId"
+        },
+        "proposed_key": {
+          "$ref": "common-v1.schema.json#/$defs/slug"
+        },
+        "kind": {
+          "$ref": "#/$defs/recordKind"
+        },
+        "proposed_state": {
+          "type": "string"
+        },
+        "title": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "summary": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "scope": {
+          "$ref": "#/$defs/nonEmptySlugArray"
+        },
+        "tags": {
+          "$ref": "#/$defs/slugArray"
+        },
+        "content": {
+          "type": "object"
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/capturedEvidence"
+          }
+        },
+        "classification_rationale": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "classification_confidence": {
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/candidateKindStateRules"
+        }
+      ]
+    },
+    "candidateKindStateRules": {
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "fact"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "proposed_state": {
+                "enum": [
+                  "active",
+                  "obsolete"
+                ]
+              },
+              "content": {
+                "$ref": "memory-v3.schema.json#/$defs/factContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "decision"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "proposed_state": {
+                "enum": [
+                  "active",
+                  "obsolete"
+                ]
+              },
+              "content": {
+                "$ref": "memory-v3.schema.json#/$defs/decisionContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "assumption"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "proposed_state": {
+                "enum": [
+                  "active",
+                  "invalidated",
+                  "obsolete"
+                ]
+              },
+              "content": {
+                "$ref": "memory-v3.schema.json#/$defs/assumptionContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "constraint"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "proposed_state": {
+                "enum": [
+                  "active",
+                  "obsolete"
+                ]
+              },
+              "content": {
+                "$ref": "memory-v3.schema.json#/$defs/constraintContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "preference"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "proposed_state": {
+                "enum": [
+                  "active",
+                  "obsolete"
+                ]
+              },
+              "content": {
+                "$ref": "memory-v3.schema.json#/$defs/preferenceContent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "proposal"
+              }
+            }
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "proposed_state": {
+                    "enum": [
+                      "proposed",
+                      "accepted"
+                    ]
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/proposalContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "proposed_state": {
+                    "const": "rejected"
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/rejectedProposalContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "proposed_state": {
+                    "const": "cancelled"
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/cancelledProposalContent"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "task"
+              }
+            }
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "proposed_state": {
+                    "enum": [
+                      "todo",
+                      "in_progress",
+                      "blocked"
+                    ]
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/taskContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "proposed_state": {
+                    "const": "done"
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/doneTaskContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "proposed_state": {
+                    "const": "cancelled"
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/cancelledTaskContent"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "question"
+              }
+            }
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "proposed_state": {
+                    "enum": [
+                      "open",
+                      "obsolete"
+                    ]
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/questionContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "proposed_state": {
+                    "const": "answered"
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/answeredQuestionContent"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "risk"
+              }
+            }
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "proposed_state": {
+                    "enum": [
+                      "open",
+                      "mitigated"
+                    ]
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/riskContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "proposed_state": {
+                    "const": "accepted"
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/acceptedRiskContent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "proposed_state": {
+                    "const": "closed"
+                  },
+                  "content": {
+                    "$ref": "memory-v3.schema.json#/$defs/closedRiskContent"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "event"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "proposed_state": {
+                "const": "occurred"
+              },
+              "content": {
+                "$ref": "memory-v3.schema.json#/$defs/eventContent"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "candidateBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_type",
+        "schema_version",
+        "candidate_bundle_id",
+        "artifact_hash",
+        "generated_at",
+        "actor",
+        "capture_bundle",
+        "candidates"
+      ],
+      "properties": {
+        "artifact_type": {
+          "const": "candidate_bundle"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "candidate_bundle_id": {
+          "$ref": "common-v1.schema.json#/$defs/candidateBundleId"
+        },
+        "artifact_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "generated_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "actor": {
+          "$ref": "common-v1.schema.json#/$defs/actor"
+        },
+        "capture_bundle": {
+          "$ref": "#/$defs/captureBundleReference"
+        },
+        "classification_instructions": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/candidate"
+          }
+        }
+      }
+    },
+    "projectDraft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "description",
+        "goal",
+        "status",
+        "boundaries"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "description": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "goal": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "paused",
+            "completed",
+            "archived"
+          ]
+        },
+        "boundaries": {
+          "$ref": "memory-v3.schema.json#/$defs/projectBoundaries"
+        }
+      }
+    },
+    "projectPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "name": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "description": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "goal": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "paused",
+            "completed",
+            "archived"
+          ]
+        },
+        "boundaries": {
+          "$ref": "memory-v3.schema.json#/$defs/projectBoundaries"
+        }
+      }
+    },
+    "sourceDraft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "uri",
+        "integrity",
+        "captured_at"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common-v1.schema.json#/$defs/sourceId"
+        },
+        "kind": {
+          "$ref": "#/$defs/sourceKind"
+        },
+        "title": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "uri": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "revision": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "integrity": {
+          "enum": [
+            "verified",
+            "unverified"
+          ]
+        },
+        "content_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "captured_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "media_type": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "integrity": {
+                "const": "verified"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "content_hash"
+            ]
+          },
+          "else": {
+            "required": [
+              "metadata"
+            ],
+            "not": {
+              "required": [
+                "content_hash"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "recordDraft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "kind",
+        "state",
+        "title",
+        "summary",
+        "scope",
+        "tags",
+        "verification",
+        "evidence",
+        "relations",
+        "content"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common-v1.schema.json#/$defs/recordId"
+        },
+        "key": {
+          "$ref": "common-v1.schema.json#/$defs/slug"
+        },
+        "kind": {
+          "$ref": "#/$defs/recordKind"
+        },
+        "state": {
+          "type": "string"
+        },
+        "title": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "summary": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "scope": {
+          "$ref": "#/$defs/nonEmptySlugArray"
+        },
+        "tags": {
+          "$ref": "#/$defs/slugArray"
+        },
+        "verification": {
+          "$ref": "#/$defs/verification"
+        },
+        "evidence": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/canonicalEvidence"
+          }
+        },
+        "relations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/relation"
+          }
+        },
+        "content": {
+          "type": "object"
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/kindStateContentRules"
+        }
+      ]
+    },
+    "reconciliationFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "severity",
+        "code",
+        "message",
+        "candidate_ids",
+        "record_ids",
+        "recommended_action"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common-v1.schema.json#/$defs/findingId"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ]
+        },
+        "code": {
+          "$ref": "common-v1.schema.json#/$defs/findingCode"
+        },
+        "message": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "candidate_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/candidateId"
+          }
+        },
+        "record_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/recordId"
+          }
+        },
+        "recommended_action": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "candidateResolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "resolution",
+        "rationale",
+        "record_ids",
+        "operation_ids",
+        "finding_ids"
+      ],
+      "properties": {
+        "candidate_id": {
+          "$ref": "common-v1.schema.json#/$defs/candidateId"
+        },
+        "resolution": {
+          "enum": [
+            "create",
+            "merge",
+            "supersede",
+            "ignore",
+            "conflict",
+            "needs_review"
+          ]
+        },
+        "rationale": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "record_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/recordId"
+          }
+        },
+        "operation_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/operationId"
+          }
+        },
+        "finding_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/findingId"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "resolution": {
+                "enum": [
+                  "conflict",
+                  "needs_review"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "finding_ids": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "sourceResolution": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "captured_source_id",
+            "resolution",
+            "canonical_source_id"
+          ],
+          "properties": {
+            "captured_source_id": {
+              "$ref": "common-v1.schema.json#/$defs/capturedSourceId"
+            },
+            "resolution": {
+              "const": "reuse"
+            },
+            "canonical_source_id": {
+              "$ref": "common-v1.schema.json#/$defs/sourceId"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "captured_source_id",
+            "resolution",
+            "canonical_source_id",
+            "operation_id"
+          ],
+          "properties": {
+            "captured_source_id": {
+              "$ref": "common-v1.schema.json#/$defs/capturedSourceId"
+            },
+            "resolution": {
+              "const": "add"
+            },
+            "canonical_source_id": {
+              "$ref": "common-v1.schema.json#/$defs/sourceId"
+            },
+            "operation_id": {
+              "$ref": "common-v1.schema.json#/$defs/operationId"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "captured_source_id",
+            "resolution",
+            "reason"
+          ],
+          "properties": {
+            "captured_source_id": {
+              "$ref": "common-v1.schema.json#/$defs/capturedSourceId"
+            },
+            "resolution": {
+              "const": "ignore"
+            },
+            "reason": {
+              "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+            }
+          }
+        }
+      ]
+    },
+    "initializeMemoryOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "operation_type",
+        "memory_id",
+        "project"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common-v1.schema.json#/$defs/operationId"
+        },
+        "operation_type": {
+          "const": "initialize_memory"
+        },
+        "memory_id": {
+          "$ref": "common-v1.schema.json#/$defs/memoryId"
+        },
+        "project": {
+          "$ref": "#/$defs/projectDraft"
+        }
+      }
+    },
+    "updateProjectOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "operation_type",
+        "changes"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common-v1.schema.json#/$defs/operationId"
+        },
+        "operation_type": {
+          "const": "update_project"
+        },
+        "changes": {
+          "$ref": "#/$defs/projectPatch"
+        }
+      }
+    },
+    "addSourceOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "operation_type",
+        "source"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common-v1.schema.json#/$defs/operationId"
+        },
+        "operation_type": {
+          "const": "add_source"
+        },
+        "source": {
+          "$ref": "#/$defs/sourceDraft"
+        }
+      }
+    },
+    "createRecordOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "operation_type",
+        "record"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common-v1.schema.json#/$defs/operationId"
+        },
+        "operation_type": {
+          "const": "create_record"
+        },
+        "record": {
+          "$ref": "#/$defs/recordDraft"
+        }
+      }
+    },
+    "amendRecordOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "operation_type",
+        "record_id",
+        "expected_record_hash",
+        "changes"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common-v1.schema.json#/$defs/operationId"
+        },
+        "operation_type": {
+          "const": "amend_record"
+        },
+        "record_id": {
+          "$ref": "common-v1.schema.json#/$defs/recordId"
+        },
+        "expected_record_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "changes": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "title": {
+              "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+            },
+            "summary": {
+              "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+            },
+            "scope": {
+              "$ref": "#/$defs/nonEmptySlugArray"
+            },
+            "tags": {
+              "$ref": "#/$defs/slugArray"
+            }
+          }
+        }
+      }
+    },
+    "evidenceOperation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation_id",
+            "operation_type",
+            "record_id",
+            "expected_record_hash",
+            "evidence"
+          ],
+          "properties": {
+            "operation_id": {
+              "$ref": "common-v1.schema.json#/$defs/operationId"
+            },
+            "operation_type": {
+              "const": "add_evidence"
+            },
+            "record_id": {
+              "$ref": "common-v1.schema.json#/$defs/recordId"
+            },
+            "expected_record_hash": {
+              "$ref": "common-v1.schema.json#/$defs/sha256"
+            },
+            "evidence": {
+              "$ref": "#/$defs/canonicalEvidence"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation_id",
+            "operation_type",
+            "record_id",
+            "expected_record_hash",
+            "evidence"
+          ],
+          "properties": {
+            "operation_id": {
+              "$ref": "common-v1.schema.json#/$defs/operationId"
+            },
+            "operation_type": {
+              "const": "remove_evidence"
+            },
+            "record_id": {
+              "$ref": "common-v1.schema.json#/$defs/recordId"
+            },
+            "expected_record_hash": {
+              "$ref": "common-v1.schema.json#/$defs/sha256"
+            },
+            "evidence": {
+              "$ref": "#/$defs/canonicalEvidence"
+            }
+          }
+        }
+      ]
+    },
+    "setVerificationOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "operation_type",
+        "record_id",
+        "expected_record_hash",
+        "verification"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common-v1.schema.json#/$defs/operationId"
+        },
+        "operation_type": {
+          "const": "set_verification"
+        },
+        "record_id": {
+          "$ref": "common-v1.schema.json#/$defs/recordId"
+        },
+        "expected_record_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "verification": {
+          "$ref": "#/$defs/verification"
+        }
+      }
+    },
+    "relationOperation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation_id",
+            "operation_type",
+            "record_id",
+            "expected_record_hash",
+            "relation"
+          ],
+          "properties": {
+            "operation_id": {
+              "$ref": "common-v1.schema.json#/$defs/operationId"
+            },
+            "operation_type": {
+              "const": "add_relation"
+            },
+            "record_id": {
+              "$ref": "common-v1.schema.json#/$defs/recordId"
+            },
+            "expected_record_hash": {
+              "$ref": "common-v1.schema.json#/$defs/sha256"
+            },
+            "relation": {
+              "$ref": "#/$defs/relation"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation_id",
+            "operation_type",
+            "record_id",
+            "expected_record_hash",
+            "relation"
+          ],
+          "properties": {
+            "operation_id": {
+              "$ref": "common-v1.schema.json#/$defs/operationId"
+            },
+            "operation_type": {
+              "const": "remove_relation"
+            },
+            "record_id": {
+              "$ref": "common-v1.schema.json#/$defs/recordId"
+            },
+            "expected_record_hash": {
+              "$ref": "common-v1.schema.json#/$defs/sha256"
+            },
+            "relation": {
+              "$ref": "#/$defs/relation"
+            }
+          }
+        }
+      ]
+    },
+    "transitionRecordOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "operation_type",
+        "record_id",
+        "expected_record_hash",
+        "target_state",
+        "transition_reason",
+        "content_changes"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common-v1.schema.json#/$defs/operationId"
+        },
+        "operation_type": {
+          "const": "transition_record"
+        },
+        "record_id": {
+          "$ref": "common-v1.schema.json#/$defs/recordId"
+        },
+        "expected_record_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "target_state": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "transition_reason": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "content_changes": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "supersedeRecordOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "operation_type",
+        "predecessor_id",
+        "expected_record_hash",
+        "successor",
+        "reason"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common-v1.schema.json#/$defs/operationId"
+        },
+        "operation_type": {
+          "const": "supersede_record"
+        },
+        "predecessor_id": {
+          "$ref": "common-v1.schema.json#/$defs/recordId"
+        },
+        "expected_record_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "successor": {
+          "$ref": "#/$defs/recordDraft"
+        },
+        "reason": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "operation": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/initializeMemoryOperation"
+        },
+        {
+          "$ref": "#/$defs/updateProjectOperation"
+        },
+        {
+          "$ref": "#/$defs/addSourceOperation"
+        },
+        {
+          "$ref": "#/$defs/createRecordOperation"
+        },
+        {
+          "$ref": "#/$defs/amendRecordOperation"
+        },
+        {
+          "$ref": "#/$defs/evidenceOperation"
+        },
+        {
+          "$ref": "#/$defs/setVerificationOperation"
+        },
+        {
+          "$ref": "#/$defs/relationOperation"
+        },
+        {
+          "$ref": "#/$defs/transitionRecordOperation"
+        },
+        {
+          "$ref": "#/$defs/supersedeRecordOperation"
+        }
+      ]
+    },
+    "changeSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_type",
+        "schema_version",
+        "change_set_id",
+        "artifact_hash",
+        "generated_at",
+        "actor",
+        "target_memory_id",
+        "base_revision",
+        "base_state_hash",
+        "input_bundles",
+        "summary",
+        "source_resolutions",
+        "candidate_resolutions",
+        "operations",
+        "findings"
+      ],
+      "properties": {
+        "artifact_type": {
+          "const": "change_set"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "change_set_id": {
+          "$ref": "common-v1.schema.json#/$defs/changeSetId"
+        },
+        "artifact_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "generated_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "actor": {
+          "$ref": "common-v1.schema.json#/$defs/actor"
+        },
+        "target_memory_id": {
+          "$ref": "#/$defs/nullableMemoryId"
+        },
+        "base_revision": {
+          "$ref": "#/$defs/nullableRevision"
+        },
+        "base_state_hash": {
+          "$ref": "#/$defs/nullableHash"
+        },
+        "input_bundles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/typedArtifactReference"
+          },
+          "contains": {
+            "$ref": "#/$defs/candidateBundleReference"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        "summary": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "source_resolutions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sourceResolution"
+          }
+        },
+        "candidate_resolutions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/candidateResolution"
+          }
+        },
+        "operations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/operation"
+          }
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reconciliationFinding"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "target_memory_id": {
+                "type": "null"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "base_revision": {
+                "type": "null"
+              },
+              "base_state_hash": {
+                "type": "null"
+              },
+              "operations": {
+                "minItems": 1,
+                "prefixItems": [
+                  {
+                    "$ref": "#/$defs/initializeMemoryOperation"
+                  }
+                ],
+                "contains": {
+                  "$ref": "#/$defs/initializeMemoryOperation"
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "base_revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "base_state_hash": {
+                "$ref": "common-v1.schema.json#/$defs/sha256"
+              },
+              "operations": {
+                "not": {
+                  "contains": {
+                    "$ref": "#/$defs/initializeMemoryOperation"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "detector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "type",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "type": {
+          "enum": [
+            "rule",
+            "heuristic",
+            "agent"
+          ]
+        },
+        "version": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "auditFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fingerprint",
+        "severity",
+        "category",
+        "code",
+        "message",
+        "record_ids",
+        "source_ids",
+        "detector",
+        "recommended_action"
+      ],
+      "properties": {
+        "fingerprint": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ]
+        },
+        "category": {
+          "$ref": "common-v1.schema.json#/$defs/slug"
+        },
+        "code": {
+          "$ref": "common-v1.schema.json#/$defs/findingCode"
+        },
+        "message": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "record_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/recordId"
+          }
+        },
+        "source_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/sourceId"
+          }
+        },
+        "detector": {
+          "$ref": "#/$defs/detector"
+        },
+        "recommended_action": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "auditPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled_detectors": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "stale_todo_after_days": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "auditReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_type",
+        "schema_version",
+        "audit_report_id",
+        "artifact_hash",
+        "generated_at",
+        "actor",
+        "memory",
+        "policy",
+        "findings"
+      ],
+      "properties": {
+        "artifact_type": {
+          "const": "audit_report"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "audit_report_id": {
+          "$ref": "common-v1.schema.json#/$defs/auditReportId"
+        },
+        "artifact_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "generated_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "actor": {
+          "$ref": "common-v1.schema.json#/$defs/actor"
+        },
+        "memory": {
+          "$ref": "#/$defs/memoryReference"
+        },
+        "policy": {
+          "$ref": "#/$defs/auditPolicy"
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/auditFinding"
+          }
+        }
+      }
+    },
+    "handoffRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goal"
+      ],
+      "properties": {
+        "goal": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "scopes": {
+          "$ref": "#/$defs/nonEmptySlugArray"
+        },
+        "tags": {
+          "$ref": "#/$defs/nonEmptySlugArray"
+        },
+        "seed_record_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/recordId"
+          }
+        },
+        "include": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "exclude": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "max_records": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "estimated_token_budget": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "generatedReason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generated",
+        "reason"
+      ],
+      "properties": {
+        "generated": {
+          "const": true
+        },
+        "reason": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "contextRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "kind",
+        "state",
+        "title",
+        "summary",
+        "content",
+        "relations",
+        "evidence_source_ids"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common-v1.schema.json#/$defs/recordId"
+        },
+        "key": {
+          "$ref": "common-v1.schema.json#/$defs/slug"
+        },
+        "kind": {
+          "$ref": "#/$defs/recordKind"
+        },
+        "state": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "title": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "summary": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "content": {
+          "type": "object"
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relation"
+          }
+        },
+        "evidence_source_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/sourceId"
+          }
+        },
+        "relevance": {
+          "$ref": "#/$defs/generatedReason"
+        }
+      }
+    },
+    "contextSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "uri"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common-v1.schema.json#/$defs/sourceId"
+        },
+        "kind": {
+          "$ref": "#/$defs/sourceKind"
+        },
+        "title": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "uri": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "revision": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "contextCompilation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "result_revision",
+        "compiled_at",
+        "summary"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common-v1.schema.json#/$defs/compilationId"
+        },
+        "result_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "compiled_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "summary": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "contextAuditFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fingerprint",
+        "severity",
+        "code",
+        "message",
+        "record_ids"
+      ],
+      "properties": {
+        "fingerprint": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ]
+        },
+        "code": {
+          "$ref": "common-v1.schema.json#/$defs/findingCode"
+        },
+        "message": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        },
+        "record_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/recordId"
+          }
+        }
+      }
+    },
+    "missionSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generated",
+        "text"
+      ],
+      "properties": {
+        "generated": {
+          "const": true
+        },
+        "text": {
+          "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "activeDecisionSection": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/contextRecord"
+          },
+          {
+            "properties": {
+              "kind": {
+                "const": "decision"
+              },
+              "state": {
+                "const": "active"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "activeConstraintSection": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/contextRecord"
+          },
+          {
+            "properties": {
+              "kind": {
+                "const": "constraint"
+              },
+              "state": {
+                "const": "active"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "activePreferenceSection": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/contextRecord"
+          },
+          {
+            "properties": {
+              "kind": {
+                "const": "preference"
+              },
+              "state": {
+                "const": "active"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "todoSection": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/contextRecord"
+          },
+          {
+            "properties": {
+              "kind": {
+                "const": "task"
+              },
+              "state": {
+                "enum": [
+                  "todo",
+                  "in_progress",
+                  "blocked"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "openRiskSection": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/contextRecord"
+          },
+          {
+            "properties": {
+              "kind": {
+                "const": "risk"
+              },
+              "state": {
+                "enum": [
+                  "open",
+                  "mitigated"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "openQuestionSection": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/contextRecord"
+          },
+          {
+            "properties": {
+              "kind": {
+                "const": "question"
+              },
+              "state": {
+                "const": "open"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "factAssumptionSection": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/contextRecord"
+          },
+          {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "fact",
+                  "assumption"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "doneSection": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/contextRecord"
+          },
+          {
+            "properties": {
+              "kind": {
+                "const": "task"
+              },
+              "state": {
+                "const": "done"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "eventSection": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/contextRecord"
+          },
+          {
+            "properties": {
+              "kind": {
+                "const": "event"
+              },
+              "state": {
+                "const": "occurred"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "omissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "counts",
+        "retrieval_hints"
+      ],
+      "properties": {
+        "counts": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "common-v1.schema.json#/$defs/slug"
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "retrieval_hints": {
+          "type": "array",
+          "items": {
+            "$ref": "common-v1.schema.json#/$defs/nonEmptyString"
+          }
+        }
+      }
+    },
+    "contextSections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mission",
+        "active_decisions",
+        "active_constraints",
+        "applicable_preferences",
+        "todo",
+        "open_risks",
+        "open_questions",
+        "facts_and_assumptions",
+        "recent_done",
+        "recent_events",
+        "recent_compilation_changes",
+        "audit_findings",
+        "selected_sources",
+        "omissions"
+      ],
+      "properties": {
+        "mission": {
+          "$ref": "#/$defs/missionSection"
+        },
+        "active_decisions": {
+          "$ref": "#/$defs/activeDecisionSection"
+        },
+        "active_constraints": {
+          "$ref": "#/$defs/activeConstraintSection"
+        },
+        "applicable_preferences": {
+          "$ref": "#/$defs/activePreferenceSection"
+        },
+        "todo": {
+          "$ref": "#/$defs/todoSection"
+        },
+        "open_risks": {
+          "$ref": "#/$defs/openRiskSection"
+        },
+        "open_questions": {
+          "$ref": "#/$defs/openQuestionSection"
+        },
+        "facts_and_assumptions": {
+          "$ref": "#/$defs/factAssumptionSection"
+        },
+        "recent_done": {
+          "$ref": "#/$defs/doneSection"
+        },
+        "recent_events": {
+          "$ref": "#/$defs/eventSection"
+        },
+        "recent_compilation_changes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contextCompilation"
+          }
+        },
+        "audit_findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contextAuditFinding"
+          }
+        },
+        "selected_sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contextSource"
+          }
+        },
+        "omissions": {
+          "$ref": "#/$defs/omissions"
+        }
+      }
+    },
+    "contextPack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_type",
+        "schema_version",
+        "context_pack_id",
+        "artifact_hash",
+        "generated_at",
+        "actor",
+        "memory",
+        "request",
+        "section_order",
+        "sections"
+      ],
+      "properties": {
+        "artifact_type": {
+          "const": "context_pack"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "context_pack_id": {
+          "$ref": "common-v1.schema.json#/$defs/contextPackId"
+        },
+        "artifact_hash": {
+          "$ref": "common-v1.schema.json#/$defs/sha256"
+        },
+        "generated_at": {
+          "$ref": "common-v1.schema.json#/$defs/utcTimestamp"
+        },
+        "actor": {
+          "$ref": "common-v1.schema.json#/$defs/actor"
+        },
+        "memory": {
+          "$ref": "#/$defs/memoryReference"
+        },
+        "audit_report": {
+          "$ref": "#/$defs/auditReportReference"
+        },
+        "request": {
+          "$ref": "#/$defs/handoffRequest"
+        },
+        "section_order": {
+          "const": [
+            "mission",
+            "active_decisions",
+            "active_constraints",
+            "applicable_preferences",
+            "todo",
+            "open_risks",
+            "open_questions",
+            "facts_and_assumptions",
+            "recent_done",
+            "recent_events",
+            "recent_compilation_changes",
+            "audit_findings",
+            "selected_sources",
+            "omissions"
+          ]
+        },
+        "sections": {
+          "$ref": "#/$defs/contextSections"
+        }
+      }
+    }
+  }
+}
