@@ -15,3 +15,5 @@
 - 2026-06-12: Separated operational state from history by tightening
   `START_HERE.md`, `STATE.md`, and `WORK.md` around present-tense project
   context.
+- 2026-06-12: Added operating modes (`read`, `update`, `handoff`, `cleanup`,
+  `init`) to reduce ambiguity before agents read or edit the hub.

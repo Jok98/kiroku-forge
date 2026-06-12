@@ -58,6 +58,25 @@ a new hub, restructuring an existing hub, or making a broad memory update.
 Use the templates in [assets/templates/kiroku](assets/templates/kiroku) when
 initializing a project hub.
 
+## Operating Modes
+
+Choose one primary mode before reading beyond `START_HERE.md`:
+
+- `read`: answer from the hub without editing it. Use when the user asks what
+  is true, what happened, or what to do next.
+- `update`: edit the hub after project work, decisions, or user corrections.
+  Use when the user asks to save, remember, update memory, or invokes
+  `$kiroku-forge` after meaningful work.
+- `handoff`: tighten `START_HERE.md` for the next agent or a specific goal.
+  Keep detail in owner files and link to them.
+- `cleanup`: compress, reorganize, or remove stale memory. Read the full hub
+  only when cleanup scope requires it.
+- `init`: create a missing `kiroku/` hub from templates, then fill only the
+  durable project context available.
+
+If the mode is ambiguous, default to `read` for questions and `update` for
+explicit memory-maintenance requests.
+
 ## Selective Reading
 
 Do not load every file in `kiroku/` by default. Read only what the request
@@ -115,19 +134,20 @@ Keep operational files focused on the present:
 
 1. Locate the project memory hub. Use `kiroku/` at the project root unless the
    user points to another location.
-2. If the hub exists, follow the selective reading policy before opening more
+2. Choose the operating mode.
+3. If the hub exists, follow the selective reading policy before opening more
    files.
-3. If the hub does not exist and the user asked to create or update memory,
+4. If the hub does not exist and the user asked to create or update memory,
    initialize it from the templates.
-4. Inspect the current project evidence needed for the update: code, docs,
+5. Inspect the current project evidence needed for the update: code, docs,
    user statements, command results, or existing memory.
-5. Decide whether each item is durable memory. Exclude transient progress,
+6. Decide whether each item is durable memory. Exclude transient progress,
    verbose logs, speculative noise, and implementation minutiae that are not
    reusable.
-6. Apply the compression rule to avoid duplicating or bloating the hub.
-7. Edit the owning Markdown files directly. Keep the text compact but complete.
-8. Add one concise entry to `LOG.md` for meaningful memory updates.
-9. Finish with a short summary of changed memory files and any uncertainty.
+7. Apply the compression rule to avoid duplicating or bloating the hub.
+8. Edit the owning Markdown files directly. Keep the text compact but complete.
+9. Add one concise entry to `LOG.md` for meaningful memory updates.
+10. Finish with a short summary of changed memory files and any uncertainty.
 
 ## Update Guidance
 

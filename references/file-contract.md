@@ -31,6 +31,17 @@ Agents should not read the whole hub by default.
 Read every file only for explicit full-memory review, migration, cleanup, or
 major restructuring.
 
+## Operating Modes
+
+- `read`: answer from existing memory without editing.
+- `update`: save durable project state, choices, constraints, work, or risks.
+- `handoff`: keep `START_HERE.md` goal-focused and point to detail files.
+- `cleanup`: compress stale, duplicated, or misplaced memory.
+- `init`: create the default hub from templates.
+
+Use one primary mode per request. If unsure, use `read` for questions and
+`update` for explicit memory-maintenance requests.
+
 ## Compression Policy
 
 Every update should make the hub at least as clear as it was before.

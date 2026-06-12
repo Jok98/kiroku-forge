@@ -11,7 +11,7 @@
   templates, and this `kiroku/` hub.
 - Skill validation passes with `quick_validate.py`.
 - The hub enforces selective reading, strict `START_HERE.md`, compression on
-  update, and separation between operational state and history.
+  update, operating modes, and operational/history separation.
 
 ## Next Action
 
