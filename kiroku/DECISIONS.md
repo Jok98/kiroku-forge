@@ -1,0 +1,66 @@
+# Decisions
+
+## Active Decisions
+
+### Decision: Markdown is the primary memory
+
+Status: active
+Area: product direction
+
+Decision:
+KirokuForge stores project memory primarily in human-readable Markdown files
+under `kiroku/`.
+
+Rationale:
+The user wants memory that is directly useful to developers and agents, with
+project reasoning and decisions written in a speaking form rather than hidden
+inside structured metadata.
+
+Consequences:
+- No canonical `memory.json` in the current design.
+- No required frontmatter, schema registry, hash chain, or generated index.
+- Structure comes from stable files, headings, and compact prose.
+
+### Decision: Keep metadata minimal
+
+Status: active
+Area: file format
+
+Decision:
+Use plain text status lines and clear sections instead of heavy metadata.
+
+Rationale:
+Generated memory will grow over time. Heavy metadata would consume context and
+make the files less pleasant for humans to edit.
+
+Consequences:
+- Entries should explain themselves in prose.
+- A line such as `Status: active` is acceptable when it helps scanning.
+- Machine parsing is secondary and should not drive the format.
+
+### Decision: Remove the v3 implementation
+
+Status: active
+Area: repository structure
+
+Decision:
+Delete the v3 compiler-style implementation and recreate the skill from a
+small Markdown-first base.
+
+Rationale:
+The old design had a strong formal pipeline, schemas, ChangeSets, hashes, and
+canonical JSON. That was too heavy for the desired manual, readable project
+memory hub.
+
+Consequences:
+- `schemas/`, `scripts/kiroku_core/`, `tests/`, `references/contracts-v3.md`,
+  and `todo_kiroku.txt` were removed.
+- Old v3 validation state is historical only.
+- New maturity will come from practical use and forward-testing.
+
+## Replaced Or Obsolete Decisions
+
+- The previous decision to use `memory.json` as canonical memory is obsolete
+  for this skill direction.
+- The previous pipeline model `CAPTURE -> CLASSIFY -> RECONCILE -> COMPILE ->
+  VALIDATE -> HANDOFF` is obsolete as user-facing product shape.

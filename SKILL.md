@@ -1,72 +1,166 @@
 ---
 name: kiroku-forge
-description: Build and maintain durable project memory by capturing evidence, classifying reusable knowledge, reconciling it with existing state, compiling canonical records, validating quality, and generating focused handoffs. Use when project context must persist across sessions or agents. Do not use for generic summaries or project documentation.
+description: Maintain a lightweight Markdown project-memory hub in `kiroku/` for durable project state, architecture, design patterns, decisions, constraints, TODO/DONE/ongoing work, risks, rejected ideas, forbidden directions, and continuation handoffs. Use when project context must persist across agent sessions or be readable by developers. Prefer concise human-readable Markdown as primary memory, minimal metadata, and no canonical JSON unless the user explicitly asks for it.
 ---
 
 # KirokuForge
 
-KirokuForge is being rebuilt as a project-memory compiler.
+KirokuForge maintains a curated Markdown memory hub for a project. The output
+is meant to be read directly by developers and future agents.
 
 ## Product Boundary
 
-- Preserve durable operational knowledge, not an encyclopedic project overview.
-- Keep one structured canonical memory owned by the project using the skill.
-- Keep raw source content outside canonical memory and reference it through provenance.
-- Do not depend on Git.
-- Treat human views and agent context packs as generated, read-only projections.
+Preserve durable project knowledge:
 
-## Target Pipeline
+- current state and next useful action;
+- main flows, architecture, implementation patterns, and design rationale;
+- adopted decisions, active constraints, and forbidden directions;
+- TODO, ongoing, blocked, done, and cancelled work;
+- risks, open questions, rejected ideas, and important history.
 
-1. `CAPTURE`: identify and register selected conversations, files, documents, and observations.
-2. `CLASSIFY`: extract atomic candidate facts, decisions, assumptions, constraints, preferences, proposals, tasks, questions, risks, and events.
-3. `RECONCILE`: compare candidates with current memory and produce an explicit change set.
-4. `COMPILE`: apply the complete change set atomically to canonical memory.
-5. `VALIDATE`: verify structural integrity and report semantic quality problems.
-6. `HANDOFF`: generate a goal-focused context pack for the next session or agent.
+Do not preserve generic conversation summaries, raw transcripts, incidental
+tool output, or details that will not help future work.
 
-Only `COMPILE` may modify canonical memory.
+## Core Rules
 
-## Normative Contract
+- Treat Markdown files under `kiroku/` as the primary memory.
+- Keep metadata minimal. Prefer clear headings and explanatory text.
+- Make entries self-explanatory: write what is true, why it matters, and what
+  it changes.
+- Update existing entries instead of appending duplicates.
+- Remove or rewrite stale text when newer information supersedes it.
+- Separate facts, decisions, proposals, constraints, risks, and tasks.
+- Do not convert an idea into a decision unless the user or project evidence
+  clearly adopts it.
+- Do not create `memory.json`, schemas, receipts, hashes, or generated indexes
+  unless the user explicitly asks for a machine-readable layer.
+- Preserve the language and terminology already used by the project memory.
 
-Read [references/contracts-v3.md](references/contracts-v3.md) before designing
-schemas, commands, validators, storage, projections, or viewer behavior. It is
-the semantic source of truth for v3. Reuse
-[schemas/common-v1.schema.json](schemas/common-v1.schema.json) for shared IDs,
-hashes, timestamps, actors, and evidence locators. Validate canonical
-`memory.json` shape with
-[schemas/memory-v3.schema.json](schemas/memory-v3.schema.json).
-Validate pipeline artifacts with
-[schemas/capture-bundle-v1.schema.json](schemas/capture-bundle-v1.schema.json),
-[schemas/candidate-bundle-v1.schema.json](schemas/candidate-bundle-v1.schema.json),
-[schemas/change-set-v1.schema.json](schemas/change-set-v1.schema.json),
-[schemas/audit-report-v1.schema.json](schemas/audit-report-v1.schema.json), and
-[schemas/context-pack-v1.schema.json](schemas/context-pack-v1.schema.json).
-Their shared definitions are in
-[schemas/pipeline-v1.schema.json](schemas/pipeline-v1.schema.json).
-Use [tests/fixtures/memory/manifest.json](tests/fixtures/memory/manifest.json)
-as the conformance matrix for schema and integrity behavior.
-Use
-[tests/fixtures/pipeline/manifest.json](tests/fixtures/pipeline/manifest.json)
-as the pipeline artifact schema conformance matrix.
-Use [scripts/kiroku_core/canonical.py](scripts/kiroku_core/canonical.py) and
-[scripts/kiroku_core/hashing.py](scripts/kiroku_core/hashing.py) for canonical
-serialization, memory ordering, and SHA-256 hashes.
-Use [scripts/kiroku_core/schema.py](scripts/kiroku_core/schema.py) for offline
-runtime schema validation and
-[scripts/kiroku_core/findings.py](scripts/kiroku_core/findings.py) for stable
-validation results.
-Use [scripts/kiroku_core/integrity.py](scripts/kiroku_core/integrity.py) for
-deterministic multi-finding integrity validation of canonical memory.
-Use [scripts/kiroku_core/change_set.py](scripts/kiroku_core/change_set.py) to
-validate ChangeSet hashes, base preconditions, immutable source identities, and
-lifecycle transitions before compilation.
+## Hub Files
 
-## Current State
+Create or maintain this folder:
 
-The previous v2 implementation has been removed. The normative v3 contract and
-all canonical and pipeline artifact schemas are defined. Runtime validation for
-pipeline artifacts other than ChangeSet, plus the remaining executable
-pipeline behavior, still need to be implemented. Canonical serialization,
-ordering, hashing, offline schema validation, memory integrity validation, and
-ChangeSet precondition and lifecycle validation are implemented. The fixture
-corpora define expected schema and integrity outcomes.
+```text
+kiroku/
+  START_HERE.md
+  STATE.md
+  ARCHITECTURE.md
+  DECISIONS.md
+  WORK.md
+  CONSTRAINTS.md
+  IDEAS.md
+  RISKS.md
+  LOG.md
+```
+
+Read [references/file-contract.md](references/file-contract.md) before creating
+a new hub, restructuring an existing hub, or making a broad memory update.
+Use the templates in [assets/templates/kiroku](assets/templates/kiroku) when
+initializing a project hub.
+
+## Selective Reading
+
+Do not load every file in `kiroku/` by default. Read only what the request
+needs:
+
+- Always read `START_HERE.md` first when a hub exists.
+- Read `STATE.md` when current status or verified present-tense facts matter.
+- Read `WORK.md` when continuing, planning, or updating tasks.
+- Read `DECISIONS.md` and `CONSTRAINTS.md` before changing direction,
+  architecture, scope, or product rules.
+- Read `ARCHITECTURE.md` before technical implementation changes.
+- Read `IDEAS.md` when evaluating proposals, rejected directions, or forbidden
+  approaches.
+- Read `RISKS.md` when the work touches fragile areas, tradeoffs, or known
+  failure modes.
+- Read `LOG.md` only when recent memory-update history is relevant.
+
+If the user asks for a full memory review, read all files deliberately and say
+that the request requires the full hub.
+
+## Compression Rule
+
+Before and after every memory update, compress the hub:
+
+- remove or rewrite stale text that no longer represents the project state;
+- merge duplicate entries instead of adding another version;
+- replace verbose recap with the smallest clear statement;
+- keep detail only in the file that owns it;
+- move history out of current-state sections unless it explains a live
+  decision, constraint, or risk;
+- delete transient session notes, command chatter, and implementation noise
+  that future work will not reuse.
+
+Ask these questions before writing a new bullet or paragraph:
+
+- Is this still true and useful for future work?
+- Is it already stated elsewhere?
+- Can it be one sentence instead of a paragraph?
+- Does it belong as state, decision, constraint, task, risk, idea, or log?
+
+## Operating Workflow
+
+1. Locate the project memory hub. Use `kiroku/` at the project root unless the
+   user points to another location.
+2. If the hub exists, follow the selective reading policy before opening more
+   files.
+3. If the hub does not exist and the user asked to create or update memory,
+   initialize it from the templates.
+4. Inspect the current project evidence needed for the update: code, docs,
+   user statements, command results, or existing memory.
+5. Decide whether each item is durable memory. Exclude transient progress,
+   verbose logs, speculative noise, and implementation minutiae that are not
+   reusable.
+6. Apply the compression rule to avoid duplicating or bloating the hub.
+7. Edit the owning Markdown files directly. Keep the text compact but complete.
+8. Add one concise entry to `LOG.md` for meaningful memory updates.
+9. Finish with a short summary of changed memory files and any uncertainty.
+
+## Update Guidance
+
+When updating decisions:
+
+- record the adopted choice, rationale, consequences, and alternatives only
+  when useful;
+- move replaced decisions to an obsolete/replaced section instead of deleting
+  their history when the history matters.
+
+When updating work:
+
+- keep `Ongoing` focused on work currently in flight;
+- give TODO items a completion condition;
+- give DONE items an outcome, not just a title;
+- keep cancelled or blocked work visible only when it affects future choices.
+
+When updating constraints and forbidden directions:
+
+- state what the constraint prevents;
+- explain why violating it would be harmful;
+- keep forbidden ideas separate from merely rejected or deferred ideas.
+
+When updating architecture:
+
+- document flows, boundaries, dependencies, and patterns that guide future
+  implementation;
+- avoid turning `ARCHITECTURE.md` into an exhaustive codebase map.
+
+## Handoff Behavior
+
+`START_HERE.md` is the standing handoff for the next agent. Keep it strict:
+
+- target 25-40 lines;
+- hard cap 60 lines unless the user explicitly asks for a fuller handoff;
+- use only these sections: `Mission`, `Current State`, `Next Action`,
+  `Hard Constraints`, and `Read Only If Needed`;
+- write bullets, not narrative paragraphs;
+- include only what a new agent needs before opening another file;
+- point to detail files instead of copying their content.
+
+If the user asks for a goal-specific handoff, update `START_HERE.md` and point
+to the relevant detailed files instead of duplicating all content.
+
+## Quality Bar
+
+A good KirokuForge update lets a new agent continue the project without asking
+for basic context, while still being concise enough that a developer can read
+the hub without fighting generated clutter.
