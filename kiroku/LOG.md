@@ -17,3 +17,7 @@
   context.
 - 2026-06-12: Added operating modes (`read`, `update`, `handoff`, `cleanup`,
   `init`) to reduce ambiguity before agents read or edit the hub.
+- 2026-06-12: Added a final checklist for memory writes covering
+  `START_HERE.md` budget, TODO completion conditions, decision rationale,
+  single log entry, duplication, present-tense operational files, and no hidden
+  canonical store.

@@ -12,6 +12,7 @@
 7. The agent inspects only the project evidence needed for the update.
 8. The agent edits the owning Markdown files directly.
 9. The agent records one meaningful update in `kiroku/LOG.md`.
+10. The agent runs the final checklist before responding.
 
 ## Boundaries
 
@@ -35,6 +36,7 @@
   and keep detail in the owning file.
 - Keep operational files current-tense; put chronological history in `LOG.md`
   unless it explains an active decision, constraint, risk, or rejected idea.
+- Run the final checklist before finishing any write mode.
 - Prefer updating existing sections to appending repeated summaries.
 - Keep technical mechanisms out of the memory unless they directly help future
   work.

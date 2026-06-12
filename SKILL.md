@@ -130,6 +130,21 @@ Keep operational files focused on the present:
 - Prefer "this is the current rule" over "we previously changed from X to Y"
   in operational files.
 
+## Final Checklist
+
+Before finishing `update`, `handoff`, `cleanup`, or `init`, verify:
+
+- `START_HERE.md` is 25-40 lines when practical and never over 60 lines unless
+  the user asked for a fuller handoff.
+- Every TODO has a `Completion:` condition.
+- Every active decision has a rationale.
+- `LOG.md` has at most one concise entry for the memory update.
+- New content is not duplicated across owner files.
+- Operational files describe the present; history is in `LOG.md` or justified
+  by an active decision, constraint, risk, or rejected idea.
+- No `memory.json`, schema, receipt, hash chain, generated index, or hidden
+  canonical store was added unless the user explicitly requested it.
+
 ## Operating Workflow
 
 1. Locate the project memory hub. Use `kiroku/` at the project root unless the
@@ -147,7 +162,8 @@ Keep operational files focused on the present:
 7. Apply the compression rule to avoid duplicating or bloating the hub.
 8. Edit the owning Markdown files directly. Keep the text compact but complete.
 9. Add one concise entry to `LOG.md` for meaningful memory updates.
-10. Finish with a short summary of changed memory files and any uncertainty.
+10. Run the final checklist.
+11. Finish with a short summary of changed memory files and any uncertainty.
 
 ## Update Guidance
 

@@ -45,7 +45,8 @@ Notes:
 
 - Markdown-first KirokuForge foundation is in place.
 - Hub guardrails are documented: selective reading, strict `START_HERE.md`,
-  compression on update, operating modes, and operational/history separation.
+  compression on update, operating modes, final checklist, and
+  operational/history separation.
 - Skill validation passes with `quick_validate.py`.
 
 ## Cancelled

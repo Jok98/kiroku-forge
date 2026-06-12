@@ -72,6 +72,19 @@ answer what is true now and what should happen next.
 - Rewrite operational text into current-tense rules instead of preserving a
   change narrative.
 
+## Final Checklist
+
+Before finishing a memory write, verify:
+
+- `START_HERE.md` stays within its line budget.
+- TODO items have `Completion:` conditions.
+- Active decisions have rationale.
+- `LOG.md` has no more than one concise entry for the update.
+- New content is not duplicated across owner files.
+- Operational files stay present-tense.
+- No hidden canonical store or generated machine layer was added without an
+  explicit user request.
+
 ## File Ownership
 
 `START_HERE.md`
