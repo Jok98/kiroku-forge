@@ -7,13 +7,11 @@
 
 ## Current State
 
-- Old v3 compiler-style code, schemas, fixtures, tests, and roadmap were
-  removed on 2026-06-12.
-- New source of truth: `SKILL.md`, `references/file-contract.md`, templates,
-  and this `kiroku/` hub.
+- Current source of truth: `SKILL.md`, `references/file-contract.md`,
+  templates, and this `kiroku/` hub.
 - Skill validation passes with `quick_validate.py`.
-- The hub now enforces selective reading, strict `START_HERE.md`, and
-  compression on update.
+- The hub enforces selective reading, strict `START_HERE.md`, compression on
+  update, and separation between operational state and history.
 
 ## Next Action
 
@@ -25,8 +23,7 @@
 - Metadata must stay minimal and readable in plain text.
 - Do not recreate `memory.json`, schemas, receipts, hashes, generated indexes,
   or the old pipeline unless the user explicitly changes direction.
-- The old v3 tests are gone by design; the current validation is skill-level
-  validation, not Python runtime validation.
+- Current validation is skill-level validation, not Python runtime validation.
 
 ## Read Only If Needed
 

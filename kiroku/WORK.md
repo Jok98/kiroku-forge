@@ -43,17 +43,10 @@ Notes:
 
 ## Done
 
-- Removed the old v3 implementation from the skill repository.
-- Rewrote `SKILL.md` around Markdown project memory.
-- Added `references/file-contract.md`.
-- Added starter templates under `assets/templates/kiroku/`.
-- Validated the new skill with `quick_validate.py`.
-- Added selective reading rules for hub files.
-- Made `START_HERE.md` stricter with fixed sections and an explicit line
-  budget.
-- Added a compression rule for every memory update.
-- Exercised `$kiroku-forge` on this repository by updating the first Markdown
-  hub in place.
+- Markdown-first KirokuForge foundation is in place.
+- Hub guardrails are documented: selective reading, strict `START_HERE.md`,
+  compression on update, and operational/history separation.
+- Skill validation passes with `quick_validate.py`.
 
 ## Cancelled
 

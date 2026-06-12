@@ -30,6 +30,8 @@
   cleanup, or major restructuring.
 - Compress memory during every update: merge duplicates, remove stale text,
   and keep detail in the owning file.
+- Keep operational files current-tense; put chronological history in `LOG.md`
+  unless it explains an active decision, constraint, risk, or rejected idea.
 - Prefer updating existing sections to appending repeated summaries.
 - Keep technical mechanisms out of the memory unless they directly help future
   work.

@@ -98,6 +98,19 @@ Ask these questions before writing a new bullet or paragraph:
 - Can it be one sentence instead of a paragraph?
 - Does it belong as state, decision, constraint, task, risk, idea, or log?
 
+## Operational State And History
+
+Keep operational files focused on the present:
+
+- `START_HERE.md`, `STATE.md`, and `WORK.md` should describe what is true now
+  and what to do next.
+- Move chronological history to `LOG.md`.
+- Keep history in `DECISIONS.md` only when it explains an active decision.
+- Keep history in `CONSTRAINTS.md`, `RISKS.md`, or `IDEAS.md` only when it
+  affects future choices.
+- Prefer "this is the current rule" over "we previously changed from X to Y"
+  in operational files.
+
 ## Operating Workflow
 
 1. Locate the project memory hub. Use `kiroku/` at the project root unless the

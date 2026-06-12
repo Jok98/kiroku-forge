@@ -47,6 +47,20 @@ Every update should make the hub at least as clear as it was before.
 Before adding content, check whether it is still true, useful for future work,
 already stated elsewhere, and filed under the right owner.
 
+## Operational State And History
+
+`START_HERE.md`, `STATE.md`, and `WORK.md` are operational files. They should
+answer what is true now and what should happen next.
+
+- Put chronological history in `LOG.md`.
+- Put rationale and meaningful past alternatives in `DECISIONS.md`.
+- Put obsolete or rejected directions in `IDEAS.md` only when they prevent
+  repeated discussion.
+- Put historical context in constraints or risks only when it still affects
+  future work.
+- Rewrite operational text into current-tense rules instead of preserving a
+  change narrative.
+
 ## File Ownership
 
 `START_HERE.md`

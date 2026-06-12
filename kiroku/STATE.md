@@ -8,22 +8,18 @@ state, architecture, decisions, constraints, work, risks, and handoff context.
 
 ## Current Status
 
-- The previous v3 implementation has been intentionally deleted.
-- The new skill no longer treats `memory.json` as canonical state.
-- The new `SKILL.md` instructs agents to maintain `kiroku/*.md` files directly.
-- The file contract is intentionally lightweight and avoids frontmatter by
-  default.
-- Template files exist for initializing a project memory hub.
-- The hub now has guardrails for selective reading, strict `START_HERE.md`,
-  and compression during updates.
+- KirokuForge is a Markdown-first memory skill.
+- `kiroku/*.md` files are the project memory; `memory.json` is not canonical.
+- `SKILL.md` defines agent behavior, and `references/file-contract.md` defines
+  the hub file contract.
+- `assets/templates/kiroku/*.md` initializes new project hubs.
+- The hub guardrails are selective reading, strict `START_HERE.md`,
+  compression on update, and separation of operational state from history.
+- This repository intentionally has no v3 runtime, schema, or test suite.
 
 ## Recently Verified
 
 - `python /home/mmoi/.codex/skills/.system/skill-creator/scripts/quick_validate.py /home/mmoi/.agents/skills/kiroku-forge` returned `Skill is valid!`.
-- The active skill files are `SKILL.md`, `agents/openai.yaml`,
-  `references/file-contract.md`, and `assets/templates/kiroku/*.md`.
-- The v3 folders `schemas/`, `scripts/kiroku_core/`, and `tests/` have been
-  removed from the worktree.
 - `$kiroku-forge` has been exercised on this repository by updating the
   Markdown hub in place.
 

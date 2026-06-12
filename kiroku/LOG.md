@@ -12,3 +12,6 @@
   merge duplicates, and avoid recap-style bloat.
 - 2026-06-12: Exercised `$kiroku-forge` on this repository by updating
   `START_HERE.md`, `STATE.md`, `WORK.md`, and this log in place.
+- 2026-06-12: Separated operational state from history by tightening
+  `START_HERE.md`, `STATE.md`, and `WORK.md` around present-tense project
+  context.
