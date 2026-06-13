@@ -59,6 +59,9 @@ Read [references/file-contract.md](references/file-contract.md) before creating
 a new hub, restructuring an existing hub, or making a broad memory update.
 Use the templates in [assets/templates/kiroku](assets/templates/kiroku) when
 initializing a project hub.
+Use `python scripts/init_hub.py <project-root-or-kiroku-dir>` from this skill
+when a deterministic template copy is useful. The script refuses to overwrite
+standard hub files unless `--overwrite` is passed.
 Template text is scaffolding: when initializing a non-English hub, translate
 headings and placeholder prose into the chosen hub language while preserving
 file names and section meanings.

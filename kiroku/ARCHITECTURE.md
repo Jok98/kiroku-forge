@@ -19,6 +19,7 @@
 - `SKILL.md` defines how agents should behave.
 - `references/file-contract.md` defines the default structure and ownership of
   files in a project memory hub.
+- `scripts/init_hub.py` initializes a target hub from bundled templates.
 - `scripts/check_hub.py` provides lightweight validation for the default hub
   contract.
 - `assets/templates/kiroku/` contains starter files for a new hub.
@@ -29,6 +30,8 @@
 
 - Use Markdown as the source of truth.
 - Choose one operating mode before reading beyond `START_HERE.md`.
+- Use `scripts/init_hub.py` for deterministic template copying when creating a
+  new hub.
 - Make the reason behind a decision as important as the decision itself.
 - Keep `START_HERE.md` strict: target 25-40 lines, fixed sections, no copied
   detail.
@@ -50,14 +53,15 @@
 - The previous compiler pipeline, JSON schemas, and deterministic Python tests
   were removed intentionally.
 - The new design is agentic and text-first. Scripts are acceptable when they
-  provide small validation or repetition wins without becoming the memory
-  source of truth.
+  provide small initialization, validation, or repetition wins without becoming
+  the memory source of truth.
 - The skill should not require Git, but Git status is useful while developing
   this skill repository.
 
 ## Integration Points
 
 - `skill-creator` is used to validate the shape of this skill.
+- `scripts/init_hub.py` initializes default hubs from templates.
 - `scripts/check_hub.py` validates the Markdown hub shape.
 - `agents/openai.yaml` exposes the skill with the short description
   "Maintain a Markdown project memory hub".

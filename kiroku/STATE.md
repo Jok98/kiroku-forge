@@ -12,6 +12,8 @@ state, architecture, decisions, constraints, work, risks, and handoff context.
 - `kiroku/*.md` files are the project memory; `memory.json` is not canonical.
 - `SKILL.md` defines agent behavior, and `references/file-contract.md` defines
   the hub file contract.
+- `scripts/init_hub.py` copies bundled templates into a target `kiroku/` hub
+  and refuses overwrite unless requested.
 - `scripts/check_hub.py` validates required hub files, template placeholders,
   `START_HERE.md` length, TODO completion conditions, and active decision
   rationales.
@@ -28,13 +30,14 @@ state, architecture, decisions, constraints, work, risks, and handoff context.
 - `python scripts/check_hub.py .` returned `Kiroku hub check passed: kiroku`.
 - `python scripts/check_hub.py assets/templates/kiroku` warns on template
   placeholders as expected.
+- `python scripts/init_hub.py <temp-project>` created the standard hub files,
+  and rerunning it refused overwrite without `--overwrite`.
 - `$kiroku-forge` has been exercised on this repository by updating the
   Markdown hub in place.
 
 ## Open Questions
 
-- Whether a tiny `init` script is useful later for copying templates, or
-  whether agents can keep doing this manually.
+- None known.
 
 ## Watch Points
 

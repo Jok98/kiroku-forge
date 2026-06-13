@@ -80,6 +80,28 @@ Consequences:
   warnings should be inspected rather than treated as automatic failures.
 - The checker does not make Markdown secondary to generated metadata.
 
+### Decision: Add a cautious init helper
+
+Status: active
+Area: initialization
+
+Decision:
+Provide `scripts/init_hub.py` to copy bundled Markdown templates into a target
+project's `kiroku/` hub.
+
+Rationale:
+Initialization is repetitive and easy to do inconsistently by hand. A small
+copy helper improves consistency without making the helper the source of truth
+or reintroducing the old runtime architecture.
+
+Consequences:
+- The script creates the nine standard hub files from
+  `assets/templates/kiroku/`.
+- Existing standard hub files are not overwritten unless `--overwrite` is
+  passed.
+- The script can run the lightweight checker with `--check`, but template
+  placeholders still need to be filled or translated by the agent.
+
 ### Decision: Remove the v3 implementation
 
 Status: active

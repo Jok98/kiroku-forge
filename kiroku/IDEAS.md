@@ -2,8 +2,7 @@
 
 ## Open Ideas
 
-- Add a tiny `init` helper that copies `assets/templates/kiroku/` into a
-  target project.
+- None currently active.
 
 ## Deferred Ideas
 

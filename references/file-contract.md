@@ -96,6 +96,10 @@ TODO `Completion:` conditions, and active decision rationales. Treat checker
 errors as blocking; inspect warnings before deciding whether the hub is good
 enough for the current update.
 
+The optional initializer `scripts/init_hub.py` copies the bundled templates
+into a project `kiroku/` hub. It refuses to overwrite standard hub files unless
+`--overwrite` is passed.
+
 ## File Ownership
 
 `START_HERE.md`

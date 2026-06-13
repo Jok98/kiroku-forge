@@ -26,3 +26,5 @@
   translation is requested.
 - 2026-06-13: Added `scripts/check_hub.py` as a lightweight Markdown hub
   checker and documented when to run it after init, cleanup, or broad updates.
+- 2026-06-13: Added `scripts/init_hub.py` to copy bundled templates into a
+  target `kiroku/` hub while refusing overwrite unless explicitly requested.

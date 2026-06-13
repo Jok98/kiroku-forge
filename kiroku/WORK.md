@@ -27,16 +27,6 @@ needing the original conversation.
 Notes:
 - Use a realistic prompt and do not leak expected answers.
 
-### Task: Decide whether an init script is needed
-
-Status: todo
-Completion:
-Either add a tiny script that copies templates into `kiroku/`, or record the
-decision that manual/template-based creation is sufficient.
-
-Notes:
-- Do this only after the format stabilizes.
-
 ## Blocked
 
 - None known.
@@ -49,6 +39,8 @@ Notes:
   operational/history separation.
 - Lightweight hub checker added in `scripts/check_hub.py`; it verifies the
   default Markdown contract without reintroducing a runtime pipeline.
+- Init helper added in `scripts/init_hub.py`; it copies bundled templates into
+  a target hub and refuses overwrite unless explicitly requested.
 - Skill validation passes with `quick_validate.py`.
 
 ## Cancelled
