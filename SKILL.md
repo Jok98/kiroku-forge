@@ -149,6 +149,10 @@ Before finishing `update`, `handoff`, `cleanup`, or `init`, verify:
   by an active decision, constraint, risk, or rejected idea.
 - No `memory.json`, schema, receipt, hash chain, generated index, or hidden
   canonical store was added unless the user explicitly requested it.
+- When practical after `init`, `cleanup`, or broad updates, run
+  `python scripts/check_hub.py <project-root-or-kiroku-dir>` from this skill
+  to catch missing files, stale placeholders, missing TODO completion
+  conditions, missing decision rationales, and `START_HERE.md` length drift.
 
 ## Operating Workflow
 
@@ -167,7 +171,8 @@ Before finishing `update`, `handoff`, `cleanup`, or `init`, verify:
 7. Apply the compression rule to avoid duplicating or bloating the hub.
 8. Edit the owning Markdown files directly. Keep the text compact but complete.
 9. Add one concise entry to `LOG.md` for meaningful memory updates.
-10. Run the final checklist.
+10. Run the final checklist and the hub checker when its scope matches the
+    update.
 11. Finish with a short summary of changed memory files and any uncertainty.
 
 ## Update Guidance

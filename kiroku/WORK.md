@@ -47,6 +47,8 @@ Notes:
 - Hub guardrails are documented: selective reading, strict `START_HERE.md`,
   compression on update, operating modes, final checklist, and
   operational/history separation.
+- Lightweight hub checker added in `scripts/check_hub.py`; it verifies the
+  default Markdown contract without reintroducing a runtime pipeline.
 - Skill validation passes with `quick_validate.py`.
 
 ## Cancelled

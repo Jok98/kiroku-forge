@@ -19,6 +19,8 @@
 - `SKILL.md` defines how agents should behave.
 - `references/file-contract.md` defines the default structure and ownership of
   files in a project memory hub.
+- `scripts/check_hub.py` provides lightweight validation for the default hub
+  contract.
 - `assets/templates/kiroku/` contains starter files for a new hub.
 - `kiroku/` is project memory for this repository and should be useful even
   without reading the conversation that produced it.
@@ -37,6 +39,8 @@
 - Keep operational files current-tense; put chronological history in `LOG.md`
   unless it explains an active decision, constraint, risk, or rejected idea.
 - Run the final checklist before finishing any write mode.
+- Run `scripts/check_hub.py` after init, cleanup, or broad updates when the
+  checker scope matches the change.
 - Prefer updating existing sections to appending repeated summaries.
 - Keep technical mechanisms out of the memory unless they directly help future
   work.
@@ -45,13 +49,15 @@
 
 - The previous compiler pipeline, JSON schemas, and deterministic Python tests
   were removed intentionally.
-- The new design is agentic and text-first. Scripts may be added later only
-  when repetition or validation needs justify them.
+- The new design is agentic and text-first. Scripts are acceptable when they
+  provide small validation or repetition wins without becoming the memory
+  source of truth.
 - The skill should not require Git, but Git status is useful while developing
   this skill repository.
 
 ## Integration Points
 
 - `skill-creator` is used to validate the shape of this skill.
+- `scripts/check_hub.py` validates the Markdown hub shape.
 - `agents/openai.yaml` exposes the skill with the short description
   "Maintain a Markdown project memory hub".

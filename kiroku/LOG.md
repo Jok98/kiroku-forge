@@ -24,3 +24,5 @@
 - 2026-06-13: Adopted the hub language rule: new hubs follow the project or
   request language, while existing hubs preserve their current language unless
   translation is requested.
+- 2026-06-13: Added `scripts/check_hub.py` as a lightweight Markdown hub
+  checker and documented when to run it after init, cleanup, or broad updates.

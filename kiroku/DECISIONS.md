@@ -58,6 +58,28 @@ Consequences:
 - Template headings and placeholder prose may be translated during init as
   direct equivalents in the selected hub language.
 
+### Decision: Add a lightweight hub checker
+
+Status: active
+Area: validation
+
+Decision:
+Provide `scripts/check_hub.py` as an optional local checker for the default
+Markdown hub contract.
+
+Rationale:
+The skill benefits from deterministic checks for easy-to-miss structural
+problems, but the current direction rejects a heavy runtime, schemas, or a
+canonical machine-readable memory layer.
+
+Consequences:
+- The checker validates required files, stale template placeholders,
+  `START_HERE.md` length, TODO completion conditions, and active decision
+  rationales.
+- Checker errors should block completion of init, cleanup, or broad updates;
+  warnings should be inspected rather than treated as automatic failures.
+- The checker does not make Markdown secondary to generated metadata.
+
 ### Decision: Remove the v3 implementation
 
 Status: active

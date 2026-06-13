@@ -42,8 +42,8 @@ Keep the obsolete decision and constraints visible in `DECISIONS.md`,
 ## Accepted Risks
 
 - The current skill has no runtime test suite because the old runtime was
-  removed. Skill validation and practical testing are the current feedback
-  mechanisms.
+  removed. Skill validation, the lightweight hub checker, and practical testing
+  are the current feedback mechanisms.
 
 ## Closed Risks
 

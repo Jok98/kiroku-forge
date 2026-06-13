@@ -8,8 +8,8 @@
 ## Current State
 
 - Current source of truth: `SKILL.md`, `references/file-contract.md`,
-  templates, and this `kiroku/` hub.
-- Skill validation passes with `quick_validate.py`.
+  `scripts/check_hub.py`, templates, and this `kiroku/` hub.
+- Skill validation and the hub checker pass on this repository.
 - The hub enforces selective reading, strict `START_HERE.md`, compression on
   update, operating modes, final checklist, and operational/history separation.
 
@@ -23,7 +23,8 @@
 - Metadata must stay minimal and readable in plain text.
 - Do not recreate `memory.json`, schemas, receipts, hashes, generated indexes,
   or the old pipeline unless the user explicitly changes direction.
-- Current validation is skill-level validation, not Python runtime validation.
+- Validation is lightweight skill/hub checking, not the removed v3 runtime
+  pipeline.
 
 ## Read Only If Needed
 

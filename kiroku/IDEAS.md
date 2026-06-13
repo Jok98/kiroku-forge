@@ -4,8 +4,6 @@
 
 - Add a tiny `init` helper that copies `assets/templates/kiroku/` into a
   target project.
-- Add a lightweight checker that verifies required `kiroku/*.md` files exist
-  and warns about empty template placeholders.
 
 ## Deferred Ideas
 

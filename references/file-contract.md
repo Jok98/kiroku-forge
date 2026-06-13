@@ -90,6 +90,12 @@ Before finishing a memory write, verify:
 - No hidden canonical store or generated machine layer was added without an
   explicit user request.
 
+The optional checker `scripts/check_hub.py` validates the default contract
+mechanically: required files, template placeholders, `START_HERE.md` length,
+TODO `Completion:` conditions, and active decision rationales. Treat checker
+errors as blocking; inspect warnings before deciding whether the hub is good
+enough for the current update.
+
 ## File Ownership
 
 `START_HERE.md`

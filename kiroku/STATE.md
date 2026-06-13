@@ -12,6 +12,9 @@ state, architecture, decisions, constraints, work, risks, and handoff context.
 - `kiroku/*.md` files are the project memory; `memory.json` is not canonical.
 - `SKILL.md` defines agent behavior, and `references/file-contract.md` defines
   the hub file contract.
+- `scripts/check_hub.py` validates required hub files, template placeholders,
+  `START_HERE.md` length, TODO completion conditions, and active decision
+  rationales.
 - `assets/templates/kiroku/*.md` initializes new project hubs.
 - New hubs use the dominant language of the project or request; existing hubs
   keep their current language unless the user asks to translate them.
@@ -22,6 +25,9 @@ state, architecture, decisions, constraints, work, risks, and handoff context.
 ## Recently Verified
 
 - `python /home/jok/.codex/skills/.system/skill-creator/scripts/quick_validate.py /home/jok/.agents/skills/kiroku-forge` returned `Skill is valid!`.
+- `python scripts/check_hub.py .` returned `Kiroku hub check passed: kiroku`.
+- `python scripts/check_hub.py assets/templates/kiroku` warns on template
+  placeholders as expected.
 - `$kiroku-forge` has been exercised on this repository by updating the
   Markdown hub in place.
 
@@ -29,8 +35,6 @@ state, architecture, decisions, constraints, work, risks, and handoff context.
 
 - Whether a tiny `init` script is useful later for copying templates, or
   whether agents can keep doing this manually.
-- Whether to add a lightweight checker for required files after the format has
-  survived practical use.
 
 ## Watch Points
 
