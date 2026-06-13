@@ -38,6 +38,26 @@ Consequences:
 - A line such as `Status: active` is acceptable when it helps scanning.
 - Machine parsing is secondary and should not drive the format.
 
+### Decision: Match the hub language to the project
+
+Status: active
+Area: file format
+
+Decision:
+For a new hub, write in the dominant language of the project or the user's
+request. For an existing hub, preserve its current language and terminology
+unless the user explicitly asks for translation.
+
+Rationale:
+The memory is meant to be read by the project's developers and future agents.
+Matching the project's working language reduces friction, while preserving an
+existing hub's language avoids noisy churn.
+
+Consequences:
+- `kiroku/*.md` file names remain stable.
+- Template headings and placeholder prose may be translated during init as
+  direct equivalents in the selected hub language.
+
 ### Decision: Remove the v3 implementation
 
 Status: active

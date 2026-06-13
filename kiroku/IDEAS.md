@@ -6,8 +6,6 @@
   target project.
 - Add a lightweight checker that verifies required `kiroku/*.md` files exist
   and warns about empty template placeholders.
-- Let each project choose the language of its memory hub instead of forcing
-  English.
 
 ## Deferred Ideas
 

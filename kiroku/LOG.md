@@ -21,3 +21,6 @@
   `START_HERE.md` budget, TODO completion conditions, decision rationale,
   single log entry, duplication, present-tense operational files, and no hidden
   canonical store.
+- 2026-06-13: Adopted the hub language rule: new hubs follow the project or
+  request language, while existing hubs preserve their current language unless
+  translation is requested.

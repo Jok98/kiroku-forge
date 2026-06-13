@@ -14,6 +14,11 @@ small: the text is the memory, not hidden metadata.
 - Avoid frontmatter unless the user explicitly wants machine parsing.
 - Avoid duplicate explanations across files. Put the detail in one owner file
   and link or name it elsewhere.
+- For a new hub, use the dominant language of the project or the user's
+  request; for an existing hub, preserve its language and terminology unless
+  the user asks to translate it.
+- Keep `kiroku/*.md` file names stable. Translate headings and placeholder prose
+  only as direct equivalents in the hub language.
 
 ## Reading Policy
 
@@ -92,8 +97,9 @@ Before finishing a memory write, verify:
 - First file for a new agent.
 - Target 25-40 lines; hard cap 60 lines unless the user asks for a fuller
   handoff.
-- Use only these sections: `Mission`, `Current State`, `Next Action`,
-  `Hard Constraints`, and `Read Only If Needed`.
+- Use only these sections, or their direct equivalents in the hub language:
+  `Mission`, `Current State`, `Next Action`, `Hard Constraints`, and
+  `Read Only If Needed`.
 - Contains only what a new agent needs before opening another file.
 - Link to details instead of copying them.
 

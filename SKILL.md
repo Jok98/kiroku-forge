@@ -34,7 +34,9 @@ tool output, or details that will not help future work.
   clearly adopts it.
 - Do not create `memory.json`, schemas, receipts, hashes, or generated indexes
   unless the user explicitly asks for a machine-readable layer.
-- Preserve the language and terminology already used by the project memory.
+- For a new hub, use the dominant language of the project or the user's
+  request; for an existing hub, preserve its language and terminology unless
+  the user asks to translate it.
 
 ## Hub Files
 
@@ -57,6 +59,9 @@ Read [references/file-contract.md](references/file-contract.md) before creating
 a new hub, restructuring an existing hub, or making a broad memory update.
 Use the templates in [assets/templates/kiroku](assets/templates/kiroku) when
 initializing a project hub.
+Template text is scaffolding: when initializing a non-English hub, translate
+headings and placeholder prose into the chosen hub language while preserving
+file names and section meanings.
 
 ## Operating Modes
 
@@ -199,8 +204,9 @@ When updating architecture:
 
 - target 25-40 lines;
 - hard cap 60 lines unless the user explicitly asks for a fuller handoff;
-- use only these sections: `Mission`, `Current State`, `Next Action`,
-  `Hard Constraints`, and `Read Only If Needed`;
+- use only these sections, or their direct equivalents in the hub language:
+  `Mission`, `Current State`, `Next Action`, `Hard Constraints`, and
+  `Read Only If Needed`;
 - write bullets, not narrative paragraphs;
 - include only what a new agent needs before opening another file;
 - point to detail files instead of copying their content.
