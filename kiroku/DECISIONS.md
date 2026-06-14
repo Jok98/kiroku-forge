@@ -102,6 +102,68 @@ Consequences:
 - The script can run the lightweight checker with `--check`, but template
   placeholders still need to be filled or translated by the agent.
 
+### Decision: Generated views are derived
+
+Status: active
+Area: generated outputs
+
+Decision:
+Any local HTML UI, project documentation output, tags, generated IDs, or query
+aid must be derived from the Markdown hub rather than becoming a parallel
+source of truth.
+
+Rationale:
+The user wants a clearer, more interactive view for humans, but agents should
+still be able to read and maintain the plain Markdown files directly.
+
+Consequences:
+- The first HTML viewer should be read-only.
+- Generated IDs should be deterministic from file, heading, and entry text,
+  with optional explicit markers only when stability is needed.
+- Generated artifacts should be ignored or safely regenerable unless the user
+  explicitly asks to publish them.
+
+### Decision: Do not introduce a database now
+
+Status: active
+Area: generated outputs
+
+Decision:
+Do not add a database as canonical KirokuForge storage or as a required layer
+for the current local UI direction.
+
+Rationale:
+A database would add schema design, migrations, sync concerns, harder Git
+review, and drift risk while giving agents less useful narrative context than
+well-structured Markdown.
+
+Consequences:
+- The current direction is structured Markdown plus semantic HTML generation.
+- If a SQLite or similar cache is ever justified, it must be disposable and
+  regenerated from Markdown.
+- Agents should continue to read Markdown first instead of querying a database.
+
+### Decision: Use semantic Markdown for local UI generation
+
+Status: active
+Area: file format
+
+Decision:
+Future HTML generation should parse stable Markdown entry patterns rather than
+perform only a vanilla Markdown-to-HTML conversion.
+
+Rationale:
+A plain conversion produces readable pages, but a useful local UI needs entry
+types, statuses, tags, relationships, filters, and diagnostics that come from
+consistent Markdown structure.
+
+Consequences:
+- Existing entry patterns such as decisions, tasks, constraints, risks, and
+  rejected ideas should become the renderer contract.
+- HTML can include `id`, `data-type`, `data-status`, `data-area`, and
+  `data-tags` derived from Markdown.
+- The Markdown must remain pleasant to read without the renderer.
+
 ### Decision: Remove the v3 implementation
 
 Status: active

@@ -14,6 +14,17 @@
 9. The agent records one meaningful update in `kiroku/LOG.md`.
 10. The agent runs the final checklist before responding.
 
+## Optional Derived Views
+
+- A future local viewer should parse the standard Markdown hub and generate
+  semantic HTML with stable generated IDs and `data-*` attributes for type,
+  status, area, and tags.
+- The viewer should be read-only at first. If editing is ever added, it must
+  write back to the canonical Markdown files.
+- A future documentation mode may use `kiroku/` as context, but project docs
+  should live outside `kiroku/` and must be verified against code, manifests,
+  and runnable commands before writing.
+
 ## Boundaries
 
 - `SKILL.md` defines how agents should behave.
@@ -25,6 +36,8 @@
 - `assets/templates/kiroku/` contains starter files for a new hub.
 - `kiroku/` is project memory for this repository and should be useful even
   without reading the conversation that produced it.
+- Generated HTML, project documentation, and any query cache are outputs or
+  aids, not project memory sources.
 
 ## Patterns To Preserve
 
@@ -47,6 +60,8 @@
 - Prefer updating existing sections to appending repeated summaries.
 - Keep technical mechanisms out of the memory unless they directly help future
   work.
+- Prefer semantic rendering from structured Markdown over a vanilla Markdown to
+  HTML conversion when building a local UI.
 
 ## Important Details
 

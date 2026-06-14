@@ -39,6 +39,34 @@ Mitigation:
 Keep the obsolete decision and constraints visible in `DECISIONS.md`,
 `CONSTRAINTS.md`, and `IDEAS.md`.
 
+### Risk: Generated UI becomes a second source of truth
+
+Condition:
+A local HTML viewer, tags, IDs, or generated docs become editable or preserved
+as authoritative state.
+
+Impact:
+Markdown and generated views can drift, making agents and humans disagree
+about current project memory.
+
+Mitigation:
+Keep generated outputs read-only and regenerable until editing can write
+directly back to canonical Markdown.
+
+### Risk: Semantic Markdown becomes too rigid
+
+Condition:
+The renderer requires too much metadata, manual IDs, or strict formatting for
+ordinary memory entries.
+
+Impact:
+The hub becomes unpleasant to read and maintain, repeating the schema-heavy
+failure mode of the old design.
+
+Mitigation:
+Use stable headings and light field patterns first; generate IDs
+deterministically and add explicit markers only when stability requires them.
+
 ## Accepted Risks
 
 - The current skill has no runtime test suite because the old runtime was

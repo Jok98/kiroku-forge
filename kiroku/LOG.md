@@ -28,3 +28,6 @@
   checker and documented when to run it after init, cleanup, or broad updates.
 - 2026-06-13: Added `scripts/init_hub.py` to copy bundled templates into a
   target `kiroku/` hub while refusing overwrite unless explicitly requested.
+- 2026-06-14: Recorded the next product direction: structured Markdown can
+  drive a derived semantic HTML viewer and optional docs mode, while databases
+  and generated views remain noncanonical.

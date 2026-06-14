@@ -27,6 +27,33 @@ needing the original conversation.
 Notes:
 - Use a realistic prompt and do not leak expected answers.
 
+### Task: Design semantic HTML viewer contract
+
+Status: todo
+Completion:
+The skill documents the minimum Markdown entry patterns, generated ID rules,
+HTML `data-*` attributes, output location, and read-only behavior for a local
+Kiroku viewer.
+
+Notes:
+- Keep Markdown canonical and pleasant to read.
+- Prefer deterministic IDs; use optional explicit ID comments only when title
+  changes would otherwise break links.
+- Include diagnostics for missing completion conditions, missing rationales,
+  unmitigated risks, duplicate headings, and broken links.
+
+### Task: Define documentation mode boundaries
+
+Status: todo
+Completion:
+The skill explains when documentation generation is allowed, where project
+docs should be written, and what code or command evidence must be verified
+before writing.
+
+Notes:
+- `kiroku/` remains memory and handoff context, not published docs.
+- Generated docs should avoid duplicating maintained project files.
+
 ## Blocked
 
 - None known.
@@ -42,6 +69,8 @@ Notes:
 - Init helper added in `scripts/init_hub.py`; it copies bundled templates into
   a target hub and refuses overwrite unless explicitly requested.
 - Skill validation passes with `quick_validate.py`.
+- Product direction clarified: local HTML UI and project docs can be derived
+  from structured Markdown, but no database or generated view is canonical.
 
 ## Cancelled
 

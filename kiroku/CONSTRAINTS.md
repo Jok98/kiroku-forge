@@ -37,11 +37,36 @@ Why:
 The prior JSON-centered design was judged too limiting for human-editable
 Markdown memory.
 
+### Constraint: Generated outputs are noncanonical
+
+Status: active
+
+Rule:
+Generated HTML, generated project docs, query caches, tags, and generated IDs
+must not become the canonical memory store.
+
+Why:
+KirokuForge has to remain useful when opened as plain Markdown by a developer
+or agent, and generated projections create drift if treated as authoritative.
+
+### Constraint: No database dependency
+
+Status: active
+
+Rule:
+Do not require a database for KirokuForge memory or for the first local UI.
+
+Why:
+The current use case is local, read-mostly, and human-scale; a database adds
+schema and synchronization complexity before there is a clear repeated need.
+
 ## Out Of Scope
 
 - Rebuilding the old v3 pipeline.
 - Maintaining compatibility with the removed v3 schemas or fixtures.
 - Creating a full CLI before the Markdown format is proven useful.
+- Creating an editable local web app before a read-only semantic viewer has
+  proven useful.
 
 ## Forbidden Changes
 
@@ -49,3 +74,5 @@ Markdown memory.
 - Do not make generated views read-only projections of a hidden canonical
   store.
 - Do not save generic conversation summaries as durable memory.
+- Do not replace Markdown with a canonical database and generated Markdown
+  projection.

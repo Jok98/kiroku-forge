@@ -22,6 +22,10 @@ state, architecture, decisions, constraints, work, risks, and handoff context.
   keep their current language unless the user asks to translate them.
 - The hub guardrails are selective reading, strict `START_HERE.md`,
   compression on update, and separation of operational state from history.
+- Any future local HTML UI should be generated from structured Markdown as a
+  read-only derived view, not maintained as primary memory.
+- A database is not part of the current direction; if a query cache is ever
+  added, it must be disposable and generated from Markdown.
 - This repository intentionally has no v3 runtime, schema, or test suite.
 
 ## Recently Verified
@@ -37,7 +41,10 @@ state, architecture, decisions, constraints, work, risks, and handoff context.
 
 ## Open Questions
 
-- None known.
+- What exact Markdown entry contract should a semantic HTML renderer require
+  beyond the current decision, task, constraint, and rejected-idea patterns?
+- Should a future documentation mode write project docs outside `kiroku/`
+  after verifying code and commands, or remain an external workflow?
 
 ## Watch Points
 
