@@ -22,6 +22,22 @@ REQUIRED_FILES = (
     "LOG.md",
 )
 
+TRACK_INDEX_FILE = "TRACKS.md"
+TRACK_REQUIRED_FILES = (
+    "START_HERE.md",
+    "STATE.md",
+    "WORK.md",
+)
+TRACK_CHECK_FILES = (
+    "START_HERE.md",
+    "STATE.md",
+    "WORK.md",
+    "DECISIONS.md",
+    "RISKS.md",
+    "LOG.md",
+)
+TRACK_STATUSES = {"active", "paused", "closed", "candidate"}
+
 PLACEHOLDER_NEEDLES = (
     "State the current project goal",
     "State where the project stands now",
@@ -60,12 +76,36 @@ PLACEHOLDER_NEEDLES = (
     "Rejected: Example",
     "Explain why this was rejected",
     "State when, if ever",
+    "track-slug",
+    "State the durable workstream purpose",
+    "terms that identify this track",
+    "State the workstream goal",
+    "State what is true now for this track",
+    "Name the next concrete action for this track",
+    "List only constraints or global decisions",
+    "Write the workstream purpose",
+    "Summarize what is currently true for this track",
+    "State what belongs to this track",
+    "State what should stay global",
+    "Track questions that affect this workstream",
+    "Keep this short and current for this track",
+    "State what makes this track task done",
+    "Add context needed to continue this workstream",
+    "State completed track work and outcome",
+    "State cancelled track work only",
+    "State the adopted choice for this track",
+    "State what future work in this track must respect",
+    "State what could happen in this track",
+    "Track risks accepted intentionally",
+    "Closed track risks whose history still matters",
+    "Summarize meaningful track memory changes",
 )
 
 FIELD_RE = re.compile(r"^[A-Z][A-Za-z ]+:\s*(.*)$")
 HEADING_RE = re.compile(r"^#{1,6}\s+")
 ACTIVE_RE = re.compile(r"^Status:\s*active\s*$", re.IGNORECASE)
 TODO_RE = re.compile(r"^Status:\s*todo\s*$", re.IGNORECASE)
+TRACK_SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
 @dataclass(frozen=True)
@@ -113,6 +153,10 @@ def display(path: Path) -> str:
 
 
 def has_label_content(block: list[str], label: str) -> bool:
+    return label_value(block, label) is not None
+
+
+def label_value(block: list[str], label: str) -> str | None:
     for index, line in enumerate(block):
         stripped = line.strip()
         if not stripped.startswith(label):
@@ -120,19 +164,19 @@ def has_label_content(block: list[str], label: str) -> bool:
 
         inline_value = stripped[len(label) :].strip()
         if inline_value:
-            return True
+            return inline_value
 
         for following in block[index + 1 :]:
             candidate = following.strip()
             if not candidate:
                 continue
             if HEADING_RE.match(candidate) or FIELD_RE.match(candidate):
-                return False
-            return True
+                return None
+            return candidate
 
-        return False
+        return None
 
-    return False
+    return None
 
 
 def heading_blocks(lines: list[str], prefix: str = "### ") -> list[tuple[int, list[str]]]:
@@ -164,55 +208,66 @@ def check_placeholders(hub: Path, files: dict[str, list[str]]) -> list[Issue]:
     issues: list[Issue] = []
     for name, lines in files.items():
         path = hub / name
-        for line_number, line in enumerate(lines, start=1):
-            for needle in PLACEHOLDER_NEEDLES:
-                if needle in line:
-                    issues.append(
-                        Issue(
-                            "warning",
-                            path,
-                            line_number,
-                            f"template placeholder remains: {needle!r}",
-                        )
-                    )
+        issues.extend(check_file_placeholders(path, lines))
     return issues
+
+
+def check_file_placeholders(path: Path, lines: list[str]) -> list[Issue]:
+    issues: list[Issue] = []
+    needles = sorted(PLACEHOLDER_NEEDLES, key=len, reverse=True)
+    for line_number, line in enumerate(lines, start=1):
+        for needle in needles:
+            if needle in line:
+                issues.append(
+                    Issue(
+                        "warning",
+                        path,
+                        line_number,
+                        f"template placeholder remains: {needle!r}",
+                    )
+                )
+                break
+    return issues
+
+
+def check_start_here_lines(
+    path: Path,
+    lines: list[str],
+    target_min: int,
+    target_max: int,
+    hard_cap: int,
+) -> list[Issue]:
+    line_count = len(lines)
+    if line_count > hard_cap:
+        return [
+            Issue(
+                "error",
+                path,
+                None,
+                f"START_HERE.md has {line_count} lines; hard cap is {hard_cap}",
+            )
+        ]
+    if line_count < target_min or line_count > target_max:
+        return [
+            Issue(
+                "warning",
+                path,
+                None,
+                f"START_HERE.md has {line_count} lines; target is {target_min}-{target_max}",
+            )
+        ]
+    return []
 
 
 def check_start_here(hub: Path, files: dict[str, list[str]]) -> list[Issue]:
     lines = files.get("START_HERE.md")
     if lines is None:
         return []
-
-    path = hub / "START_HERE.md"
-    line_count = len(lines)
-    if line_count > 60:
-        return [
-            Issue(
-                "error",
-                path,
-                None,
-                f"START_HERE.md has {line_count} lines; hard cap is 60",
-            )
-        ]
-    if line_count < 25 or line_count > 40:
-        return [
-            Issue(
-                "warning",
-                path,
-                None,
-                f"START_HERE.md has {line_count} lines; target is 25-40",
-            )
-        ]
-    return []
+    return check_start_here_lines(hub / "START_HERE.md", lines, 25, 40, 60)
 
 
-def check_todo_completion(hub: Path, files: dict[str, list[str]]) -> list[Issue]:
-    lines = files.get("WORK.md")
-    if lines is None:
-        return []
-
+def check_todo_completion_file(path: Path, lines: list[str]) -> list[Issue]:
     issues: list[Issue] = []
-    path = hub / "WORK.md"
     for start, block in heading_blocks(lines):
         if any(TODO_RE.match(line.strip()) for line in block):
             if not has_label_content(block, "Completion:"):
@@ -227,13 +282,15 @@ def check_todo_completion(hub: Path, files: dict[str, list[str]]) -> list[Issue]
     return issues
 
 
-def check_active_decision_rationale(hub: Path, files: dict[str, list[str]]) -> list[Issue]:
-    lines = files.get("DECISIONS.md")
+def check_todo_completion(hub: Path, files: dict[str, list[str]]) -> list[Issue]:
+    lines = files.get("WORK.md")
     if lines is None:
         return []
+    return check_todo_completion_file(hub / "WORK.md", lines)
 
+
+def check_active_decision_rationale_file(path: Path, lines: list[str]) -> list[Issue]:
     issues: list[Issue] = []
-    path = hub / "DECISIONS.md"
     for start, block in heading_blocks(lines):
         if any(ACTIVE_RE.match(line.strip()) for line in block):
             if not has_label_content(block, "Rationale:"):
@@ -246,6 +303,15 @@ def check_active_decision_rationale(hub: Path, files: dict[str, list[str]]) -> l
                     )
                 )
     return issues
+
+
+def check_active_decision_rationale(
+    hub: Path, files: dict[str, list[str]]
+) -> list[Issue]:
+    lines = files.get("DECISIONS.md")
+    if lines is None:
+        return []
+    return check_active_decision_rationale_file(hub / "DECISIONS.md", lines)
 
 
 def load_existing_files(hub: Path) -> tuple[dict[str, list[str]], list[Issue]]:
@@ -262,6 +328,160 @@ def load_existing_files(hub: Path) -> tuple[dict[str, list[str]], list[Issue]]:
             issues.append(Issue("error", path, None, f"file is not valid UTF-8: {exc}"))
 
     return files, issues
+
+
+def load_optional_file(path: Path) -> tuple[list[str] | None, list[Issue]]:
+    if not path.is_file():
+        return None, []
+    try:
+        return read_lines(path), []
+    except UnicodeDecodeError as exc:
+        return None, [Issue("error", path, None, f"file is not valid UTF-8: {exc}")]
+
+
+def discover_track_dirs(hub: Path) -> list[Path]:
+    tracks_dir = hub / "tracks"
+    if not tracks_dir.is_dir():
+        return []
+    return sorted(
+        path
+        for path in tracks_dir.iterdir()
+        if path.is_dir() and path.name != "_template"
+    )
+
+
+def check_tracks_index(hub: Path, track_dirs: list[Path]) -> list[Issue]:
+    path = hub / TRACK_INDEX_FILE
+    lines, load_issues = load_optional_file(path)
+    issues = list(load_issues)
+
+    if lines is None:
+        if track_dirs:
+            issues.append(
+                Issue(
+                    "error",
+                    path,
+                    None,
+                    "TRACKS.md is required when tracks/ contains track folders",
+                )
+            )
+        return issues
+
+    issues.extend(check_file_placeholders(path, lines))
+    blocks = heading_blocks(lines)
+    blocks_by_slug = {
+        block[0].removeprefix("### ").strip(): (start, block)
+        for start, block in blocks
+    }
+
+    for start, block in blocks:
+        status = label_value(block, "Status:")
+        if status is None:
+            continue
+        normalized = status.lower()
+        if normalized not in TRACK_STATUSES:
+            issues.append(
+                Issue(
+                    "error",
+                    path,
+                    start + 1,
+                    f"track status {status!r} is not one of {sorted(TRACK_STATUSES)}",
+                )
+            )
+
+    for track_dir in track_dirs:
+        slug = track_dir.name
+        entry = blocks_by_slug.get(slug)
+        if entry is None:
+            issues.append(
+                Issue(
+                    "error",
+                    path,
+                    None,
+                    f"TRACKS.md is missing an entry for track {slug!r}",
+                )
+            )
+            continue
+
+        start, block = entry
+        read_value = label_value(block, "Read:")
+        expected = f"tracks/{slug}/START_HERE.md"
+        if read_value is None:
+            issues.append(
+                Issue(
+                    "error",
+                    path,
+                    start + 1,
+                    f"track {slug!r} is missing a Read: target",
+                )
+            )
+        elif expected not in read_value:
+            issues.append(
+                Issue(
+                    "error",
+                    path,
+                    start + 1,
+                    f"track {slug!r} Read: should point to {expected}",
+                )
+            )
+
+    return issues
+
+
+def check_track_dirs(track_dirs: list[Path]) -> list[Issue]:
+    issues: list[Issue] = []
+
+    for track_dir in track_dirs:
+        slug = track_dir.name
+        if not TRACK_SLUG_RE.match(slug):
+            issues.append(
+                Issue(
+                    "error",
+                    track_dir,
+                    None,
+                    "track folder name must use lowercase letters, digits, and hyphens",
+                )
+            )
+
+        for name in TRACK_REQUIRED_FILES:
+            path = track_dir / name
+            if not path.is_file():
+                issues.append(
+                    Issue("error", path, None, "required track file is missing")
+                )
+
+        files: dict[str, list[str]] = {}
+        for name in TRACK_CHECK_FILES:
+            path = track_dir / name
+            if not path.is_file():
+                continue
+            lines, load_issues = load_optional_file(path)
+            issues.extend(load_issues)
+            if lines is not None:
+                files[name] = lines
+                issues.extend(check_file_placeholders(path, lines))
+
+        start_here = files.get("START_HERE.md")
+        if start_here is not None:
+            issues.extend(
+                check_start_here_lines(
+                    track_dir / "START_HERE.md", start_here, 20, 35, 50
+                )
+            )
+
+        work = files.get("WORK.md")
+        if work is not None:
+            issues.extend(check_todo_completion_file(track_dir / "WORK.md", work))
+
+        decisions = files.get("DECISIONS.md")
+        if decisions is not None:
+            issues.extend(
+                check_active_decision_rationale_file(
+                    track_dir / "DECISIONS.md", decisions
+                )
+            )
+
+    return issues
 
 
 def print_issues(title: str, issues: list[Issue]) -> None:
@@ -287,6 +507,9 @@ def main() -> int:
     issues.extend(check_start_here(hub, files))
     issues.extend(check_todo_completion(hub, files))
     issues.extend(check_active_decision_rationale(hub, files))
+    track_dirs = discover_track_dirs(hub)
+    issues.extend(check_tracks_index(hub, track_dirs))
+    issues.extend(check_track_dirs(track_dirs))
 
     errors = [issue for issue in issues if issue.severity == "error"]
     warnings = [issue for issue in issues if issue.severity == "warning"]

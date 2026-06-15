@@ -2,7 +2,7 @@
 
 ## Ongoing
 
-- Keep this short and current.
+- Keep this short and current for global or cross-track work.
 
 ## TODO
 

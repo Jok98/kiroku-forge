@@ -6,7 +6,7 @@ Write the project purpose in plain language.
 
 ## Current Status
 
-- Summarize what is currently true.
+- Summarize what is currently true for the project.
 
 ## Recently Verified
 

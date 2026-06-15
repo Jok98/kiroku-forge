@@ -31,3 +31,11 @@
 - 2026-06-14: Recorded the next product direction: structured Markdown can
   drive a derived semantic HTML viewer and optional docs mode, while databases
   and generated views remain noncanonical.
+- 2026-06-15: Added phase 1 track routing to separate global project memory
+  from optional workstream memory inside the same Markdown hub.
+- 2026-06-15: Added `references/track-contract.md` as the phase 2 detailed
+  contract for workstream lifecycle, routing, promotion, closure, and patterns.
+- 2026-06-15: Added phase 3 track templates for `TRACKS.md` and
+  `tracks/_template/`.
+- 2026-06-15: Added phase 4 helper support for additive track initialization
+  and track-aware hub validation.

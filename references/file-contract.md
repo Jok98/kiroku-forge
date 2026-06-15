@@ -3,6 +3,54 @@
 This contract defines the default `kiroku/` Markdown hub. It is intentionally
 small: the text is the memory, not hidden metadata.
 
+## Contents
+
+- Layout
+- General Writing Contract
+- Reading Policy
+- Operating Modes
+- Compression Policy
+- Operational State And History
+- Final Checklist
+- File Ownership
+- Entry Patterns
+- Track Layer
+
+## Layout
+
+The base hub uses the standard top-level files. Multi-repository projects or
+parallel workstreams may add a lightweight track layer:
+
+```text
+kiroku/
+  START_HERE.md
+  TRACKS.md            # optional index for multiple active workstreams
+  STATE.md
+  ARCHITECTURE.md
+  DECISIONS.md
+  WORK.md
+  CONSTRAINTS.md
+  IDEAS.md
+  RISKS.md
+  LOG.md
+  tracks/
+    <track-slug>/
+      START_HERE.md
+      STATE.md
+      WORK.md
+      DECISIONS.md
+      RISKS.md
+      LOG.md
+```
+
+Use top-level files for global or cross-repo truth. Use `tracks/<slug>/` for a
+specific feature, migration, incident, spike, or discussion whose detail would
+pollute unrelated work. Read [track-contract.md](track-contract.md) before
+creating, restructuring, migrating, closing, or broadly updating tracks. Use
+the bundled `assets/templates/kiroku/TRACKS.md` and
+`assets/templates/kiroku/tracks/_template/` files when creating the optional
+track layer.
+
 ## General Writing Contract
 
 - Use stable headings and compact prose.
@@ -19,12 +67,18 @@ small: the text is the memory, not hidden metadata.
   the user asks to translate it.
 - Keep `kiroku/*.md` file names stable. Translate headings and placeholder prose
   only as direct equivalents in the hub language.
+- Use lowercase hyphenated track slugs, for example `tax-migration` or
+  `goal-proposal-cleanup`.
 
 ## Reading Policy
 
 Agents should not read the whole hub by default.
 
 - Start with `START_HERE.md`.
+- Open `TRACKS.md` only when several tracks may match the request or the user
+  did not name the target track.
+- After selecting a track, open `tracks/<slug>/START_HERE.md` before any other
+  file in that track.
 - Open `STATE.md` for current project status.
 - Open `WORK.md` for TODO, ongoing, blocked, done, or planning context.
 - Open `DECISIONS.md` and `CONSTRAINTS.md` before changing direction or scope.
@@ -33,8 +87,8 @@ Agents should not read the whole hub by default.
 - Open `RISKS.md` for fragile areas, tradeoffs, or known failure modes.
 - Open `LOG.md` only when update history matters.
 
-Read every file only for explicit full-memory review, migration, cleanup, or
-major restructuring.
+Do not read sibling tracks by default. Read every file only for explicit
+full-memory review, migration, cleanup, or major restructuring.
 
 ## Operating Modes
 
@@ -86,19 +140,23 @@ Before finishing a memory write, verify:
 - Active decisions have rationale.
 - `LOG.md` has no more than one concise entry for the update.
 - New content is not duplicated across owner files.
+- Track-specific content stays in the track unless intentionally promoted.
+- `TRACKS.md` remains an index, not a copied summary of all track details.
 - Operational files stay present-tense.
 - No hidden canonical store or generated machine layer was added without an
   explicit user request.
 
 The optional checker `scripts/check_hub.py` validates the default contract
 mechanically: required files, template placeholders, `START_HERE.md` length,
-TODO `Completion:` conditions, and active decision rationales. Treat checker
-errors as blocking; inspect warnings before deciding whether the hub is good
-enough for the current update.
+TODO `Completion:` conditions, active decision rationales, and track routing
+when `TRACKS.md` or `tracks/` exist. Treat checker errors as blocking; inspect
+warnings before deciding whether the hub is good enough for the current update.
 
 The optional initializer `scripts/init_hub.py` copies the bundled templates
 into a project `kiroku/` hub. It refuses to overwrite standard hub files unless
-`--overwrite` is passed.
+`--overwrite` is passed. Use `--with-tracks` to add `TRACKS.md`, and
+`--track <slug>` to add a track from `tracks/_template/` while preserving
+existing standard hub files.
 
 ## File Ownership
 
@@ -113,11 +171,22 @@ into a project `kiroku/` hub. It refuses to overwrite standard hub files unless
 - Contains only what a new agent needs before opening another file.
 - Link to details instead of copying them.
 
+`TRACKS.md`
+
+- Optional index for hubs with multiple active, paused, or recently closed
+  workstreams.
+- Contains routing facts only: status, one-line purpose, repositories/modules,
+  keywords, path to the track handoff, and related tracks when useful.
+- Does not duplicate track progress, decisions, or risk detail.
+- Keeps closed tracks visible only while their outcome affects future routing.
+- Detailed lifecycle and entry rules live in [track-contract.md](track-contract.md).
+
 `STATE.md`
 
 - Current project status, what works, what is incomplete, recent verified
   facts, and open questions that shape next work.
 - Use this for the present tense state of the project.
+- In a track, limit state to that workstream.
 
 `ARCHITECTURE.md`
 
@@ -130,12 +199,16 @@ into a project `kiroku/` hub. It refuses to overwrite standard hub files unless
 - Adopted choices and their rationale.
 - Include consequences and alternatives when they explain future constraints.
 - Keep replaced decisions if their history prevents repeating old reasoning.
+- Promote track decisions to the top-level file only when they affect the
+  project, multiple repositories, multiple tracks, or shared architecture.
 
 `WORK.md`
 
 - Ongoing, TODO, blocked, done, and cancelled work.
 - Every TODO should have a completion condition.
 - Every DONE item should state the outcome.
+- Top-level work should be global or cross-track; track work belongs under
+  `tracks/<slug>/WORK.md`.
 
 `CONSTRAINTS.md`
 
@@ -158,6 +231,17 @@ into a project `kiroku/` hub. It refuses to overwrite standard hub files unless
 
 - Short history of meaningful memory updates.
 - Do not log every command or every small edit.
+- Track logs describe only that track; top-level logs describe global memory
+  changes or track lifecycle changes.
+
+`tracks/<slug>/`
+
+- Optional workstream folder with its own compact handoff and owner files.
+- Use when work can progress independently from other active work.
+- Keep local implementation detail here unless it becomes global project memory.
+- Close or pause stale tracks instead of leaving them active indefinitely.
+- Use [track-contract.md](track-contract.md) for routing, lifecycle, promotion,
+  closure, and track-specific entry patterns.
 
 ## Entry Patterns
 
@@ -218,3 +302,9 @@ Explain why the idea was rejected.
 Keep in mind:
 State when, if ever, this should be reconsidered.
 ```
+
+## Track Layer
+
+For track index entries, track handoff skeletons, lifecycle status values,
+promotion rules, closure rules, and track-specific reading order, use
+[track-contract.md](track-contract.md).

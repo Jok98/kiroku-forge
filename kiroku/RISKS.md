@@ -53,6 +53,20 @@ Mitigation:
 Keep generated outputs read-only and regenerable until editing can write
 directly back to canonical Markdown.
 
+### Risk: Track routing becomes stale
+
+Condition:
+`TRACKS.md` is not kept current, or old workstreams remain active after their
+context is no longer useful.
+
+Impact:
+Agents may route work to the wrong track, read irrelevant context, or miss a
+global decision that should have been promoted.
+
+Mitigation:
+Keep `TRACKS.md` compact, pause or close stale tracks, and promote only
+cross-track or cross-repo conclusions to the top-level hub.
+
 ### Risk: Semantic Markdown becomes too rigid
 
 Condition:

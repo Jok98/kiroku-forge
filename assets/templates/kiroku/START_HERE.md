@@ -19,6 +19,7 @@
 ## Read Only If Needed
 
 - `STATE.md` for current status.
+- `TRACKS.md` when multiple active workstreams exist or the target track is unclear.
 - `WORK.md` for tasks and planning.
 - `ARCHITECTURE.md` before implementation work.
 - `DECISIONS.md` and `CONSTRAINTS.md` before changing direction or scope.

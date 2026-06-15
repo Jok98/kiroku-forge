@@ -49,6 +49,18 @@ Why:
 KirokuForge has to remain useful when opened as plain Markdown by a developer
 or agent, and generated projections create drift if treated as authoritative.
 
+### Constraint: Track detail stays local
+
+Status: active
+
+Rule:
+Do not copy track-specific progress, local decisions, or implementation detail
+into top-level hub files unless it affects the wider project.
+
+Why:
+The track layer exists to keep unrelated parallel work out of an agent's
+context while preserving one shared project memory for cross-repo truth.
+
 ### Constraint: No database dependency
 
 Status: active

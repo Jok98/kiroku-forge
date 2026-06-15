@@ -26,6 +26,7 @@ needing the original conversation.
 
 Notes:
 - Use a realistic prompt and do not leak expected answers.
+- Include a multi-repo scenario with two unrelated active tracks.
 
 ### Task: Design semantic HTML viewer contract
 
@@ -71,6 +72,16 @@ Notes:
 - Skill validation passes with `quick_validate.py`.
 - Product direction clarified: local HTML UI and project docs can be derived
   from structured Markdown, but no database or generated view is canonical.
+- Phase 1 track routing added to `SKILL.md` and `references/file-contract.md`:
+  agents choose `global` or a specific track before reading detailed memory.
+- Phase 2 track contract added in `references/track-contract.md`, covering
+  lifecycle, routing, promotion, closure, and entry patterns.
+- Phase 3 track templates added in `assets/templates/kiroku/TRACKS.md` and
+  `assets/templates/kiroku/tracks/_template/`.
+- Phase 4 helper support added: `scripts/init_hub.py` can add `TRACKS.md` and
+  concrete tracks, while `scripts/check_hub.py` validates track routing,
+  required track files, track handoff length, TODO completion, and decision
+  rationales.
 
 ## Cancelled
 

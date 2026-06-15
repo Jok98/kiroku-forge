@@ -1,6 +1,6 @@
 ---
 name: kiroku-forge
-description: Maintain a lightweight Markdown project-memory hub in `kiroku/` for durable project state, architecture, design patterns, decisions, constraints, TODO/DONE/ongoing work, risks, rejected ideas, forbidden directions, and continuation handoffs. Use when project context must persist across agent sessions or be readable by developers. Prefer concise human-readable Markdown as primary memory, minimal metadata, and no canonical JSON unless the user explicitly asks for it.
+description: Maintain a lightweight Markdown project-memory hub in `kiroku/` for durable project state, multi-repo context, workstream tracks, architecture, design patterns, decisions, constraints, TODO/DONE/ongoing work, risks, rejected ideas, forbidden directions, and continuation handoffs. Use when project context must persist across agent sessions or be readable by developers. Prefer concise human-readable Markdown as primary memory, minimal metadata, and no canonical JSON unless the user explicitly asks for it.
 ---
 
 # KirokuForge
@@ -13,6 +13,7 @@ is meant to be read directly by developers and future agents.
 Preserve durable project knowledge:
 
 - current state and next useful action;
+- multi-repo project context and separate workstream focus when needed;
 - main flows, architecture, implementation patterns, and design rationale;
 - adopted decisions, active constraints, and forbidden directions;
 - TODO, ongoing, blocked, done, and cancelled work;
@@ -45,6 +46,7 @@ Create or maintain this folder:
 ```text
 kiroku/
   START_HERE.md
+  TRACKS.md            # optional, when multiple workstreams exist
   STATE.md
   ARCHITECTURE.md
   DECISIONS.md
@@ -53,15 +55,34 @@ kiroku/
   IDEAS.md
   RISKS.md
   LOG.md
+  tracks/              # optional, one folder per active workstream
+    <track-slug>/
+      START_HERE.md
+      STATE.md
+      WORK.md
+      DECISIONS.md
+      RISKS.md
+      LOG.md
 ```
 
 Read [references/file-contract.md](references/file-contract.md) before creating
 a new hub, restructuring an existing hub, or making a broad memory update.
+Read [references/track-contract.md](references/track-contract.md) before
+creating, restructuring, migrating, closing, or broadly updating tracks.
 Use the templates in [assets/templates/kiroku](assets/templates/kiroku) when
 initializing a project hub.
+Use [assets/templates/kiroku/TRACKS.md](assets/templates/kiroku/TRACKS.md) and
+[assets/templates/kiroku/tracks/_template](assets/templates/kiroku/tracks/_template)
+when adding the optional track layer; `_template` is a source template, not an
+active track.
 Use `python scripts/init_hub.py <project-root-or-kiroku-dir>` from this skill
 when a deterministic template copy is useful. The script refuses to overwrite
 standard hub files unless `--overwrite` is passed.
+Use `python scripts/init_hub.py <project-root-or-kiroku-dir> --with-tracks`
+to add `TRACKS.md` when the optional track layer is needed.
+Use `python scripts/init_hub.py <project-root-or-kiroku-dir> --track <slug>`
+to create a track from `tracks/_template`; existing standard hub files are
+preserved in this additive mode.
 Template text is scaffolding: when initializing a non-English hub, translate
 headings and placeholder prose into the chosen hub language while preserving
 file names and section meanings.
@@ -91,6 +112,10 @@ Do not load every file in `kiroku/` by default. Read only what the request
 needs:
 
 - Always read `START_HERE.md` first when a hub exists.
+- Read `TRACKS.md` when the request may belong to one of several active
+  workstreams and the user did not name the exact track.
+- Read `tracks/<slug>/START_HERE.md` after selecting a track, before opening
+  other files in that track.
 - Read `STATE.md` when current status or verified present-tense facts matter.
 - Read `WORK.md` when continuing, planning, or updating tasks.
 - Read `DECISIONS.md` and `CONSTRAINTS.md` before changing direction,
@@ -104,6 +129,44 @@ needs:
 
 If the user asks for a full memory review, read all files deliberately and say
 that the request requires the full hub.
+
+## Focus Routing And Tracks
+
+Use one project hub for related repositories, but separate unrelated active
+work into tracks when a shared top-level hub would add irrelevant context.
+
+Before reading or writing beyond the top-level `START_HERE.md`, choose a focus:
+
+- `global`: use top-level files for project-wide state, cross-repo architecture,
+  shared decisions, constraints, risks, and work that affects multiple tracks.
+- `track`: use `tracks/<slug>/` for a specific feature, migration, incident,
+  bug family, spike, or discussion that can progress independently.
+
+Choose an existing track when the user names it, when `TRACKS.md` maps the
+request to it, or when the prompt, branch, changed paths, issue, repo names, or
+keywords clearly match it. Create a new track only when the work is durable,
+distinct from existing tracks, and likely to be resumed later.
+
+Do not read sibling tracks by default. Open another track only when the user
+asks, `TRACKS.md` says the tracks are related, or evidence shows a direct
+dependency.
+
+Keep `TRACKS.md` as a compact human-readable index:
+
+- active, paused, and recently closed tracks;
+- one-line purpose and current status;
+- involved repositories or modules when useful;
+- keywords that help future agents route requests;
+- path to the track `START_HERE.md`;
+- links to related tracks only when they matter.
+
+Promote information from a track to the top-level hub only when it affects the
+whole project, multiple repositories, multiple tracks, architecture, shared
+constraints, or forbidden directions. Keep local implementation detail inside
+the track.
+
+For detailed track lifecycle, promotion, closure, and entry patterns, read
+[references/track-contract.md](references/track-contract.md).
 
 ## Compression Rule
 
@@ -131,6 +194,8 @@ Keep operational files focused on the present:
 
 - `START_HERE.md`, `STATE.md`, and `WORK.md` should describe what is true now
   and what to do next.
+- A track's operational files should describe only that track; global
+  operational files should not absorb track-specific noise.
 - Move chronological history to `LOG.md`.
 - Keep history in `DECISIONS.md` only when it explains an active decision.
 - Keep history in `CONSTRAINTS.md`, `RISKS.md`, or `IDEAS.md` only when it
@@ -148,6 +213,9 @@ Before finishing `update`, `handoff`, `cleanup`, or `init`, verify:
 - Every active decision has a rationale.
 - `LOG.md` has at most one concise entry for the memory update.
 - New content is not duplicated across owner files.
+- Track-specific content stays in its track unless it was intentionally
+  promoted to the global hub.
+- `TRACKS.md` is concise and points to track detail instead of copying it.
 - Operational files describe the present; history is in `LOG.md` or justified
   by an active decision, constraint, risk, or rejected idea.
 - No `memory.json`, schema, receipt, hash chain, generated index, or hidden
@@ -155,28 +223,33 @@ Before finishing `update`, `handoff`, `cleanup`, or `init`, verify:
 - When practical after `init`, `cleanup`, or broad updates, run
   `python scripts/check_hub.py <project-root-or-kiroku-dir>` from this skill
   to catch missing files, stale placeholders, missing TODO completion
-  conditions, missing decision rationales, and `START_HERE.md` length drift.
+  conditions, missing decision rationales, `START_HERE.md` length drift, and
+  track routing issues when `TRACKS.md` or `tracks/` exist.
 
 ## Operating Workflow
 
 1. Locate the project memory hub. Use `kiroku/` at the project root unless the
    user points to another location.
 2. Choose the operating mode.
-3. If the hub exists, follow the selective reading policy before opening more
+3. Choose the focus: `global` or a specific `track`.
+4. If the hub exists, follow the selective reading policy before opening more
    files.
-4. If the hub does not exist and the user asked to create or update memory,
+5. If the hub does not exist and the user asked to create or update memory,
    initialize it from the templates.
-5. Inspect the current project evidence needed for the update: code, docs,
+6. If the focus is ambiguous and multiple tracks exist, read `TRACKS.md` and
+   ask the user only when routing cannot be inferred safely.
+7. Inspect the current project evidence needed for the update: code, docs,
    user statements, command results, or existing memory.
-6. Decide whether each item is durable memory. Exclude transient progress,
+8. Decide whether each item is durable memory. Exclude transient progress,
    verbose logs, speculative noise, and implementation minutiae that are not
    reusable.
-7. Apply the compression rule to avoid duplicating or bloating the hub.
-8. Edit the owning Markdown files directly. Keep the text compact but complete.
-9. Add one concise entry to `LOG.md` for meaningful memory updates.
-10. Run the final checklist and the hub checker when its scope matches the
+9. Apply the compression rule to avoid duplicating or bloating the hub.
+10. Edit the owning Markdown files directly. Keep the text compact but complete.
+11. Add one concise entry to the relevant `LOG.md` for meaningful memory
+    updates.
+12. Run the final checklist and the hub checker when its scope matches the
     update.
-11. Finish with a short summary of changed memory files and any uncertainty.
+13. Finish with a short summary of changed memory files and any uncertainty.
 
 ## Update Guidance
 
@@ -193,6 +266,13 @@ When updating work:
 - give TODO items a completion condition;
 - give DONE items an outcome, not just a title;
 - keep cancelled or blocked work visible only when it affects future choices.
+
+When updating tracks:
+
+- update `TRACKS.md` only for routing facts, not detailed progress;
+- keep track `START_HERE.md` focused on that workstream's next continuation;
+- promote only cross-track or cross-repo conclusions to top-level files;
+- close or pause stale tracks instead of keeping them active indefinitely.
 
 When updating constraints and forbidden directions:
 
@@ -221,6 +301,10 @@ When updating architecture:
 
 If the user asks for a goal-specific handoff, update `START_HERE.md` and point
 to the relevant detailed files instead of duplicating all content.
+
+For track-specific handoffs, update `tracks/<slug>/START_HERE.md` and ensure
+the top-level `TRACKS.md` points to it. Do not copy sibling-track detail into
+the handoff.
 
 ## Quality Bar
 

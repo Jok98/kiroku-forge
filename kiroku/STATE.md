@@ -10,18 +10,29 @@ state, architecture, decisions, constraints, work, risks, and handoff context.
 
 - KirokuForge is a Markdown-first memory skill.
 - `kiroku/*.md` files are the project memory; `memory.json` is not canonical.
-- `SKILL.md` defines agent behavior, and `references/file-contract.md` defines
-  the hub file contract.
+- `SKILL.md` defines agent behavior; `references/file-contract.md` defines the
+  base hub contract; `references/track-contract.md` defines the optional track
+  layer.
 - `scripts/init_hub.py` copies bundled templates into a target `kiroku/` hub
   and refuses overwrite unless requested.
+- `scripts/init_hub.py` also supports `--with-tracks` and repeated
+  `--track <slug>` for additive track initialization.
 - `scripts/check_hub.py` validates required hub files, template placeholders,
   `START_HERE.md` length, TODO completion conditions, and active decision
   rationales.
+- `scripts/check_hub.py` also validates `TRACKS.md` and `tracks/<slug>/` when
+  the optional track layer exists.
 - `assets/templates/kiroku/*.md` initializes new project hubs.
+- `assets/templates/kiroku/TRACKS.md` and
+  `assets/templates/kiroku/tracks/_template/` initialize the optional track
+  layer.
 - New hubs use the dominant language of the project or request; existing hubs
   keep their current language unless the user asks to translate them.
 - The hub guardrails are selective reading, strict `START_HERE.md`,
   compression on update, and separation of operational state from history.
+- Focus routing is documented in `SKILL.md` and `references/track-contract.md`:
+  top-level files hold global or cross-repo truth, while optional
+  `tracks/<slug>/` folders isolate parallel workstreams.
 - Any future local HTML UI should be generated from structured Markdown as a
   read-only derived view, not maintained as primary memory.
 - A database is not part of the current direction; if a query cache is ever
@@ -30,7 +41,7 @@ state, architecture, decisions, constraints, work, risks, and handoff context.
 
 ## Recently Verified
 
-- `python /home/jok/.codex/skills/.system/skill-creator/scripts/quick_validate.py /home/jok/.agents/skills/kiroku-forge` returned `Skill is valid!`.
+- `python /home/mmoi/.codex/skills/.system/skill-creator/scripts/quick_validate.py /home/mmoi/.agents/skills/kiroku-forge` returned `Skill is valid!`.
 - `python scripts/check_hub.py .` returned `Kiroku hub check passed: kiroku`.
 - `python scripts/check_hub.py assets/templates/kiroku` warns on template
   placeholders as expected.
@@ -43,6 +54,8 @@ state, architecture, decisions, constraints, work, risks, and handoff context.
 
 - What exact Markdown entry contract should a semantic HTML renderer require
   beyond the current decision, task, constraint, and rejected-idea patterns?
+- Should the global `START_HERE.md` hard cap change from 60 to 50 while keeping
+  the target at 25-40?
 - Should a future documentation mode write project docs outside `kiroku/`
   after verifying code and commands, or remain an external workflow?
 

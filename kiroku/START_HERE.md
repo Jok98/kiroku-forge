@@ -7,18 +7,17 @@
 
 ## Current State
 
-- Current source of truth: `SKILL.md`, `references/file-contract.md`,
-  `scripts/init_hub.py`, `scripts/check_hub.py`, templates, and this
-  `kiroku/` hub.
-- Skill validation and the hub checker pass on this repository.
-- The hub enforces selective reading, strict `START_HERE.md`, compression on
-  update, operating modes, final checklist, and operational/history separation.
-- Proposed extensions generate docs, HTML, tags, IDs, or query aids only as derived views.
+- Current source of truth: `SKILL.md`, `references/*-contract.md`,
+  `scripts/init_hub.py`, `scripts/check_hub.py`, templates, and this hub.
+- Skill validation and the hub checker pass; guardrails cover selective reading,
+  strict handoff, compression, operating modes, and final checklist.
+- Focus routing is documented: top-level files hold global/cross-repo truth,
+  while optional tracks isolate parallel workstreams.
 
 ## Next Action
 
-- Design the semantic Markdown-to-HTML viewer contract if that starts.
-- Forward-test with a fresh agent that reads only this file first.
+- Forward-test with a fresh agent on a project containing two active tracks.
+- Decide whether to lower the global `START_HERE.md` hard cap from 60 to 50.
 
 ## Hard Constraints
 
@@ -27,14 +26,12 @@
 - Do not recreate `memory.json`, schemas, receipts, hashes, generated indexes,
   or the old pipeline unless the user explicitly changes direction.
 - Do not make a database or generated HTML the source of truth.
+- Do not let track detail pollute global project files.
 - Initialization and validation are lightweight helper scripts, not the
   removed v3 runtime pipeline.
 
 ## Read Only If Needed
 
-- `STATE.md` for current status.
-- `WORK.md` for follow-up tasks.
-- `ARCHITECTURE.md` before changing the operating model.
-- `DECISIONS.md` and `CONSTRAINTS.md` before changing direction.
-- `IDEAS.md` for deferred or rejected approaches.
-- `RISKS.md` for fragile parts of the current design.
+- `STATE.md` and `WORK.md` for current status and follow-up tasks.
+- `ARCHITECTURE.md`, `DECISIONS.md`, and `CONSTRAINTS.md` before direction changes.
+- `IDEAS.md` and `RISKS.md` for deferred approaches or fragile parts.

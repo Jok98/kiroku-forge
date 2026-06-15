@@ -102,6 +102,34 @@ Consequences:
 - The script can run the lightweight checker with `--check`, but template
   placeholders still need to be filled or translated by the agent.
 
+### Decision: Add optional workstream tracks
+
+Status: active
+Area: memory routing
+
+Decision:
+Keep one project hub for related repositories, but allow optional
+`TRACKS.md` and `tracks/<slug>/` folders to isolate parallel workstreams.
+
+Rationale:
+Multi-repo projects often need one shared memory because repositories are
+interdependent. Separate tracks prevent an agent working on one problem from
+loading unrelated decisions, tasks, and progress from another active problem.
+
+Consequences:
+- Top-level files hold global or cross-repo truth.
+- Track files hold local state, work, decisions, risks, and handoff context for
+  one workstream.
+- `references/track-contract.md` owns detailed lifecycle, routing, promotion,
+  closure, and entry-pattern rules for tracks.
+- Bundled templates provide a repeatable starting point for `TRACKS.md` and new
+  track folders.
+- Helper scripts initialize and validate the track layer additively without
+  making generated output canonical.
+- Information is promoted from a track to the top-level hub only when it affects
+  multiple tracks, multiple repositories, shared architecture, or global
+  constraints.
+
 ### Decision: Generated views are derived
 
 Status: active
