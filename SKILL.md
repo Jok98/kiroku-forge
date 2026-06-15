@@ -6,7 +6,7 @@ description: Maintain a lightweight Markdown project-memory hub in `kiroku/` for
 # KirokuForge
 
 KirokuForge maintains a curated Markdown memory hub for a project. The output
-is meant to be read directly by developers and future agents.
+is meant to be read directly by developers and agents.
 
 ## Product Boundary
 
