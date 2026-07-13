@@ -61,6 +61,31 @@ Why:
 The track layer exists to keep unrelated parallel work out of an agent's
 context while preserving one shared project memory for cross-repo truth.
 
+### Constraint: Initialization requires verified content
+
+Status: active
+
+Rule:
+Do not report `init` complete while template placeholders, structural errors,
+or strict checker warnings remain.
+
+Why:
+A copied template is scaffolding, not durable project memory, and would give a
+future session false confidence that project context is available.
+
+### Constraint: Autonomous writes respect the task mode
+
+Status: active
+
+Rule:
+Context-driven Kiroku use may read existing memory during analysis-only work,
+but it must not initialize a hub or create a task workspace without write
+authority.
+
+Why:
+Memory automation must not override the user's analysis-only or repository
+instruction boundaries.
+
 ### Constraint: No database dependency
 
 Status: active

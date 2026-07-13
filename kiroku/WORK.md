@@ -2,31 +2,9 @@
 
 ## Ongoing
 
-- Prepare a forward-test where a fresh agent reads only `START_HERE.md` first.
+- None.
 
 ## TODO
-
-### Task: Review the first Markdown hub
-
-Status: todo
-Completion:
-The user and agent agree that the generated files are readable, compact, and
-useful enough to keep as the base format.
-
-Notes:
-- Watch for over-explaining.
-- Check whether every file has a clear owner role.
-
-### Task: Forward-test with a fresh agent
-
-Status: todo
-Completion:
-A separate agent can read `kiroku/START_HERE.md` and continue work without
-needing the original conversation.
-
-Notes:
-- Use a realistic prompt and do not leak expected answers.
-- Include a multi-repo scenario with two unrelated active tracks.
 
 ### Task: Design semantic HTML viewer contract
 
@@ -61,27 +39,19 @@ Notes:
 
 ## Done
 
-- Markdown-first KirokuForge foundation is in place.
-- Hub guardrails are documented: selective reading, strict `START_HERE.md`,
-  compression on update, operating modes, final checklist, and
-  operational/history separation.
-- Lightweight hub checker added in `scripts/check_hub.py`; it verifies the
-  default Markdown contract without reintroducing a runtime pipeline.
-- Init helper added in `scripts/init_hub.py`; it copies bundled templates into
-  a target hub and refuses overwrite unless explicitly requested.
-- Skill validation passes with `quick_validate.py`.
-- Product direction clarified: local HTML UI and project docs can be derived
-  from structured Markdown, but no database or generated view is canonical.
-- Phase 1 track routing added to `SKILL.md` and `references/file-contract.md`:
-  agents choose `global` or a specific track before reading detailed memory.
-- Phase 2 track contract added in `references/track-contract.md`, covering
-  lifecycle, routing, promotion, closure, and entry patterns.
-- Phase 3 track templates added in `assets/templates/kiroku/TRACKS.md` and
-  `assets/templates/kiroku/tracks/_template/`.
-- Phase 4 helper support added: `scripts/init_hub.py` can add `TRACKS.md` and
-  concrete tracks, while `scripts/check_hub.py` validates track routing,
-  required track files, track handoff length, TODO completion, and decision
-  rationales.
+- Markdown-first hub, selective reading, strict handoffs, compression, and
+  operational/history ownership are established.
+- Global and track contracts define routing, lifecycle, promotion, closure,
+  and stable entry patterns.
+- Scaffolding and checker helpers support base hubs, task tracks, roadmaps, and
+  safe additive completion of legacy tracks.
+- Global Codex rules activate KirokuForge autonomously for durable non-trivial
+  work while keeping analysis-only reads non-mutating and trivial work excluded.
+- The autonomous-memory-routing restructuring is complete: all requested modes,
+  task ownership, validation, memory migration, and global activation are
+  implemented and independently exercised.
+- Product direction keeps generated views and documentation derived from
+  Markdown and rejects a canonical database or JSON store.
 
 ## Cancelled
 

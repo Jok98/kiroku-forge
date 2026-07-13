@@ -2,20 +2,18 @@
 
 ## Main Flow
 
-1. The user invokes `$kiroku-forge` when project context should persist.
-2. The agent reads `SKILL.md`.
-3. The agent chooses one mode: `read`, `update`, `handoff`, `cleanup`, or
-   `init`.
-4. The agent chooses the focus: global hub or a specific workstream track.
-5. For new hubs or broad updates, the agent reads `references/file-contract.md`.
-6. The agent reads `kiroku/START_HERE.md` first when a hub already exists.
-7. If several tracks may match, the agent reads `kiroku/TRACKS.md` and then the
-   selected track `START_HERE.md`.
-8. The agent opens only the hub or track files needed for the mode and request.
-9. The agent inspects only the project evidence needed for the update.
-10. The agent edits the owning Markdown files directly.
-11. The agent records one meaningful update in the relevant `LOG.md`.
-12. The agent runs the final checklist before responding.
+1. The skill triggers when durable project context, task continuation, or
+   project onboarding is needed.
+2. The agent reads `SKILL.md`, locates `kiroku/`, and chooses one mode plus a
+   global or track focus.
+3. `init` inspects project evidence, scaffolds the base hub, replaces every
+   placeholder, and validates with strict warnings.
+4. `start-task` reads global routing, reuses a matching track, or scaffolds one
+   with state, roadmap, work, and handoff context.
+5. `read-task` reads one track plus only constraining global context;
+   `read-project` reads global truth and active-track handoffs.
+6. Write modes update only owner files, promote cross-track truth when needed,
+   add one concise log entry, and run the final checklist.
 
 ## Optional Derived Views
 
@@ -35,13 +33,14 @@
   files in a project memory hub.
 - `references/track-contract.md` defines optional workstream routing,
   lifecycle, promotion, closure, and track entry patterns.
-- `scripts/init_hub.py` initializes a target hub from bundled templates.
+- `scripts/init_hub.py` scaffolds a target hub from bundled templates; it does
+  not replace the evidence-gathering part of `init`.
 - `scripts/check_hub.py` provides lightweight validation for the default hub
   contract.
-- `scripts/init_hub.py --with-tracks` adds `TRACKS.md`; repeated
-  `--track <slug>` creates concrete track folders from `_template`.
-- `scripts/check_hub.py` validates track index routing and track folders when
-  `TRACKS.md` or `tracks/` exists.
+- `scripts/init_hub.py --with-tracks` adds `TRACKS.md`; repeated `--track`
+  creates or completes concrete track folders without implicit overwrite.
+- `scripts/check_hub.py` validates routing, required track files, milestone
+  fields and identifiers, allowed statuses, and the one-in-progress invariant.
 - `assets/templates/kiroku/` contains starter files for a new hub.
 - `assets/templates/kiroku/TRACKS.md` and
   `assets/templates/kiroku/tracks/_template/` contain starter files for the
@@ -57,12 +56,13 @@
 
 - Use Markdown as the source of truth.
 - Choose one operating mode before reading beyond `START_HERE.md`.
+- Distinguish task reads from whole-project onboarding.
 - Choose a focus before reading detailed memory: top-level global files for
   shared project truth, or one track for a specific workstream.
 - Do not read sibling tracks unless the user asks or a direct dependency is
   visible.
 - Use `scripts/init_hub.py` for deterministic template copying when creating a
-  new hub.
+  new hub or adding missing files to an existing track.
 - Make the reason behind a decision as important as the decision itself.
 - Keep `START_HERE.md` strict: target 25-40 lines, fixed sections, no copied
   detail.
@@ -95,10 +95,12 @@
 
 ## Integration Points
 
+- `/home/mmoi/.codex/AGENTS.md` provides bounded context-driven activation,
+  mode selection, authority, write-safety, and milestone-update rules.
 - `skill-creator` is used to validate the shape of this skill.
 - `references/track-contract.md` is the detailed contract for optional
   workstream tracks.
-- `scripts/init_hub.py` initializes default hubs from templates.
+- `scripts/init_hub.py` scaffolds default hubs and task workspaces from templates.
 - `scripts/check_hub.py` validates the Markdown hub shape.
 - `agents/openai.yaml` exposes the skill with the short description
-  "Maintain a Markdown project memory hub".
+  "Initialize and resume Markdown project memory".

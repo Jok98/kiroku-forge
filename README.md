@@ -16,7 +16,7 @@ By default, KirokuForge maintains a `kiroku/` folder inside a project:
 ```text
 kiroku/
   START_HERE.md
-  TRACKS.md
+  TRACKS.md            # optional, when task routing is needed
   STATE.md
   ARCHITECTURE.md
   DECISIONS.md
@@ -25,10 +25,11 @@ kiroku/
   IDEAS.md
   RISKS.md
   LOG.md
-  tracks/
+  tracks/              # optional, one workspace per durable task
     <track-slug>/
       START_HERE.md
       STATE.md
+      ROADMAP.md
       WORK.md
       DECISIONS.md
       RISKS.md
@@ -53,6 +54,10 @@ The skill follows a selective reading model:
 - read a track `START_HERE.md` before opening that track's detailed files;
 - read only the owner files needed for the task.
 
+`read-task` resumes one task from its state, roadmap, and work files.
+`read-project` gives a new agent or session the global project context plus the
+handoffs of active tracks without loading every task detail.
+
 This keeps agent context small while preserving enough detail for future work.
 
 ## Core Files
@@ -61,6 +66,8 @@ This keeps agent context small while preserving enough detail for future work.
 - `TRACKS.md`: compact routing index for active, paused, or recently closed
   workstreams.
 - `STATE.md`: current project facts and recently verified status.
+- Track `ROADMAP.md`: milestone objectives, dependencies, validation, and
+  completion criteria.
 - `ARCHITECTURE.md`: flows, boundaries, patterns, and integration points.
 - `DECISIONS.md`: adopted decisions with rationale and consequences.
 - `WORK.md`: ongoing work, TODOs, blocked items, done items, and cancelled work.
@@ -73,8 +80,8 @@ This keeps agent context small while preserving enough detail for future work.
 
 ## Workstreams
 
-Use tracks when multiple pieces of work share the same project but should not
-all be loaded together. A track is useful when the work:
+Use task tracks when pieces of work share the same project but should not all
+be loaded together. A track is useful when the work:
 
 - can progress independently;
 - has durable context likely to be resumed later;
@@ -89,30 +96,34 @@ constraints, or forbidden directions.
 
 The skill supports these modes:
 
-- `read`: answer from the hub without editing it.
+- `init`: inspect a project, scaffold its hub, replace placeholders with
+  verified context, and validate strict readiness.
+- `start-task`: reuse or create a task workspace with state, roadmap, work, and
+  routing metadata.
+- `read-task`: catch up on one task without editing memory.
+- `read-project`: onboard to global project truth and active-track handoffs.
 - `update`: save durable project state, decisions, constraints, tasks, or risks.
 - `handoff`: tighten `START_HERE.md` for the next agent or a specific goal.
 - `cleanup`: compress stale, duplicated, or misplaced memory.
-- `init`: create a missing `kiroku/` hub from templates.
 
-If the mode is ambiguous, KirokuForge treats questions as `read` and explicit
-memory maintenance requests as `update`.
+Generic `read` remains shorthand resolved to `read-task` or `read-project` from
+the request scope.
 
 ## Commands
 
-Initialize a hub:
+Scaffold a hub before the agent fills verified project context:
 
 ```bash
 python scripts/init_hub.py <project-root-or-kiroku-dir>
 ```
 
-Initialize a hub with track support:
+Scaffold a hub with track support:
 
 ```bash
 python scripts/init_hub.py <project-root-or-kiroku-dir> --with-tracks
 ```
 
-Add a workstream track:
+Add a task track or safely complete missing files in an existing track:
 
 ```bash
 python scripts/init_hub.py <project-root-or-kiroku-dir> --track <track-slug>
@@ -126,7 +137,8 @@ python scripts/check_hub.py <project-root-or-kiroku-dir>
 
 The checker catches missing files, stale template placeholders, TODOs without
 completion conditions, active decisions without rationale, `START_HERE.md`
-length drift, and track routing issues.
+length drift, track routing issues, invalid roadmap fields or statuses, and
+multiple milestones marked `in_progress`.
 
 ## Example Prompts
 
@@ -135,15 +147,19 @@ $kiroku-forge initialize memory for this project
 ```
 
 ```text
-$kiroku-forge update the memory after this refactor
+$kiroku-forge start a task workspace for the tax migration
 ```
 
 ```text
-$kiroku-forge create a track for the tax migration workstream
+$kiroku-forge catch me up on the tax migration task without editing memory
 ```
 
 ```text
-$kiroku-forge what should the next agent read before continuing Product migration?
+$kiroku-forge onboard this new session to the whole project
+```
+
+```text
+$kiroku-forge update the task memory after this milestone
 ```
 
 ```text
@@ -180,5 +196,5 @@ kiroku-forge/
 
 `SKILL.md` contains the agent-facing operating instructions. The reference files
 define the file and track contracts. The scripts provide deterministic
-initialization and validation. The templates are copied into projects when a
-new memory hub or track is created.
+scaffolding and validation. The agent-led `init` workflow turns that scaffold
+into verified project memory; templates alone are never a completed hub.

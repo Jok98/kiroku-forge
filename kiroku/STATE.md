@@ -2,37 +2,40 @@
 
 ## Project Purpose
 
-KirokuForge is a Codex skill for maintaining durable project memory. Its new
-purpose is to create and update a small Markdown hub that captures current
-state, architecture, decisions, constraints, work, risks, and handoff context.
+KirokuForge is a Codex skill for durable project memory. It maintains a
+project-wide Markdown hub and focused task workspaces so developers and agents
+can resume work without reconstructing context from prior conversations.
 
 ## Current Status
 
 - KirokuForge is a Markdown-first memory skill.
 - `kiroku/*.md` files are the project memory; `memory.json` is not canonical.
 - `SKILL.md` defines agent behavior; `references/file-contract.md` defines the
-  base hub contract; `references/track-contract.md` defines the optional track
-  layer.
-- `scripts/init_hub.py` copies bundled templates into a target `kiroku/` hub
-  and refuses overwrite unless requested.
-- `scripts/init_hub.py` also supports `--with-tracks` and repeated
-  `--track <slug>` for additive track initialization.
+  base hub contract; `references/track-contract.md` defines task routing,
+  roadmaps, lifecycle, and ownership.
+- `init` is an agent-led workflow that inspects the project, scaffolds the hub,
+  replaces placeholders with verified context, and validates strict readiness.
+- `start-task` reuses or creates a track containing `START_HERE.md`, `STATE.md`,
+  `ROADMAP.md`, and `WORK.md`, plus decisions, risks, and log when useful.
+- `read-task` resumes one task; `read-project` onboards a session to global
+  truth and active-track handoffs without loading every track detail.
+- `scripts/init_hub.py` safely scaffolds hubs and completes existing tracks with
+  missing contract files unless overwrite is explicit.
 - `scripts/check_hub.py` validates required hub files, template placeholders,
-  `START_HERE.md` length, TODO completion conditions, and active decision
-  rationales.
-- `scripts/check_hub.py` also validates `TRACKS.md` and `tracks/<slug>/` when
-  the optional track layer exists.
+  handoff length, TODO completion, active decision rationale, track routing,
+  and roadmap structure and status.
 - `assets/templates/kiroku/*.md` initializes new project hubs.
 - `assets/templates/kiroku/TRACKS.md` and
   `assets/templates/kiroku/tracks/_template/` initialize the optional track
   layer.
 - New hubs use the dominant language of the project or request; existing hubs
   keep their current language unless the user asks to translate them.
-- The hub guardrails are selective reading, strict `START_HERE.md`,
-  compression on update, and separation of operational state from history.
-- Focus routing is documented in `SKILL.md` and `references/track-contract.md`:
-  top-level files hold global or cross-repo truth, while optional
-  `tracks/<slug>/` folders isolate parallel workstreams.
+- Top-level files hold global or cross-track truth; task progress belongs in
+  `tracks/<slug>/` and is promoted only when it changes shared direction.
+- `/home/mmoi/.codex/AGENTS.md` autonomously routes durable project-memory work
+  through KirokuForge while preserving read-only and small-task exclusions.
+- `TRACKS.md` preserves the closed `autonomous-memory-routing` outcome for
+  future routing and audit context.
 - Any future local HTML UI should be generated from structured Markdown as a
   read-only derived view, not maintained as primary memory.
 - A database is not part of the current direction; if a query cache is ever
@@ -42,13 +45,23 @@ state, architecture, decisions, constraints, work, risks, and handoff context.
 ## Recently Verified
 
 - `python /home/mmoi/.codex/skills/.system/skill-creator/scripts/quick_validate.py /home/mmoi/.agents/skills/kiroku-forge` returned `Skill is valid!`.
-- `python scripts/check_hub.py .` returned `Kiroku hub check passed: kiroku`.
-- `python scripts/check_hub.py assets/templates/kiroku` warns on template
-  placeholders as expected.
-- `python scripts/init_hub.py <temp-project>` created the standard hub files,
-  and rerunning it refused overwrite without `--overwrite`.
-- `$kiroku-forge` has been exercised on this repository by updating the
-  Markdown hub in place.
+- `python scripts/check_hub.py . --strict-warnings` passed before this broad
+  memory migration.
+- Fresh task scaffolds include `ROADMAP.md`; strict validation rejects their
+  placeholders until an agent replaces them.
+- Legacy tracks can receive a missing roadmap while all existing files remain
+  unchanged.
+- Missing roadmaps and multiple `in_progress` milestones fail validation.
+- Four isolated fresh-agent workflows passed for project initialization, task
+  creation, focused task reading, and whole-project onboarding.
+- Both read workflows left the complete fixture byte-for-byte unchanged.
+- The installed global Codex policy exactly matched its approved proposal at
+  SHA-256 `0916162ae51526825324f2fa25da942a5602f9d7678f886e392c340eb5d8809e`.
+- Final autonomous-policy tests covered task reading, project onboarding,
+  trivial-task exclusion, and automatic base-hub plus task initialization.
+- Final script smoke tests covered base scaffolding, task roadmaps, additive
+  legacy completion, strict placeholders, missing roadmaps, and multiple
+  in-progress milestones.
 
 ## Open Questions
 
@@ -63,5 +76,6 @@ state, architecture, decisions, constraints, work, risks, and handoff context.
 
 - Do not let the Markdown hub become a verbose generated report.
 - Do not duplicate the same decision or constraint across several files.
+- Do not let autonomous activation create hubs or tracks for trivial work.
 - Treat old memory notes about v2/v3 as historical context only; they no
   longer define the current product direction.

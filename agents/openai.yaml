@@ -1,4 +1,4 @@
 interface:
   display_name: "KirokuForge"
-  short_description: "Maintain a Markdown project memory hub"
-  default_prompt: "Use $kiroku-forge to update this project's durable Markdown memory."
+  short_description: "Initialize and resume Markdown project memory"
+  default_prompt: "Use $kiroku-forge to initialize or resume this project’s durable Markdown memory."

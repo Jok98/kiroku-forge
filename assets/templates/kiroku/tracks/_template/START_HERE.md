@@ -19,7 +19,8 @@
 ## Read Only If Needed
 
 - `STATE.md` for track status.
-- `WORK.md` for track tasks and planning.
+- `ROADMAP.md` for milestones, validation, and completion criteria.
+- `WORK.md` for granular ongoing, TODO, blocked, and done work.
 - `DECISIONS.md` for local track decisions.
 - `RISKS.md` for track-specific fragile areas.
 - Top-level `DECISIONS.md`, `CONSTRAINTS.md`, or `ARCHITECTURE.md` only when shared direction matters.

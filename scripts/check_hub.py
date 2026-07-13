@@ -26,11 +26,13 @@ TRACK_INDEX_FILE = "TRACKS.md"
 TRACK_REQUIRED_FILES = (
     "START_HERE.md",
     "STATE.md",
+    "ROADMAP.md",
     "WORK.md",
 )
 TRACK_CHECK_FILES = (
     "START_HERE.md",
     "STATE.md",
+    "ROADMAP.md",
     "WORK.md",
     "DECISIONS.md",
     "RISKS.md",
@@ -93,12 +95,23 @@ PLACEHOLDER_NEEDLES = (
     "Add context needed to continue this workstream",
     "State completed track work and outcome",
     "State cancelled track work only",
+    "M-01: Example milestone",
+    "State the outcome this milestone must achieve",
+    "State what is included in this milestone",
+    "Name the files, modules, or deliverables",
+    "State prerequisites or `None`",
+    "State the command, review, or evidence required",
+    "State the evidence that proves completion",
+    "State material risks or `None known`",
     "State the adopted choice for this track",
     "State what future work in this track must respect",
     "State what could happen in this track",
     "Track risks accepted intentionally",
     "Closed track risks whose history still matters",
     "Summarize meaningful track memory changes",
+    "TODO: describe this workstream",
+    "Repos: TBD",
+    "Areas: TBD",
 )
 
 FIELD_RE = re.compile(r"^[A-Z][A-Za-z ]+:\s*(.*)$")
@@ -106,6 +119,17 @@ HEADING_RE = re.compile(r"^#{1,6}\s+")
 ACTIVE_RE = re.compile(r"^Status:\s*active\s*$", re.IGNORECASE)
 TODO_RE = re.compile(r"^Status:\s*todo\s*$", re.IGNORECASE)
 TRACK_SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+MILESTONE_HEADING_RE = re.compile(r"^###\s+(M-[0-9]{2,}):\s+\S")
+MILESTONE_STATUSES = {"pending", "in_progress", "completed", "blocked"}
+MILESTONE_REQUIRED_LABELS = (
+    "Objective:",
+    "Scope:",
+    "Expected artifacts:",
+    "Dependencies:",
+    "Validation:",
+    "Completion criteria:",
+    "Risks:",
+)
 
 
 @dataclass(frozen=True)
@@ -314,6 +338,98 @@ def check_active_decision_rationale(
     return check_active_decision_rationale_file(hub / "DECISIONS.md", lines)
 
 
+def check_roadmap_file(path: Path, lines: list[str]) -> list[Issue]:
+    issues: list[Issue] = []
+    blocks = heading_blocks(lines)
+    milestone_ids: set[str] = set()
+    valid_milestones = 0
+    in_progress_count = 0
+
+    for start, block in blocks:
+        heading = block[0].strip()
+        match = MILESTONE_HEADING_RE.match(heading)
+        if match is None:
+            issues.append(
+                Issue(
+                    "error",
+                    path,
+                    start + 1,
+                    "roadmap level-three heading must match '### M-01: Outcome'",
+                )
+            )
+            continue
+
+        valid_milestones += 1
+        milestone_id = match.group(1)
+        if milestone_id in milestone_ids:
+            issues.append(
+                Issue(
+                    "error",
+                    path,
+                    start + 1,
+                    f"duplicate roadmap milestone identifier {milestone_id!r}",
+                )
+            )
+        milestone_ids.add(milestone_id)
+
+        status = label_value(block, "Status:")
+        if status is None:
+            issues.append(
+                Issue(
+                    "error",
+                    path,
+                    start + 1,
+                    "roadmap milestone is missing a non-empty Status:",
+                )
+            )
+        else:
+            normalized = status.lower()
+            if normalized not in MILESTONE_STATUSES:
+                issues.append(
+                    Issue(
+                        "error",
+                        path,
+                        start + 1,
+                        f"milestone status {status!r} is not one of "
+                        f"{sorted(MILESTONE_STATUSES)}",
+                    )
+                )
+            elif normalized == "in_progress":
+                in_progress_count += 1
+
+        for label in MILESTONE_REQUIRED_LABELS:
+            if not has_label_content(block, label):
+                issues.append(
+                    Issue(
+                        "error",
+                        path,
+                        start + 1,
+                        f"roadmap milestone is missing non-empty {label}",
+                    )
+                )
+
+    if valid_milestones == 0:
+        issues.append(
+            Issue(
+                "error",
+                path,
+                None,
+                "roadmap must contain at least one valid milestone",
+            )
+        )
+    if in_progress_count > 1:
+        issues.append(
+            Issue(
+                "error",
+                path,
+                None,
+                f"roadmap has {in_progress_count} in_progress milestones; at most one is allowed",
+            )
+        )
+
+    return issues
+
+
 def load_existing_files(hub: Path) -> tuple[dict[str, list[str]], list[Issue]]:
     files: dict[str, list[str]] = {}
     issues: list[Issue] = []
@@ -472,6 +588,10 @@ def check_track_dirs(track_dirs: list[Path]) -> list[Issue]:
         work = files.get("WORK.md")
         if work is not None:
             issues.extend(check_todo_completion_file(track_dir / "WORK.md", work))
+
+        roadmap = files.get("ROADMAP.md")
+        if roadmap is not None:
+            issues.extend(check_roadmap_file(track_dir / "ROADMAP.md", roadmap))
 
         decisions = files.get("DECISIONS.md")
         if decisions is not None:

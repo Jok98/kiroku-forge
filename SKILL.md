@@ -1,6 +1,6 @@
 ---
 name: kiroku-forge
-description: Maintain a lightweight Markdown project-memory hub in `kiroku/` for durable project state, multi-repo context, workstream tracks, architecture, design patterns, decisions, constraints, TODO/DONE/ongoing work, risks, rejected ideas, forbidden directions, and continuation handoffs. Use when project context must persist across agent sessions or be readable by developers. Prefer concise human-readable Markdown as primary memory, minimal metadata, and no canonical JSON unless the user explicitly asks for it.
+description: Initialize and maintain a lightweight Markdown project-memory hub in `kiroku/`; create or resume task workspaces with roadmap and work status; catch up on one task; onboard a new agent or session to the whole project; and preserve durable architecture, decisions, constraints, risks, progress, and handoffs. Use when project context must persist across sessions, a non-trivial task needs continuation memory, an existing task must be resumed, or a project-wide context refresh is needed. Prefer concise human-readable Markdown as primary memory, minimal metadata, and no canonical JSON unless the user explicitly asks for it.
 ---
 
 # KirokuForge
@@ -59,6 +59,7 @@ kiroku/
     <track-slug>/
       START_HERE.md
       STATE.md
+      ROADMAP.md
       WORK.md
       DECISIONS.md
       RISKS.md
@@ -81,8 +82,11 @@ standard hub files unless `--overwrite` is passed.
 Use `python scripts/init_hub.py <project-root-or-kiroku-dir> --with-tracks`
 to add `TRACKS.md` when the optional track layer is needed.
 Use `python scripts/init_hub.py <project-root-or-kiroku-dir> --track <slug>`
-to create a track from `tracks/_template`; existing standard hub files are
-preserved in this additive mode.
+to scaffold a track from `tracks/_template`; existing standard hub files are
+preserved in this additive mode. Existing files inside the named track are also
+preserved unless `--overwrite` is explicit, so the helper can add newly required
+contract files safely. Complete the scaffold according to the track contract
+before treating the task workspace as ready.
 Template text is scaffolding: when initializing a non-English hub, translate
 headings and placeholder prose into the chosen hub language while preserving
 file names and section meanings.
@@ -91,8 +95,14 @@ file names and section meanings.
 
 Choose one primary mode before reading beyond `START_HERE.md`:
 
-- `read`: answer from the hub without editing it. Use when the user asks what
-  is true, what happened, or what to do next.
+- `init`: inspect a project, create a missing `kiroku/` hub, replace template
+  placeholders with verified durable context, and validate the result.
+- `start-task`: select an existing matching track or create a task workspace
+  with handoff, state, roadmap, work status, and routing metadata.
+- `read-task`: catch up on one task without editing memory. Read the selected
+  track and only the global context that constrains it.
+- `read-project`: onboard a new agent or session to the whole project without
+  editing memory. Read global truth and the handoffs of active tracks.
 - `update`: edit the hub after project work, decisions, or user corrections.
   Use when the user asks to save, remember, update memory, or invokes
   `$kiroku-forge` after meaningful work.
@@ -100,11 +110,50 @@ Choose one primary mode before reading beyond `START_HERE.md`:
   Keep detail in owner files and link to them.
 - `cleanup`: compress, reorganize, or remove stale memory. Read the full hub
   only when cleanup scope requires it.
-- `init`: create a missing `kiroku/` hub from templates, then fill only the
-  durable project context available.
 
-If the mode is ambiguous, default to `read` for questions and `update` for
-explicit memory-maintenance requests.
+Treat the legacy name `read` as routing shorthand: use `read-task` when the
+request identifies one task and `read-project` when it asks for project-wide
+orientation. If the mode is otherwise ambiguous, default to the matching read
+mode for questions and `update` for explicit memory-maintenance requests.
+
+## Initialization Workflow
+
+`init` is complete only when the generated hub contains project evidence, not
+template prose:
+
+1. Locate the project boundary and inspect the repositories, project docs,
+   current state, architecture, constraints, validation paths, and known work
+   needed to create a useful base memory.
+2. Read `references/file-contract.md`, choose the hub language, and scaffold
+   `kiroku/` from the bundled templates.
+3. Replace every placeholder with verified durable context. Mark uncertainty
+   as unknown; do not invent missing facts or decisions.
+4. Populate `START_HERE.md` as the project-wide entrypoint and routing guide.
+5. Add `TRACKS.md` only when known tasks or workstreams need independent
+   continuation; do not create speculative empty tracks.
+6. Run the checker with strict warnings. Do not report initialization complete
+   while placeholders, missing completion conditions, or structural warnings
+   remain.
+
+## Task Workspace Workflow
+
+Use `start-task` for a non-trivial task that needs a roadmap, milestone
+tracking, or continuation across agents or sessions:
+
+1. Read top-level `START_HERE.md` and `TRACKS.md` when present.
+2. Match by purpose, issue, branch, repositories, modules, paths, and keywords.
+   Reuse one clearly matching track instead of creating a duplicate.
+3. If no track matches, create a lowercase hyphenated slug and populate the
+   track `START_HERE.md`, `STATE.md`, `ROADMAP.md`, and `WORK.md`; add local
+   decisions, risks, and a log only when useful.
+4. Add or update the compact routing entry in `TRACKS.md`.
+5. Record outcome-oriented milestones in `ROADMAP.md`; keep granular ongoing,
+   TODO, blocked, done, and cancelled items in `WORK.md`.
+6. Keep the current milestone and next action aligned across `ROADMAP.md`,
+   `STATE.md`, `WORK.md`, and the track handoff without copying detailed text.
+
+Do not create a task workspace for a trivial, self-contained operation unless
+the user explicitly asks to preserve it.
 
 ## Selective Reading
 
@@ -117,6 +166,8 @@ needs:
 - Read `tracks/<slug>/START_HERE.md` after selecting a track, before opening
   other files in that track.
 - Read `STATE.md` when current status or verified present-tense facts matter.
+- Read a track's `ROADMAP.md` when continuing, planning, or assessing milestone
+  progress.
 - Read `WORK.md` when continuing, planning, or updating tasks.
 - Read `DECISIONS.md` and `CONSTRAINTS.md` before changing direction,
   architecture, scope, or product rules.
@@ -127,8 +178,19 @@ needs:
   failure modes.
 - Read `LOG.md` only when recent memory-update history is relevant.
 
-If the user asks for a full memory review, read all files deliberately and say
-that the request requires the full hub.
+For `read-task`, read top-level `START_HERE.md`, resolve the track, read its
+`START_HERE.md`, `STATE.md`, `ROADMAP.md`, and `WORK.md`, then open only the
+local or global decision, constraint, architecture, and risk files needed for
+the requested work.
+
+For `read-project`, read top-level `START_HERE.md`, `STATE.md`,
+`ARCHITECTURE.md`, `DECISIONS.md`, `CONSTRAINTS.md`, `WORK.md`, `RISKS.md`, and
+`TRACKS.md` when present. Then read `START_HERE.md` for every active track and
+for paused tracks relevant to current project direction. Do not load every
+track detail merely to produce project-wide orientation.
+
+If the user asks for a full memory audit, read all global and track files
+deliberately and say that the request requires the complete hub.
 
 ## Focus Routing And Tracks
 
@@ -144,8 +206,8 @@ Before reading or writing beyond the top-level `START_HERE.md`, choose a focus:
 
 Choose an existing track when the user names it, when `TRACKS.md` maps the
 request to it, or when the prompt, branch, changed paths, issue, repo names, or
-keywords clearly match it. Create a new track only when the work is durable,
-distinct from existing tracks, and likely to be resumed later.
+keywords clearly match it. Create a new track through `start-task` when the
+work is distinct, non-trivial, and needs roadmap or continuation state.
 
 Do not read sibling tracks by default. Open another track only when the user
 asks, `TRACKS.md` says the tracks are related, or evidence shows a direct
@@ -205,11 +267,13 @@ Keep operational files focused on the present:
 
 ## Final Checklist
 
-Before finishing `update`, `handoff`, `cleanup`, or `init`, verify:
+Before finishing `init`, `start-task`, `update`, `handoff`, or `cleanup`, verify:
 
 - `START_HERE.md` is 25-40 lines when practical and never over 60 lines unless
   the user asked for a fuller handoff.
 - Every TODO has a `Completion:` condition.
+- Every active task track has a `ROADMAP.md` whose milestones define objective,
+  dependencies, validation, completion criteria, and current status.
 - Every active decision has a rationale.
 - `LOG.md` has at most one concise entry for the memory update.
 - New content is not duplicated across owner files.
@@ -223,22 +287,23 @@ Before finishing `update`, `handoff`, `cleanup`, or `init`, verify:
 - When practical after `init`, `cleanup`, or broad updates, run
   `python scripts/check_hub.py <project-root-or-kiroku-dir>` from this skill
   to catch missing files, stale placeholders, missing TODO completion
-  conditions, missing decision rationales, `START_HERE.md` length drift, and
-  track routing issues when `TRACKS.md` or `tracks/` exist.
+  conditions, missing decision rationales, `START_HERE.md` length drift,
+  roadmap structure or status errors, and track routing issues when
+  `TRACKS.md` or `tracks/` exist.
 
 ## Operating Workflow
 
 1. Locate the project memory hub. Use `kiroku/` at the project root unless the
    user points to another location.
-2. Choose the operating mode.
-3. Choose the focus: `global` or a specific `track`.
-4. If the hub exists, follow the selective reading policy before opening more
-   files.
-5. If the hub does not exist and the user asked to create or update memory,
-   initialize it from the templates.
+2. Choose one operating mode and the focus: `global` or a specific `track`.
+3. If the hub is missing, use `init` before any write mode that requires
+   durable memory; do not treat scaffolded placeholders as initialized memory.
+4. For task work, use `start-task` to reuse or create the workspace before
+   updating it.
+5. For reads, follow the `read-task` or `read-project` order and do not edit.
 6. If the focus is ambiguous and multiple tracks exist, read `TRACKS.md` and
    ask the user only when routing cannot be inferred safely.
-7. Inspect the current project evidence needed for the update: code, docs,
+7. Inspect the current project evidence needed for a write: code, docs,
    user statements, command results, or existing memory.
 8. Decide whether each item is durable memory. Exclude transient progress,
    verbose logs, speculative noise, and implementation minutiae that are not
@@ -267,10 +332,20 @@ When updating work:
 - give DONE items an outcome, not just a title;
 - keep cancelled or blocked work visible only when it affects future choices.
 
+When updating a task roadmap:
+
+- keep milestones outcome-oriented and independently verifiable;
+- record status as `pending`, `in_progress`, `completed`, or `blocked`;
+- keep at most one milestone `in_progress`;
+- update milestone status only from implementation or validation evidence;
+- reassess future milestones after each completed milestone.
+
 When updating tracks:
 
 - update `TRACKS.md` only for routing facts, not detailed progress;
 - keep track `START_HERE.md` focused on that workstream's next continuation;
+- keep `STATE.md`, `ROADMAP.md`, and `WORK.md` aligned by ownership rather than
+  duplicating the same progress narrative;
 - promote only cross-track or cross-repo conclusions to top-level files;
 - close or pause stale tracks instead of keeping them active indefinitely.
 

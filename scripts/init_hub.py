@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Initialize a KirokuForge Markdown memory hub from templates."""
+"""Scaffold a KirokuForge Markdown memory hub from templates."""
 
 from __future__ import annotations
 
@@ -28,6 +28,7 @@ TRACK_INDEX_FILE = "TRACKS.md"
 TRACK_FILES = (
     "START_HERE.md",
     "STATE.md",
+    "ROADMAP.md",
     "WORK.md",
     "DECISIONS.md",
     "RISKS.md",
@@ -45,7 +46,7 @@ class CopyOperation:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Create a KirokuForge kiroku/ hub from bundled templates."
+        description="Scaffold a KirokuForge kiroku/ hub from bundled templates."
     )
     parser.add_argument(
         "path",
@@ -77,8 +78,9 @@ def parse_args() -> argparse.Namespace:
         default=[],
         metavar="SLUG",
         help=(
-            "Create a track folder from assets/templates/kiroku/tracks/_template. "
-            "Can be repeated."
+            "Create or complete a track folder from "
+            "assets/templates/kiroku/tracks/_template while preserving existing "
+            "track files unless --overwrite is passed. Can be repeated."
         ),
     )
     parser.add_argument(
@@ -97,7 +99,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--check",
         action="store_true",
-        help="Run scripts/check_hub.py after initialization.",
+        help="Run scripts/check_hub.py after scaffolding.",
     )
     parser.add_argument(
         "--strict-warnings",
@@ -323,7 +325,7 @@ def main() -> int:
                 track_templates,
                 target_dir,
                 overwrite=args.overwrite,
-                skip_existing=False,
+                skip_existing=not args.overwrite,
             )
             operations.extend(track_operations)
             skipped.extend(track_skipped)
@@ -354,7 +356,7 @@ def main() -> int:
     if args.check:
         return run_checker(hub, args.strict_warnings)
 
-    print(f"Kiroku hub initialized: {display(hub)}", flush=True)
+    print(f"Kiroku hub scaffold created: {display(hub)}", flush=True)
     return 0
 
 

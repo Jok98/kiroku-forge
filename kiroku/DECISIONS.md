@@ -74,33 +74,31 @@ canonical machine-readable memory layer.
 
 Consequences:
 - The checker validates required files, stale template placeholders,
-  `START_HERE.md` length, TODO completion conditions, and active decision
-  rationales.
+  `START_HERE.md` length, TODO completion conditions, active decision
+  rationales, track routing, and roadmap structure and status.
 - Checker errors should block completion of init, cleanup, or broad updates;
   warnings should be inspected rather than treated as automatic failures.
 - The checker does not make Markdown secondary to generated metadata.
 
-### Decision: Add a cautious init helper
+### Decision: Separate agent-led init from deterministic scaffolding
 
 Status: active
 Area: initialization
 
 Decision:
-Provide `scripts/init_hub.py` to copy bundled Markdown templates into a target
-project's `kiroku/` hub.
+Use `init` as the agent-led project-discovery and memory-population workflow;
+use `scripts/init_hub.py` only for deterministic template scaffolding.
 
 Rationale:
-Initialization is repetitive and easy to do inconsistently by hand. A small
-copy helper improves consistency without making the helper the source of truth
-or reintroducing the old runtime architecture.
+Templates make file creation repeatable, but only an agent can inspect project
+evidence, distinguish facts from unknowns, and create useful base memory.
 
 Consequences:
 - The script creates the nine standard hub files from
   `assets/templates/kiroku/`.
-- Existing standard hub files are not overwritten unless `--overwrite` is
-  passed.
-- The script can run the lightweight checker with `--check`, but template
-  placeholders still need to be filled or translated by the agent.
+- Existing hub and track files are preserved unless `--overwrite` is explicit.
+- `init` is incomplete until placeholders are replaced and the strict checker
+  passes.
 
 ### Decision: Add optional workstream tracks
 
@@ -118,8 +116,8 @@ loading unrelated decisions, tasks, and progress from another active problem.
 
 Consequences:
 - Top-level files hold global or cross-repo truth.
-- Track files hold local state, work, decisions, risks, and handoff context for
-  one workstream.
+- Track files hold local state, roadmap, work, decisions, risks, and handoff
+  context for one workstream.
 - `references/track-contract.md` owns detailed lifecycle, routing, promotion,
   closure, and entry-pattern rules for tracks.
 - Bundled templates provide a repeatable starting point for `TRACKS.md` and new
@@ -129,6 +127,80 @@ Consequences:
 - Information is promoted from a track to the top-level hub only when it affects
   multiple tracks, multiple repositories, shared architecture, or global
   constraints.
+
+### Decision: Separate task resume from project onboarding
+
+Status: active
+Area: reading workflow
+
+Decision:
+Use `read-task` to resume one selected task and `read-project` to orient a new
+agent or session to global project truth and active-track handoffs.
+
+Rationale:
+A task continuation needs detailed local state and roadmap, while project
+onboarding needs broad routing context without every track's implementation
+detail.
+
+Consequences:
+- `read-task` opens the selected track's handoff, state, roadmap, and work.
+- `read-project` opens global owner files and active-track handoffs.
+- Generic `read` is compatibility shorthand resolved from request scope.
+
+### Decision: Give task roadmaps their own owner file
+
+Status: active
+Area: task memory
+
+Decision:
+Store milestone outcomes, dependencies, validation, and completion criteria in
+track `ROADMAP.md`; keep granular work status in `WORK.md`.
+
+Rationale:
+Combining milestone planning with TODO and done items creates duplication and
+makes progress harder to verify across sessions.
+
+Consequences:
+- Every active task track has `ROADMAP.md`.
+- Milestones use stable `M-XX` identifiers and at most one is `in_progress`.
+- The checker rejects missing or structurally invalid roadmaps.
+
+### Decision: Bound autonomous global activation
+
+Status: active
+Area: agent integration
+
+Decision:
+Let global Codex rules invoke KirokuForge from durable project context while
+keeping read-only modes non-mutating and excluding trivial one-shot work.
+
+Rationale:
+Automatic routing makes memory useful across sessions without requiring every
+user to remember a skill invocation, but unbounded activation would create
+noise and could violate analysis-only or file-scope constraints.
+
+Consequences:
+- Existing relevant hubs are read before broad non-trivial project work.
+- Missing hubs and task workspaces are created only inside authorized write
+  milestones when durable continuation justifies them.
+- Repository evidence and applicable instructions override stale memory.
+- Tracked milestones update the owning task before their checkpoint.
+
+### Decision: Complete existing tracks additively
+
+Status: active
+Area: migration safety
+
+Decision:
+When `--track <slug>` targets an existing track, preserve its files and create
+only missing contract files unless overwrite is explicit.
+
+Rationale:
+Contract evolution must not require replacing durable user-authored memory.
+
+Consequences:
+- Legacy tracks can receive `ROADMAP.md` safely.
+- `--overwrite` remains the explicit destructive replacement path.
 
 ### Decision: Generated views are derived
 

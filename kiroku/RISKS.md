@@ -67,6 +67,20 @@ Mitigation:
 Keep `TRACKS.md` compact, pause or close stale tracks, and promote only
 cross-track or cross-repo conclusions to the top-level hub.
 
+### Risk: Autonomous use creates memory noise
+
+Condition:
+Global activation routes trivial or self-contained requests through task
+workspace creation.
+
+Impact:
+Projects accumulate low-value tracks and future agents consume irrelevant
+context.
+
+Mitigation:
+Automatically start tracks only for distinct non-trivial work that needs a
+roadmap or continuation; keep small tasks out unless explicitly requested.
+
 ### Risk: Semantic Markdown becomes too rigid
 
 Condition:

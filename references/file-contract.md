@@ -37,6 +37,7 @@ kiroku/
     <track-slug>/
       START_HERE.md
       STATE.md
+      ROADMAP.md
       WORK.md
       DECISIONS.md
       RISKS.md
@@ -80,6 +81,8 @@ Agents should not read the whole hub by default.
 - After selecting a track, open `tracks/<slug>/START_HERE.md` before any other
   file in that track.
 - Open `STATE.md` for current project status.
+- Open a track's `ROADMAP.md` for milestones, dependencies, validation, and
+  completion criteria.
 - Open `WORK.md` for TODO, ongoing, blocked, done, or planning context.
 - Open `DECISIONS.md` and `CONSTRAINTS.md` before changing direction or scope.
 - Open `ARCHITECTURE.md` before implementation work.
@@ -92,14 +95,17 @@ full-memory review, migration, cleanup, or major restructuring.
 
 ## Operating Modes
 
-- `read`: answer from existing memory without editing.
-- `update`: save durable project state, choices, constraints, work, or risks.
-- `handoff`: keep `START_HERE.md` goal-focused and point to detail files.
+- `init`: create and populate a verified project-wide base hub.
+- `start-task`: reuse or create a task workspace with routing and roadmap.
+- `read-task`: catch up on one task without editing memory.
+- `read-project`: onboard to global project truth and active-track handoffs
+  without editing memory.
+- `update`: save durable project or task state, choices, work, and risks.
+- `handoff`: keep the relevant `START_HERE.md` goal-focused and link details.
 - `cleanup`: compress stale, duplicated, or misplaced memory.
-- `init`: create the default hub from templates.
 
-Use one primary mode per request. If unsure, use `read` for questions and
-`update` for explicit memory-maintenance requests.
+Use one primary mode per request. Treat generic `read` as shorthand resolved to
+`read-task` or `read-project` from the request scope.
 
 ## Compression Policy
 
@@ -119,8 +125,9 @@ already stated elsewhere, and filed under the right owner.
 
 ## Operational State And History
 
-`START_HERE.md`, `STATE.md`, and `WORK.md` are operational files. They should
-answer what is true now and what should happen next.
+`START_HERE.md`, `STATE.md`, `WORK.md`, and track `ROADMAP.md` files are
+operational files. They should answer what is true now and what should happen
+next.
 
 - Put chronological history in `LOG.md`.
 - Put rationale and meaningful past alternatives in `DECISIONS.md`.
@@ -141,6 +148,8 @@ Before finishing a memory write, verify:
 - `LOG.md` has no more than one concise entry for the update.
 - New content is not duplicated across owner files.
 - Track-specific content stays in the track unless intentionally promoted.
+- Every active task track has a roadmap with verifiable milestone completion
+  criteria and no more than one in-progress milestone.
 - `TRACKS.md` remains an index, not a copied summary of all track details.
 - Operational files stay present-tense.
 - No hidden canonical store or generated machine layer was added without an
@@ -148,15 +157,17 @@ Before finishing a memory write, verify:
 
 The optional checker `scripts/check_hub.py` validates the default contract
 mechanically: required files, template placeholders, `START_HERE.md` length,
-TODO `Completion:` conditions, active decision rationales, and track routing
-when `TRACKS.md` or `tracks/` exist. Treat checker errors as blocking; inspect
-warnings before deciding whether the hub is good enough for the current update.
+TODO `Completion:` conditions, active decision rationales, roadmap milestone
+structure and status, and track routing when `TRACKS.md` or `tracks/` exist.
+Treat checker errors as blocking; inspect warnings before deciding whether the
+hub is good enough for the current update.
 
-The optional initializer `scripts/init_hub.py` copies the bundled templates
-into a project `kiroku/` hub. It refuses to overwrite standard hub files unless
+The optional scaffolder `scripts/init_hub.py` copies the bundled templates into
+a project `kiroku/` hub. It does not complete the agent-led `init` workflow and
+it refuses to overwrite standard hub files unless
 `--overwrite` is passed. Use `--with-tracks` to add `TRACKS.md`, and
-`--track <slug>` to add a track from `tracks/_template/` while preserving
-existing standard hub files.
+`--track <slug>` to add or complete a track from `tracks/_template/` while
+preserving existing hub and track files unless overwrite is explicit.
 
 ## File Ownership
 
@@ -188,6 +199,15 @@ existing standard hub files.
 - Use this for the present tense state of the project.
 - In a track, limit state to that workstream.
 
+`tracks/<slug>/ROADMAP.md`
+
+- Outcome-oriented milestones for the track.
+- Each milestone records status, objective, scope, dependencies, expected
+  artifacts, validation, completion criteria, and material risks.
+- At most one milestone is `in_progress`.
+- Roadmap status changes require implementation or validation evidence.
+- Reassess remaining milestones after each milestone checkpoint.
+
 `ARCHITECTURE.md`
 
 - Main flows, module boundaries, design patterns, integration points, and
@@ -209,6 +229,8 @@ existing standard hub files.
 - Every DONE item should state the outcome.
 - Top-level work should be global or cross-track; track work belongs under
   `tracks/<slug>/WORK.md`.
+- Do not duplicate milestone definitions from a track's `ROADMAP.md`; use
+  `WORK.md` for the granular work needed to execute them.
 
 `CONSTRAINTS.md`
 
@@ -238,6 +260,8 @@ existing standard hub files.
 
 - Optional workstream folder with its own compact handoff and owner files.
 - Use when work can progress independently from other active work.
+- Every active task track contains `START_HERE.md`, `STATE.md`, `ROADMAP.md`,
+  and `WORK.md`; decision, risk, and log files are added when useful.
 - Keep local implementation detail here unless it becomes global project memory.
 - Close or pause stale tracks instead of leaving them active indefinitely.
 - Use [track-contract.md](track-contract.md) for routing, lifecycle, promotion,
