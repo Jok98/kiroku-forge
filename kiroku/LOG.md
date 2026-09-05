@@ -19,3 +19,7 @@
   global Codex rules after explicit approval.
 - 2026-07-13: Completed the requirement audit, corrected stale metadata, passed
   helper and autonomous-policy exercises, and closed the restructuring track.
+- 2026-09-05: Completed `validation-contract-alignment`: repaired structural
+  checks and destination handling, aligned language and handoff rules, and
+  consolidated instruction ownership and current memory. Strict hub and general
+  skill validation, real temporary scaffolding, and independent reviews passed.

@@ -135,10 +135,27 @@ Validate a hub:
 python scripts/check_hub.py <project-root-or-kiroku-dir>
 ```
 
+Both commands recognize a directory named `kiroku` as the hub. For an explicitly
+selected custom hub directory, add `--hub-dir`; an unrelated `START_HERE.md`
+does not change where the helpers operate. Existing custom hubs that previously
+relied on that filename heuristic now need the flag.
+
+For an index with translated lifecycle headings, add a track with
+`--track-section "Attivi"` (using the exact existing heading text). The helper
+rejects an absent or ambiguous destination section before writing files.
+
+Handoff targets are advisory: 25-40 lines globally and 20-35 per track. The
+checker enforces caps of 60 and 50 respectively. If the user explicitly asks
+for a longer handoff, use `--allow-long-handoff START_HERE.md` or the relevant
+`tracks/<slug>/START_HERE.md` path; the exception covers only that file's length.
+
 The checker catches missing files, stale template placeholders, TODOs without
 completion conditions, active decisions without rationale, `START_HERE.md`
 length drift, track routing issues, invalid roadmap fields or statuses, and
 multiple milestones marked `in_progress`.
+It recognizes the bundled English placeholders; translated scaffold text,
+factual accuracy, and semantic consistency still require agent review. Keep
+technical field labels and status values unchanged when translating a hub.
 
 ## Example Prompts
 

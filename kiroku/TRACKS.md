@@ -10,6 +10,16 @@
 
 ## Closed
 
+### validation-contract-alignment
+
+Status: closed
+Purpose: Delivered verified helper repairs, aligned operational rules, and concise current memory.
+Repos: kiroku-forge
+Areas: scripts, skill instructions, contracts, templates, project memory
+Keywords: validation, parser, routing, localization, handoff, reliability
+Read: tracks/validation-contract-alignment/START_HERE.md
+Related: none
+
 ### autonomous-memory-routing
 
 Status: closed

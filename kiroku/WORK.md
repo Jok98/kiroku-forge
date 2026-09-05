@@ -10,50 +10,36 @@
 
 Status: todo
 Completion:
-The skill documents the minimum Markdown entry patterns, generated ID rules,
-HTML `data-*` attributes, output location, and read-only behavior for a local
-Kiroku viewer.
+Define the minimum Markdown entry patterns, generated ID rules, HTML attributes,
+output location, and read-only behavior for a local Kiroku viewer.
 
 Notes:
-- Keep Markdown canonical and pleasant to read.
-- Prefer deterministic IDs; use optional explicit ID comments only when title
-  changes would otherwise break links.
-- Include diagnostics for missing completion conditions, missing rationales,
-  unmitigated risks, duplicate headings, and broken links.
+- Keep Markdown canonical and directly readable.
+- Include useful quality diagnostics before introducing additional metadata.
 
 ### Task: Define documentation mode boundaries
 
 Status: todo
 Completion:
-The skill explains when documentation generation is allowed, where project
-docs should be written, and what code or command evidence must be verified
-before writing.
+Specify authorization, output ownership, and source-verification requirements for
+project documentation generated with Kiroku context.
 
 Notes:
-- `kiroku/` remains memory and handoff context, not published docs.
-- Generated docs should avoid duplicating maintained project files.
+- Project documentation belongs outside the memory hub.
+- Avoid duplicating maintained project files or adding a new canonical store.
 
 ## Blocked
 
-- None known.
+- None.
 
 ## Done
 
-- Markdown-first hub, selective reading, strict handoffs, compression, and
-  operational/history ownership are established.
-- Global and track contracts define routing, lifecycle, promotion, closure,
-  and stable entry patterns.
-- Scaffolding and checker helpers support base hubs, task tracks, roadmaps, and
-  safe additive completion of legacy tracks.
-- Global Codex rules activate KirokuForge autonomously for durable non-trivial
-  work while keeping analysis-only reads non-mutating and trivial work excluded.
-- The autonomous-memory-routing restructuring is complete: all requested modes,
-  task ownership, validation, memory migration, and global activation are
-  implemented and independently exercised.
-- Product direction keeps generated views and documentation derived from
-  Markdown and rejects a canonical database or JSON store.
+- Project/task reading modes, evidence-led initialization, optional tracks,
+  roadmaps, and bounded activation rules support durable continuation.
+- Helper reliability, operational contract alignment, and instruction consolidation
+  are complete; `validation-contract-alignment` retains the verified outcomes.
+- Shared product decisions preserve Markdown and keep future views derived.
 
 ## Cancelled
 
-- Continuing the v3 compiler/pipeline build is cancelled for the current
-  product direction.
+- Rebuilding the removed v3 compiler and canonical JSON pipeline.

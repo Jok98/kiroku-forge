@@ -11,6 +11,8 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from check_hub import HEADING_RE, markdown_lines
+
 
 STANDARD_FILES = (
     "START_HERE.md",
@@ -44,6 +46,14 @@ class CopyOperation:
     action: str
 
 
+@dataclass(frozen=True)
+class TrackIndexUpdate:
+    target: Path
+    content: str
+    slugs: tuple[str, ...]
+    section: str
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Scaffold a KirokuForge kiroku/ hub from bundled templates."
@@ -53,6 +63,11 @@ def parse_args() -> argparse.Namespace:
         nargs="?",
         default=".",
         help="Project root or kiroku/ hub directory. Defaults to the current directory.",
+    )
+    parser.add_argument(
+        "--hub-dir",
+        action="store_true",
+        help="Treat path as the hub directory, including a custom directory name.",
     )
     parser.add_argument(
         "--template-dir",
@@ -92,6 +107,16 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--track-section",
+        default="Active",
+        metavar="TEXT",
+        help=(
+            "Exact level-two heading text in TRACKS.md for new entries, without "
+            "the ## prefix. Defaults to Active; use the translated heading for "
+            "an existing non-English index."
+        ),
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Show planned file operations without writing files.",
@@ -121,9 +146,9 @@ def default_track_template_dir(template_dir: Path) -> Path:
     return template_dir / "tracks" / "_template"
 
 
-def resolve_hub(path: Path) -> Path:
+def resolve_hub(path: Path, hub_dir: bool = False) -> Path:
     candidate = path.resolve()
-    if candidate.name == "kiroku" or (candidate / "START_HERE.md").exists():
+    if hub_dir or path.name == "kiroku" or candidate.name == "kiroku":
         return candidate
     return candidate / "kiroku"
 
@@ -149,7 +174,7 @@ def validate_template_files(template_dir: Path, names: tuple[str, ...]) -> list[
 
 def validate_track_slugs(slugs: list[str]) -> list[str]:
     unique_slugs = list(dict.fromkeys(slugs))
-    invalid = [slug for slug in unique_slugs if not TRACK_SLUG_RE.match(slug)]
+    invalid = [slug for slug in unique_slugs if not TRACK_SLUG_RE.fullmatch(slug)]
     if invalid:
         names = ", ".join(invalid)
         raise SystemExit(
@@ -182,6 +207,40 @@ def plan_templates(
             operations.append(CopyOperation(template, target, "create"))
 
     return operations, skipped, conflicts
+
+
+def validate_destinations(hub: Path, targets: list[Path]) -> None:
+    try:
+        boundary = hub.resolve()
+    except (OSError, RuntimeError) as exc:
+        raise SystemExit(f"Cannot resolve hub directory {hub}: {exc}") from exc
+
+    checked_directories: set[Path] = set()
+    for target in targets:
+        try:
+            resolved_target = target.resolve()
+        except (OSError, RuntimeError) as exc:
+            raise SystemExit(f"Cannot resolve destination {target}: {exc}") from exc
+        if not resolved_target.is_relative_to(boundary):
+            raise SystemExit(
+                f"Destination resolves outside hub {boundary}: "
+                f"{target} -> {resolved_target}"
+            )
+        if target.is_symlink() and not target.exists():
+            raise SystemExit(f"Destination is a dangling symlink: {target}")
+        if target.exists() and not target.is_file():
+            raise SystemExit(f"Expected a regular file destination: {target}")
+
+        for directory in target.parents:
+            if directory in checked_directories:
+                continue
+            checked_directories.add(directory)
+            if directory.is_symlink() and not directory.exists():
+                raise SystemExit(
+                    f"Destination directory is a dangling symlink: {directory}"
+                )
+            if directory.exists() and not directory.is_dir():
+                raise SystemExit(f"Expected a destination directory: {directory}")
 
 
 def print_paths(title: str, paths: list[Path]) -> None:
@@ -217,40 +276,68 @@ def track_entry(slug: str) -> list[str]:
     ]
 
 
-def ensure_track_entries(hub: Path, slugs: list[str], dry_run: bool) -> None:
+def plan_track_entries(
+    hub: Path, slugs: list[str], section: str, source: Path
+) -> TrackIndexUpdate | None:
     if not slugs:
-        return
+        return None
 
     path = hub / TRACK_INDEX_FILE
-    if dry_run:
-        for slug in slugs:
-            print(f"ensure-entry: {display(path)} -> {slug}", flush=True)
-        return
+    try:
+        with source.open(encoding="utf-8", newline="") as stream:
+            content = stream.read()
+    except (OSError, UnicodeError) as exc:
+        raise SystemExit(f"Cannot read track index source {source}: {exc}") from exc
 
-    lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
-    existing_slugs = {
-        line.removeprefix("### ").strip()
-        for line in lines
-        if line.startswith("### ")
-    }
+    raw_lines = content.splitlines(keepends=True)
+    lines = [line.rstrip("\r\n") for line in raw_lines]
+    parsed = markdown_lines(lines)
+    headings: list[tuple[int, int, str]] = []
+    for index, (line, is_code) in enumerate(parsed):
+        match = None if is_code else HEADING_RE.match(line)
+        if match is not None:
+            title = re.sub(r"[ \t]+#+[ \t]*$", "", match.group(2)).strip()
+            headings.append((index, len(match.group(1)), title))
+
+    existing_slugs = {title for _, level, title in headings if level == 3}
     missing_slugs = [slug for slug in slugs if slug not in existing_slugs]
     if not missing_slugs:
-        return
+        return None
 
-    if "## Active" not in lines:
-        if lines and lines[-1].strip():
-            lines.append("")
-        lines.extend(["## Active", ""])
+    sections = [
+        index for index, level, title in headings if level == 2 and title == section
+    ]
+    if len(sections) != 1:
+        raise SystemExit(
+            f"Expected exactly one level-two section {section!r} in {source}; "
+            f"found {len(sections)}. Use --track-section with an existing heading "
+            "text, or correct missing or duplicate headings before retrying."
+        )
 
-    active_index = lines.index("## Active")
-    insert_index = len(lines)
-    for index in range(active_index + 1, len(lines)):
-        if lines[index].startswith("## "):
-            insert_index = index
-            break
+    section_index = sections[0]
+    insert_index = next(
+        (index for index, level, _ in headings if index > section_index and level <= 2),
+        len(lines),
+    )
+    if insert_index == len(lines) and markdown_lines(lines + [""])[-1][1]:
+        raise SystemExit(
+            f"Cannot append track entries inside an unclosed code fence in {source}. "
+            "Close the fence before retrying."
+        )
 
-    active_block = lines[active_index + 1 : insert_index]
-    active_block = [line for line in active_block if line.strip() != "- None."]
+    newline = "\r\n" if raw_lines[section_index].endswith("\r\n") else "\n"
+    prefix = "".join(raw_lines[: section_index + 1])
+    if not prefix.endswith(("\n", "\r")):
+        prefix += newline
+    body = "".join(
+        raw_lines[index]
+        for index in range(section_index + 1, insert_index)
+        if parsed[index][1] or parsed[index][0].strip() != "- None."
+    )
+    if body and not body.endswith(("\n", "\r")):
+        body += newline
+    if not body.endswith(newline + newline):
+        body += newline
 
     entries: list[str] = []
     for slug in missing_slugs:
@@ -258,27 +345,33 @@ def ensure_track_entries(hub: Path, slugs: list[str], dry_run: bool) -> None:
             entries.append("")
         entries.extend(track_entry(slug))
 
-    replacement = active_block
-    while replacement and not replacement[0].strip():
-        replacement.pop(0)
-    while replacement and not replacement[-1].strip():
-        replacement.pop()
+    updated = (
+        prefix
+        + body
+        + newline.join(entries)
+        + newline * 2
+        + "".join(raw_lines[insert_index:])
+    )
+    return TrackIndexUpdate(path, updated, tuple(missing_slugs), section)
 
-    if replacement:
-        replacement.extend([""])
-    replacement.extend(entries)
-    if replacement:
-        replacement.append("")
 
-    lines = lines[: active_index + 1] + [""] + replacement + lines[insert_index:]
-    path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
-    for slug in missing_slugs:
-        print(f"ensure-entry: {display(path)} -> {slug}", flush=True)
+def write_track_entries(update: TrackIndexUpdate | None, dry_run: bool) -> None:
+    if update is None:
+        return
+    if not dry_run:
+        with update.target.open("w", encoding="utf-8", newline="") as stream:
+            stream.write(update.content)
+    for slug in update.slugs:
+        print(
+            f"add-entry: {display(update.target)} -> {slug} "
+            f"(section: {update.section})",
+            flush=True,
+        )
 
 
 def run_checker(hub: Path, strict_warnings: bool) -> int:
     checker = skill_root() / "scripts" / "check_hub.py"
-    command = [sys.executable, str(checker), str(hub)]
+    command = [sys.executable, str(checker), str(hub), "--hub-dir"]
     if strict_warnings:
         command.append("--strict-warnings")
     completed = subprocess.run(command, check=False)
@@ -291,7 +384,7 @@ def main() -> int:
     track_template_dir = (
         args.track_template_dir or default_track_template_dir(template_dir)
     ).resolve()
-    hub = resolve_hub(Path(args.path))
+    hub = resolve_hub(Path(args.path), args.hub_dir)
     track_slugs = validate_track_slugs(args.track)
     additive_mode = args.with_tracks or bool(track_slugs)
 
@@ -331,10 +424,24 @@ def main() -> int:
             skipped.extend(track_skipped)
             conflicts.extend(track_conflicts)
 
+    validate_destinations(
+        hub, [operation.target for operation in operations] + skipped + conflicts
+    )
+
     if conflicts:
         print_paths("Refusing to overwrite existing files:", conflicts)
         print("Use --overwrite to replace selected files.", flush=True)
         return 1
+
+    index_source = next(
+        (
+            operation.source
+            for operation in operations
+            if operation.target == hub / TRACK_INDEX_FILE
+        ),
+        hub / TRACK_INDEX_FILE,
+    )
+    index_update = plan_track_entries(hub, track_slugs, args.track_section, index_source)
 
     if args.dry_run:
         print(f"Dry run for Kiroku hub: {display(hub)}", flush=True)
@@ -349,7 +456,7 @@ def main() -> int:
     else:
         copy_operations(operations, args.dry_run)
 
-    ensure_track_entries(hub, track_slugs, args.dry_run)
+    write_track_entries(index_update, args.dry_run)
 
     if args.dry_run:
         return 0

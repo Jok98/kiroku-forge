@@ -1,30 +1,19 @@
 # KirokuForge File Contract
 
-This contract defines the default `kiroku/` Markdown hub. It is intentionally
-small: the text is the memory, not hidden metadata.
-
-## Contents
-
-- Layout
-- General Writing Contract
-- Reading Policy
-- Operating Modes
-- Compression Policy
-- Operational State And History
-- Final Checklist
-- File Ownership
-- Entry Patterns
-- Track Layer
+This contract owns file responsibilities, Markdown syntax, language, handoff
+limits, and helper behavior. [SKILL.md](../SKILL.md) owns operating modes,
+reading order, write scope, compression, and the final checklist. The
+[track contract](track-contract.md) owns routing entries, lifecycle, promotion,
+closure, and roadmaps.
 
 ## Layout
 
-The base hub uses the standard top-level files. Multi-repository projects or
-parallel workstreams may add a lightweight track layer:
+The base hub has nine required Markdown files. The optional track layer keeps
+independent work inside the same project memory:
 
 ```text
 kiroku/
   START_HERE.md
-  TRACKS.md            # optional index for multiple active workstreams
   STATE.md
   ARCHITECTURE.md
   DECISIONS.md
@@ -33,241 +22,105 @@ kiroku/
   IDEAS.md
   RISKS.md
   LOG.md
+  TRACKS.md                 # required when track folders exist
   tracks/
     <track-slug>/
       START_HERE.md
       STATE.md
       ROADMAP.md
       WORK.md
-      DECISIONS.md
-      RISKS.md
-      LOG.md
+      DECISIONS.md          # optional
+      RISKS.md              # optional
+      LOG.md                # optional
 ```
 
-Use top-level files for global or cross-repo truth. Use `tracks/<slug>/` for a
-specific feature, migration, incident, spike, or discussion whose detail would
-pollute unrelated work. Read [track-contract.md](track-contract.md) before
-creating, restructuring, migrating, closing, or broadly updating tracks. Use
-the bundled `assets/templates/kiroku/TRACKS.md` and
-`assets/templates/kiroku/tracks/_template/` files when creating the optional
-track layer.
+Every existing track folder retains its four required files, including paused
+and closed tracks. A candidate without a folder follows the
+[track index contract](track-contract.md#track-index). The bundled
+[hub templates](../assets/templates/kiroku) and
+[track template](../assets/templates/kiroku/tracks/_template) are scaffolds;
+`_template` is not an operational track.
 
-## General Writing Contract
+## Language And Entry Syntax
 
-- Use stable headings and compact prose.
-- Prefer bullets for scannable facts and short paragraphs for rationale.
-- Keep entries project-specific and actionable.
-- Make status visible in text, for example `Status: active`.
-- Use file paths, commands, dates, and module names only when they help future
-  work.
-- Avoid frontmatter unless the user explicitly wants machine parsing.
-- Avoid duplicate explanations across files. Put the detail in one owner file
-  and link or name it elsewhere.
-- For a new hub, use the dominant language of the project or the user's
-  request; for an existing hub, preserve its language and terminology unless
-  the user asks to translate it.
-- Keep `kiroku/*.md` file names stable. Translate headings and placeholder prose
-  only as direct equivalents in the hub language.
-- Use lowercase hyphenated track slugs, for example `tax-migration` or
-  `goal-proposal-cleanup`.
-
-## Reading Policy
-
-Agents should not read the whole hub by default.
-
-- Start with `START_HERE.md`.
-- Open `TRACKS.md` only when several tracks may match the request or the user
-  did not name the target track.
-- After selecting a track, open `tracks/<slug>/START_HERE.md` before any other
-  file in that track.
-- Open `STATE.md` for current project status.
-- Open a track's `ROADMAP.md` for milestones, dependencies, validation, and
-  completion criteria.
-- Open `WORK.md` for TODO, ongoing, blocked, done, or planning context.
-- Open `DECISIONS.md` and `CONSTRAINTS.md` before changing direction or scope.
-- Open `ARCHITECTURE.md` before implementation work.
-- Open `IDEAS.md` for proposals, rejected ideas, or forbidden directions.
-- Open `RISKS.md` for fragile areas, tradeoffs, or known failure modes.
-- Open `LOG.md` only when update history matters.
-
-Do not read sibling tracks by default. Read every file only for explicit
-full-memory review, migration, cleanup, or major restructuring.
-
-## Operating Modes
-
-- `init`: create and populate a verified project-wide base hub.
-- `start-task`: reuse or create a task workspace with routing and roadmap.
-- `read-task`: catch up on one task without editing memory.
-- `read-project`: onboard to global project truth and active-track handoffs
-  without editing memory.
-- `update`: save durable project or task state, choices, work, and risks.
-- `handoff`: keep the relevant `START_HERE.md` goal-focused and link details.
-- `cleanup`: compress stale, duplicated, or misplaced memory.
-
-Use one primary mode per request. Treat generic `read` as shorthand resolved to
-`read-task` or `read-project` from the request scope.
-
-## Compression Policy
-
-Every update should make the hub at least as clear as it was before.
-
-- Remove stale text when newer state replaces it.
-- Merge duplicate notes instead of adding parallel versions.
-- Prefer one precise sentence over a recap paragraph.
-- Keep history only when it explains an active decision, constraint, risk, or
-  rejected idea.
-- Keep detail in the owning file and point to it from other files.
-- Do not preserve transient session progress, command chatter, or generic
-  summaries.
-
-Before adding content, check whether it is still true, useful for future work,
-already stated elsewhere, and filed under the right owner.
-
-## Operational State And History
-
-`START_HERE.md`, `STATE.md`, `WORK.md`, and track `ROADMAP.md` files are
-operational files. They should answer what is true now and what should happen
-next.
-
-- Put chronological history in `LOG.md`.
-- Put rationale and meaningful past alternatives in `DECISIONS.md`.
-- Put obsolete or rejected directions in `IDEAS.md` only when they prevent
-  repeated discussion.
-- Put historical context in constraints or risks only when it still affects
-  future work.
-- Rewrite operational text into current-tense rules instead of preserving a
-  change narrative.
-
-## Final Checklist
-
-Before finishing a memory write, verify:
-
-- `START_HERE.md` stays within its line budget.
-- TODO items have `Completion:` conditions.
-- Active decisions have rationale.
-- `LOG.md` has no more than one concise entry for the update.
-- New content is not duplicated across owner files.
-- Track-specific content stays in the track unless intentionally promoted.
-- Every active task track has a roadmap with verifiable milestone completion
-  criteria and no more than one in-progress milestone.
-- `TRACKS.md` remains an index, not a copied summary of all track details.
-- Operational files stay present-tense.
-- No hidden canonical store or generated machine layer was added without an
-  explicit user request.
-
-The optional checker `scripts/check_hub.py` validates the default contract
-mechanically: required files, template placeholders, `START_HERE.md` length,
-TODO `Completion:` conditions, active decision rationales, roadmap milestone
-structure and status, and track routing when `TRACKS.md` or `tracks/` exist.
-Treat checker errors as blocking; inspect warnings before deciding whether the
-hub is good enough for the current update.
-
-The optional scaffolder `scripts/init_hub.py` copies the bundled templates into
-a project `kiroku/` hub. It does not complete the agent-led `init` workflow and
-it refuses to overwrite standard hub files unless
-`--overwrite` is passed. Use `--with-tracks` to add `TRACKS.md`, and
-`--track <slug>` to add or complete a track from `tracks/_template/` while
-preserving existing hub and track files unless overwrite is explicit.
+- For a new hub, use the dominant language of the project or the user's request.
+  Preserve an existing hub's language and terminology unless translation is requested.
+- Translate descriptive headings and prose while preserving section meanings.
+  Keep file names, track slugs, milestone IDs, technical field labels from the
+  templates, and status values unchanged. Examples include `Status:`,
+  `Completion:`, `Rationale:`, `Read:`, and the roadmap/index labels.
+- Use recognizable lowercase hyphenated slugs, such as `tax-migration`.
+  Letters `a-z` and digits are allowed; hyphens separate non-empty segments.
+- Use level-three headings for task, decision, roadmap, and index entries.
+  A heading at the same or a higher level ends the entry. Roadmap headings
+  follow the [roadmap contract](track-contract.md#roadmap-contract).
+- Put examples inside fenced code blocks. Headings and field labels inside a
+  fence do not create operational entries or fields.
+- Fields may contain inline text, following prose, bullets, or a non-empty
+  fenced code block. Another known field or a heading ends an empty field;
+  content from the next entry cannot satisfy it.
+- Use compact, project-specific prose and visible status. Prefer bullets for
+  facts and short paragraphs for rationale. Include paths, commands, dates,
+  and module names when they help continuation. Avoid frontmatter unless the
+  user explicitly wants machine parsing.
 
 ## File Ownership
 
-`START_HERE.md`
+Global files own project-wide and shared context. Track files own the same
+kind of information only for their workstream; use links instead of repeating
+local detail globally. Operational files describe the present. Chronological
+history belongs in `LOG.md` unless it explains an active decision, constraint,
+risk, or rejected direction.
 
-- First file for a new agent.
-- Target 25-40 lines; hard cap 60 lines unless the user asks for a fuller
-  handoff.
-- Use only these sections, or their direct equivalents in the hub language:
-  `Mission`, `Current State`, `Next Action`, `Hard Constraints`, and
-  `Read Only If Needed`.
-- Contains only what a new agent needs before opening another file.
-- Link to details instead of copying them.
+| File | Responsibility |
+| --- | --- |
+| `START_HERE.md` | Entry and next continuation, scoped globally or to one track; follows the handoff contract below. |
+| `STATE.md` | Current scope, what works, incomplete work, verified facts, and questions affecting the next action. |
+| `ARCHITECTURE.md` | Global flows, module boundaries, patterns, integrations, and implementation details that guide future changes; not an exhaustive code map. |
+| `DECISIONS.md` | Adopted choices. Every active decision needs a non-empty `Rationale:`; keep consequences, alternatives, or replaced choices when they explain future constraints. |
+| `WORK.md` | Granular ongoing, TODO, blocked, done, and cancelled work. Ongoing means currently in flight. Every TODO needs a non-empty `Completion:`. Done items state outcomes; blocked/cancelled items remain when they affect future choices. |
+| `CONSTRAINTS.md` | Shared rules, out-of-scope boundaries, forbidden changes, and what must not break; explain what each rule prevents and why. |
+| `IDEAS.md` | Open, deferred, rejected, and forbidden ideas. Give rejection reasons and explain which failure mode or rule makes an idea forbidden. |
+| `RISKS.md` | Open, accepted, mitigated, and still-relevant closed risks; state condition, impact, and mitigation or a signal to watch. |
+| `LOG.md` | Concise meaningful memory-update history. Track logs cover local changes; the global log covers global memory and track lifecycle changes. |
+| `TRACKS.md` | Compact routing and lifecycle index governed by the [track contract](track-contract.md#track-index). |
+| `tracks/<slug>/ROADMAP.md` | Outcome-oriented milestones governed by the [roadmap contract](track-contract.md#roadmap-contract); granular execution work stays in `WORK.md`. |
 
-`TRACKS.md`
+Local decisions and risks may use their optional track files. Shared
+architecture, constraints, and ideas retain their global owners. Apply the
+[promotion rules](track-contract.md#promotion-and-closure) when a local fact
+acquires wider impact.
 
-- Optional index for hubs with multiple active, paused, or recently closed
-  workstreams.
-- Contains routing facts only: status, one-line purpose, repositories/modules,
-  keywords, path to the track handoff, and related tracks when useful.
-- Does not duplicate track progress, decisions, or risk detail.
-- Keeps closed tracks visible only while their outcome affects future routing.
-- Detailed lifecycle and entry rules live in [track-contract.md](track-contract.md).
+## Handoff Contract
 
-`STATE.md`
+Every global or track `START_HERE.md` uses only these sections, or their direct
+equivalents in the hub language: `Mission`, `Current State`, `Next Action`,
+`Hard Constraints`, and `Read Only If Needed`.
 
-- Current project status, what works, what is incomplete, recent verified
-  facts, and open questions that shape next work.
-- Use this for the present tense state of the project.
-- In a track, limit state to that workstream.
+Write bullets containing only what an agent needs before opening another
+file. Keep one concrete next action and link to detail. A goal-specific
+handoff changes the relevant handoff; a track handoff covers only that track
+and the shared constraints it needs. Use the
+[global](../assets/templates/kiroku/START_HERE.md) or
+[track](../assets/templates/kiroku/tracks/_template/START_HERE.md) skeleton.
 
-`tracks/<slug>/ROADMAP.md`
+| Handoff | Advisory target | Enforced cap |
+| --- | --- | --- |
+| Global `START_HERE.md` | 25-40 lines | 60 lines |
+| Track `START_HERE.md` | 20-35 lines | 50 lines |
 
-- Outcome-oriented milestones for the track.
-- Each milestone records status, objective, scope, dependencies, expected
-  artifacts, validation, completion criteria, and material risks.
-- At most one milestone is `in_progress`.
-- Roadmap status changes require implementation or validation evidence.
-- Reassess remaining milestones after each milestone checkpoint.
-
-`ARCHITECTURE.md`
-
-- Main flows, module boundaries, design patterns, integration points, and
-  important implementation details.
-- Use this for knowledge that guides future code changes.
-
-`DECISIONS.md`
-
-- Adopted choices and their rationale.
-- Include consequences and alternatives when they explain future constraints.
-- Keep replaced decisions if their history prevents repeating old reasoning.
-- Promote track decisions to the top-level file only when they affect the
-  project, multiple repositories, multiple tracks, or shared architecture.
-
-`WORK.md`
-
-- Ongoing, TODO, blocked, done, and cancelled work.
-- Every TODO should have a completion condition.
-- Every DONE item should state the outcome.
-- Top-level work should be global or cross-track; track work belongs under
-  `tracks/<slug>/WORK.md`.
-- Do not duplicate milestone definitions from a track's `ROADMAP.md`; use
-  `WORK.md` for the granular work needed to execute them.
-
-`CONSTRAINTS.md`
-
-- Active constraints, out-of-scope boundaries, forbidden changes, and things
-  that must not be broken.
-- A constraint should say what it prevents and why.
-
-`IDEAS.md`
-
-- Open, deferred, rejected, and forbidden ideas.
-- Rejected ideas should include the rejection reason.
-- Forbidden ideas should explain the failure mode or project rule they violate.
-
-`RISKS.md`
-
-- Open risks, mitigations, accepted risks, and closed risks that still matter.
-- Keep risks practical: condition, impact, mitigation or signal to watch.
-
-`LOG.md`
-
-- Short history of meaningful memory updates.
-- Do not log every command or every small edit.
-- Track logs describe only that track; top-level logs describe global memory
-  changes or track lifecycle changes.
-
-`tracks/<slug>/`
-
-- Optional workstream folder with its own compact handoff and owner files.
-- Use when work can progress independently from other active work.
-- Every active task track contains `START_HERE.md`, `STATE.md`, `ROADMAP.md`,
-  and `WORK.md`; decision, risk, and log files are added when useful.
-- Keep local implementation detail here unless it becomes global project memory.
-- Close or pause stale tracks instead of leaving them active indefinitely.
-- Use [track-contract.md](track-contract.md) for routing, lifecycle, promotion,
-  closure, and track-specific entry patterns.
+Targets are editorial guidance and do not generate checker warnings. Exceed a
+cap only when the user explicitly requests a longer handoff. For that file,
+run the checker with `--allow-long-handoff <hub-relative-path>`, naming either
+`START_HERE.md` or `tracks/<slug>/START_HERE.md`. The file must exist. Repeat
+this option only for other separately authorized handoffs; all other caps
+and checks remain enforced. The flag records a checker exception, not user
+authorization.
 
 ## Entry Patterns
+
+Use each shape in its owner file. Replace example prose with verified context;
+translate prose and descriptive titles, keeping field labels.
 
 Decision:
 
@@ -276,16 +129,10 @@ Decision:
 
 Status: active
 Area: module-or-topic
-
-Decision:
-State the adopted choice.
-
-Rationale:
-Explain why this choice was made.
-
+Decision: State the adopted choice.
+Rationale: Explain why it was adopted.
 Consequences:
-- Consequence that affects future work.
-- Tradeoff or limitation if relevant.
+- State a consequence or tradeoff that affects future work.
 ```
 
 Task:
@@ -294,11 +141,9 @@ Task:
 ### Task: Short name
 
 Status: todo
-Completion:
-State the condition that makes the task done.
-
+Completion: State the condition that makes the task done.
 Notes:
-- Context needed to continue.
+- Add context needed to continue.
 ```
 
 Constraint:
@@ -307,12 +152,8 @@ Constraint:
 ### Constraint: Short name
 
 Status: active
-
-Rule:
-State the constraint.
-
-Why:
-Explain what breaks or becomes risky if ignored.
+Rule: State the constraint.
+Why: Explain what breaks or becomes risky if ignored.
 ```
 
 Rejected idea:
@@ -320,15 +161,68 @@ Rejected idea:
 ```md
 ### Rejected: Short name
 
-Reason:
-Explain why the idea was rejected.
-
-Keep in mind:
-State when, if ever, this should be reconsidered.
+Reason: Explain why this was rejected.
+Keep in mind: State when, if ever, to reconsider it.
 ```
 
-## Track Layer
+## Helper Commands
 
-For track index entries, track handoff skeletons, lifecycle status values,
-promotion rules, closure rules, and track-specific reading order, use
-[track-contract.md](track-contract.md).
+Run helpers from the skill directory, or use their absolute script paths:
+
+```bash
+python scripts/init_hub.py <project-root>
+python scripts/init_hub.py <project-root> --track <slug>
+python scripts/check_hub.py <project-root> --strict-warnings
+python scripts/check_hub.py <custom-hub> --hub-dir
+```
+
+Without a path, both helpers use the current directory. A project-root path
+selects its `kiroku/`; a path named `kiroku` selects that hub directly. Use
+`--hub-dir` to select the exact directory with a custom name; `START_HERE.md`
+alone never identifies a hub. An explicitly selected hub may itself be a
+directory alias.
+
+[The scaffolder](../scripts/init_hub.py) only copies templates and adds routing
+scaffolds; the agent must fill and verify them before initialization is complete.
+
+- Base scaffolding refuses to overwrite existing standard files unless
+  `--overwrite` is explicit. `--with-tracks` adds a missing index; `--track <slug>`
+  adds or completes a track and its routing entry and may be repeated.
+- Track operations preserve existing standard hub files even with `--overwrite`.
+  Existing track files are preserved unless overwrite is explicit.
+  `--with-tracks --overwrite` also replaces the selected index.
+- The helper copies all seven track template files. Only four are structurally
+  required; optional decision, risk, and log files must still be curated when present.
+- To insert missing entries into a translated index, pass
+  `--track-section "<existing level-two heading text>"` without `##`.
+  The default is `Active`. The selected section must exist exactly once in
+  the existing or selected template index. Unknown prose is preserved; curate
+  localized empty-section notes when filling the scaffold.
+- Before copying, preflight rejects missing/duplicate insertion sections,
+  unreadable index sources, destination type collisions, dangling symlinks,
+  and destinations resolving outside the selected hub. It does not make later
+  filesystem writes transactional.
+- `--dry-run` shows the plan without writing. `--check` runs the checker after
+  scaffolding; add `--strict-warnings` to fail on its warnings. A fresh scaffold
+  still contains placeholders, so this is not a readiness guarantee. Invoke
+  the checker directly when a handoff needs an authorized length exception.
+- `--template-dir` and `--track-template-dir` select alternate templates.
+  Use each helper's `--help` for its complete argument syntax.
+
+## Validation Contract
+
+[The checker](../scripts/check_hub.py) checks required file shapes, recognized
+bundled placeholder prose, handoff caps, TODO completion conditions, active
+decision rationales, roadmap fields/statuses, and index-to-folder routing.
+It reads the selected hub; it does not edit memory.
+
+Treat checker errors as blocking for the affected scope and inspect warnings.
+`--strict-warnings` also returns failure for warnings; completed initialization
+requires strict validation after curation. A failure elsewhere in the hub does
+not authorize editing another track: report its scope separately.
+
+A passing check proves only these structural checks. The agent must review
+translated or rewritten placeholders, semantic accuracy, evidence freshness,
+required handoff section meanings, duplication, and cross-file consistency.
+The checker recognizes the documented entry conventions; it is not a general
+Markdown parser or proof that the project itself works.

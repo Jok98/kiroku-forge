@@ -2,106 +2,75 @@
 
 ## Open Risks
 
-### Risk: Markdown hub becomes too verbose
+### Risk: Memory becomes stale or repetitive
 
 Condition:
-Agents may over-document every turn or duplicate details across files.
+Agents can retain old verification claims or duplicate task progress globally.
 
 Impact:
-Future agents will spend too much context reading generated clutter.
+Future work consumes irrelevant context or relies on an obsolete premise.
 
 Mitigation:
-Keep `START_HERE.md` selective, update existing sections, and log only
-meaningful memory changes.
+Revalidate facts that can drift, keep each fact in its owner file, and separate
+historical evidence from current state. Use focused compression during updates.
 
-### Risk: Too little structure for consistent updates
+### Risk: Structural validation is mistaken for semantic proof
 
 Condition:
-Without JSON schemas or IDs, different agents may format entries
-inconsistently.
+A clean checker result can be treated as proof that content is accurate or complete.
 
 Impact:
-The hub could become harder to scan over time.
+Translated placeholders, unsupported prose conventions, or unjustified completion
+claims could be overlooked despite valid structure.
 
 Mitigation:
-Use `references/file-contract.md` and stable section patterns before adding
-any machine layer.
+Document the supported entry patterns and require agent review of evidence,
+translated scaffold text, and consistency between owner files.
 
-### Risk: Old v3 assumptions leak back in
+### Risk: Later I/O failures leave partial scaffolding
 
 Condition:
-Prior memory and repository history still mention v3 pipeline concepts.
+Preflight succeeds but a copy or index write subsequently fails.
 
 Impact:
-Future work could accidentally rebuild the discarded architecture.
+The hub can contain only part of the planned files or an incomplete routing update.
 
 Mitigation:
-Keep the obsolete decision and constraints visible in `DECISIONS.md`,
-`CONSTRAINTS.md`, and `IDEAS.md`.
+Inspect the result and rerun additive scaffolding after fixing the cause; the
+helper preserves existing files. Preflight is not a transaction or rollback mechanism.
 
-### Risk: Generated UI becomes a second source of truth
+### Risk: Automatic activation or cleanup broadens scope
 
 Condition:
-A local HTML viewer, tags, IDs, or generated docs become editable or preserved
-as authoritative state.
+A trivial task or local update is treated as justification for global maintenance.
 
 Impact:
-Markdown and generated views can drift, making agents and humans disagree
-about current project memory.
+Unnecessary hubs, tracks, or edits add noise and can affect unrelated work.
 
 Mitigation:
-Keep generated outputs read-only and regenerable until editing can write
-directly back to canonical Markdown.
+Apply current AGENTS authority, exclude trivial work unless requested, and limit
+compression to the changed owner files and direct references.
 
-### Risk: Track routing becomes stale
+### Risk: A future viewer recreates a second source of truth
 
 Condition:
-`TRACKS.md` is not kept current, or old workstreams remain active after their
-context is no longer useful.
+Derived HTML or a query cache becomes independently editable or authoritative.
 
 Impact:
-Agents may route work to the wrong track, read irrelevant context, or miss a
-global decision that should have been promoted.
+Memory representations drift and the product returns to a schema-heavy design.
 
 Mitigation:
-Keep `TRACKS.md` compact, pause or close stale tracks, and promote only
-cross-track or cross-repo conclusions to the top-level hub.
-
-### Risk: Autonomous use creates memory noise
-
-Condition:
-Global activation routes trivial or self-contained requests through task
-workspace creation.
-
-Impact:
-Projects accumulate low-value tracks and future agents consume irrelevant
-context.
-
-Mitigation:
-Automatically start tracks only for distinct non-trivial work that needs a
-roadmap or continuation; keep small tasks out unless explicitly requested.
-
-### Risk: Semantic Markdown becomes too rigid
-
-Condition:
-The renderer requires too much metadata, manual IDs, or strict formatting for
-ordinary memory entries.
-
-Impact:
-The hub becomes unpleasant to read and maintain, repeating the schema-heavy
-failure mode of the old design.
-
-Mitigation:
-Use stable headings and light field patterns first; generate IDs
-deterministically and add explicit markers only when stability requires them.
+Keep initial views read-only and derived from the existing Markdown entry patterns.
 
 ## Accepted Risks
 
-- The current skill has no runtime test suite because the old runtime was
-  removed. Skill validation, the lightweight hub checker, and practical testing
-  are the current feedback mechanisms.
+- There is no persistent automated test suite. Focused behavior checks, helper
+  validation, and review must be repeated for relevant changes; adding test
+  artifacts requires separate approval under the user's policy.
+- Translated headings need explicit section selection when the helper cannot
+  identify their lifecycle meaning from the default English name.
 
 ## Closed Risks
 
-- The risk of continuing the overly heavy v3 direction was closed by deleting
-  the v3 implementation and documenting the Markdown-first direction.
+- Known routing, field-boundary, bundled-placeholder, and destination-shape defects
+  were repaired in `validation-contract-alignment`; its roadmap records verification.

@@ -2,291 +2,129 @@
 
 ## Active Decisions
 
-### Decision: Markdown is the primary memory
+### Decision: Curated Markdown with minimal metadata
 
 Status: active
-Area: product direction
 
 Decision:
-KirokuForge stores project memory primarily in human-readable Markdown files
-under `kiroku/`.
+Keep human-readable Markdown as primary project memory, with stable files,
+headings, and small textual fields instead of a canonical machine layer.
 
 Rationale:
-The user wants memory that is directly useful to developers and agents, with
-project reasoning and decisions written in a speaking form rather than hidden
-inside structured metadata.
+Developers and agents need durable reasoning they can read and edit directly;
+heavy schemas and bookkeeping undermine that purpose.
 
 Consequences:
-- No canonical `memory.json` in the current design.
-- No required frontmatter, schema registry, hash chain, or generated index.
-- Structure comes from stable files, headings, and compact prose.
+- No canonical JSON, database, schema registry, receipts, or generated index by default.
+- Store each fact in its owner file and keep operational state concise.
 
-### Decision: Keep metadata minimal
+### Decision: Separate evidence gathering from scaffolding and checking
 
 Status: active
-Area: file format
 
 Decision:
-Use plain text status lines and clear sections instead of heavy metadata.
+The agent verifies and curates project knowledge; helpers perform deterministic
+scaffolding and structural validation only.
 
 Rationale:
-Generated memory will grow over time. Heavy metadata would consume context and
-make the files less pleasant for humans to edit.
+File presence and valid Markdown cannot establish factual accuracy or whether
+a milestone's outcome was actually achieved.
 
 Consequences:
-- Entries should explain themselves in prose.
-- A line such as `Status: active` is acceptable when it helps scanning.
-- Machine parsing is secondary and should not drive the format.
+- Initialization requires replacing placeholders and passing a strict check.
+- The checker covers the documented entry patterns and bundled scaffold prose.
+- Translated placeholders and semantic consistency require agent review.
 
-### Decision: Match the hub language to the project
+### Decision: Match project language while preserving technical tokens
 
 Status: active
-Area: file format
 
 Decision:
-For a new hub, write in the dominant language of the project or the user's
-request. For an existing hub, preserve its current language and terminology
-unless the user explicitly asks for translation.
+Use the project's or request's language for new prose; preserve the language of
+existing memory. Keep file names, slugs, milestone IDs, field labels, and status
+values invariant while allowing translated descriptive headings and contents.
 
 Rationale:
-The memory is meant to be read by the project's developers and future agents.
-Matching the project's working language reduces friction, while preserving an
-existing hub's language avoids noisy churn.
+Readable local-language memory and dependable lightweight parsing need an
+explicit boundary between prose and structural identifiers.
 
 Consequences:
-- `kiroku/*.md` file names remain stable.
-- Template headings and placeholder prose may be translated during init as
-  direct equivalents in the selected hub language.
+- Select a translated index section by its observed heading text.
+- An agent completes and curates generated English scaffold prose before readiness.
 
-### Decision: Add a lightweight hub checker
+### Decision: Separate global context from durable task workspaces
 
 Status: active
-Area: validation
 
 Decision:
-Provide `scripts/check_hub.py` as an optional local checker for the default
-Markdown hub contract.
+Use one hub for related repositories, with optional tracks for independently
+resumable work. Keep milestone outcomes in roadmap files and granular work in
+work files. Separate task continuation from project onboarding.
 
 Rationale:
-The skill benefits from deterministic checks for easy-to-miss structural
-problems, but the current direction rejects a heavy runtime, schemas, or a
-canonical machine-readable memory layer.
+Focused task reads need detailed local state; project onboarding needs shared
+context and routing without loading every task's implementation detail.
 
 Consequences:
-- The checker validates required files, stale template placeholders,
-  `START_HERE.md` length, TODO completion conditions, active decision
-  rationales, track routing, and roadmap structure and status.
-- Checker errors should block completion of init, cleanup, or broad updates;
-  warnings should be inspected rather than treated as automatic failures.
-- The checker does not make Markdown secondary to generated metadata.
+- Promote only conclusions that affect shared direction, architecture, or constraints.
+- Preserve stable milestone IDs and allow at most one in-progress milestone per roadmap.
+- A task read can fall back to global entries without creating a workspace.
 
-### Decision: Separate agent-led init from deterministic scaffolding
+### Decision: Bound automatic activation and update scope
 
 Status: active
-Area: initialization
 
 Decision:
-Use `init` as the agent-led project-discovery and memory-population workflow;
-use `scripts/init_hub.py` only for deterministic template scaffolding.
+Use applicable AGENTS rules for selective activation, preserve read-only modes,
+and perform memory writes only within authorized project and milestone scope.
 
 Rationale:
-Templates make file creation repeatable, but only an agent can inspect project
-evidence, distinguish facts from unknowns, and create useful base memory.
+Automatic memory use should aid continuation without creating trivial tracks,
+changing unrelated files, or treating old memory as current authority.
 
 Consequences:
-- The script creates the nine standard hub files from
-  `assets/templates/kiroku/`.
-- Existing hub and track files are preserved unless `--overwrite` is explicit.
-- `init` is incomplete until placeholders are replaced and the strict checker
-  passes.
+- Current instructions and verified project evidence override stale memory.
+- Local compression touches only affected owner files and direct references.
+- Historical installation notes do not prove current host configuration.
 
-### Decision: Add optional workstream tracks
+### Decision: Make helper destinations and exceptions explicit
 
 Status: active
-Area: memory routing
 
 Decision:
-Keep one project hub for related repositories, but allow optional
-`TRACKS.md` and `tracks/<slug>/` folders to isolate parallel workstreams.
+Select custom hubs with `--hub-dir`, translated index headings with
+`--track-section`, and user-requested long handoffs with individual
+`--allow-long-handoff` paths. Preserve existing files in additive scaffolding.
 
 Rationale:
-Multi-repo projects often need one shared memory because repositories are
-interdependent. Separate tracks prevent an agent working on one problem from
-loading unrelated decisions, tasks, and progress from another active problem.
+A generic filename cannot reliably identify a hub, translated empty sections
+cannot be guessed, and an exception for one file must not weaken checks elsewhere.
 
 Consequences:
-- Top-level files hold global or cross-repo truth.
-- Track files hold local state, roadmap, work, decisions, risks, and handoff
-  context for one workstream.
-- `references/track-contract.md` owns detailed lifecycle, routing, promotion,
-  closure, and entry-pattern rules for tracks.
-- Bundled templates provide a repeatable starting point for `TRACKS.md` and new
-  track folders.
-- Helper scripts initialize and validate the track layer additively without
-  making generated output canonical.
-- Information is promoted from a track to the top-level hub only when it affects
-  multiple tracks, multiple repositories, shared architecture, or global
-  constraints.
+- Validate destination types and index plans before copying.
+- Legacy custom hubs relying on filename detection require the explicit flag.
+- Advisory handoff targets do not become blocking warnings.
 
-### Decision: Separate task resume from project onboarding
+### Decision: Keep future views and documentation derived
 
 Status: active
-Area: reading workflow
 
 Decision:
-Use `read-task` to resume one selected task and `read-project` to orient a new
-agent or session to global project truth and active-track handoffs.
+A future semantic HTML viewer should derive entry types, IDs, relationships, and
+filters from Markdown. Documentation output and any query cache must not become
+canonical memory. Do not introduce a database in the current product direction.
 
 Rationale:
-A task continuation needs detailed local state and roadmap, while project
-onboarding needs broad routing context without every track's implementation
-detail.
+Parallel editable stores create synchronization problems and make the underlying
+memory less useful when read without the viewer.
 
 Consequences:
-- `read-task` opens the selected track's handoff, state, roadmap, and work.
-- `read-project` opens global owner files and active-track handoffs.
-- Generic `read` is compatibility shorthand resolved from request scope.
-
-### Decision: Give task roadmaps their own owner file
-
-Status: active
-Area: task memory
-
-Decision:
-Store milestone outcomes, dependencies, validation, and completion criteria in
-track `ROADMAP.md`; keep granular work status in `WORK.md`.
-
-Rationale:
-Combining milestone planning with TODO and done items creates duplication and
-makes progress harder to verify across sessions.
-
-Consequences:
-- Every active task track has `ROADMAP.md`.
-- Milestones use stable `M-XX` identifiers and at most one is `in_progress`.
-- The checker rejects missing or structurally invalid roadmaps.
-
-### Decision: Bound autonomous global activation
-
-Status: active
-Area: agent integration
-
-Decision:
-Let global Codex rules invoke KirokuForge from durable project context while
-keeping read-only modes non-mutating and excluding trivial one-shot work.
-
-Rationale:
-Automatic routing makes memory useful across sessions without requiring every
-user to remember a skill invocation, but unbounded activation would create
-noise and could violate analysis-only or file-scope constraints.
-
-Consequences:
-- Existing relevant hubs are read before broad non-trivial project work.
-- Missing hubs and task workspaces are created only inside authorized write
-  milestones when durable continuation justifies them.
-- Repository evidence and applicable instructions override stale memory.
-- Tracked milestones update the owning task before their checkpoint.
-
-### Decision: Complete existing tracks additively
-
-Status: active
-Area: migration safety
-
-Decision:
-When `--track <slug>` targets an existing track, preserve its files and create
-only missing contract files unless overwrite is explicit.
-
-Rationale:
-Contract evolution must not require replacing durable user-authored memory.
-
-Consequences:
-- Legacy tracks can receive `ROADMAP.md` safely.
-- `--overwrite` remains the explicit destructive replacement path.
-
-### Decision: Generated views are derived
-
-Status: active
-Area: generated outputs
-
-Decision:
-Any local HTML UI, project documentation output, tags, generated IDs, or query
-aid must be derived from the Markdown hub rather than becoming a parallel
-source of truth.
-
-Rationale:
-The user wants a clearer, more interactive view for humans, but agents should
-still be able to read and maintain the plain Markdown files directly.
-
-Consequences:
-- The first HTML viewer should be read-only.
-- Generated IDs should be deterministic from file, heading, and entry text,
-  with optional explicit markers only when stability is needed.
-- Generated artifacts should be ignored or safely regenerable unless the user
-  explicitly asks to publish them.
-
-### Decision: Do not introduce a database now
-
-Status: active
-Area: generated outputs
-
-Decision:
-Do not add a database as canonical KirokuForge storage or as a required layer
-for the current local UI direction.
-
-Rationale:
-A database would add schema design, migrations, sync concerns, harder Git
-review, and drift risk while giving agents less useful narrative context than
-well-structured Markdown.
-
-Consequences:
-- The current direction is structured Markdown plus semantic HTML generation.
-- If a SQLite or similar cache is ever justified, it must be disposable and
-  regenerated from Markdown.
-- Agents should continue to read Markdown first instead of querying a database.
-
-### Decision: Use semantic Markdown for local UI generation
-
-Status: active
-Area: file format
-
-Decision:
-Future HTML generation should parse stable Markdown entry patterns rather than
-perform only a vanilla Markdown-to-HTML conversion.
-
-Rationale:
-A plain conversion produces readable pages, but a useful local UI needs entry
-types, statuses, tags, relationships, filters, and diagnostics that come from
-consistent Markdown structure.
-
-Consequences:
-- Existing entry patterns such as decisions, tasks, constraints, risks, and
-  rejected ideas should become the renderer contract.
-- HTML can include `id`, `data-type`, `data-status`, `data-area`, and
-  `data-tags` derived from Markdown.
-- The Markdown must remain pleasant to read without the renderer.
-
-### Decision: Remove the v3 implementation
-
-Status: active
-Area: repository structure
-
-Decision:
-Delete the v3 compiler-style implementation and recreate the skill from a
-small Markdown-first base.
-
-Rationale:
-The old design had a strong formal pipeline, schemas, ChangeSets, hashes, and
-canonical JSON. That was too heavy for the desired manual, readable project
-memory hub.
-
-Consequences:
-- `schemas/`, `scripts/kiroku_core/`, `tests/`, `references/contracts-v3.md`,
-  and `todo_kiroku.txt` were removed.
-- Old v3 validation state is historical only.
-- New maturity will come from practical use and forward-testing.
+- Start any viewer as read-only; future editing must write back to Markdown.
+- Keep generated identifiers deterministic, adding explicit markers only if justified.
+- Define documentation authorization and output boundaries before adding that mode.
 
 ## Replaced Or Obsolete Decisions
 
-- The previous decision to use `memory.json` as canonical memory is obsolete
-  for this skill direction.
-- The previous pipeline model `CAPTURE -> CLASSIFY -> RECONCILE -> COMPILE ->
-  VALIDATE -> HANDOFF` is obsolete as user-facing product shape.
+- The v3 compiler pipeline, canonical `memory.json`, schemas, hashes, and generated
+  projections were intentionally removed. Their past implementation does not
+  define the current architecture; meaningful history remains in `LOG.md`.

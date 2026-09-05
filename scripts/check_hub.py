@@ -8,6 +8,7 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 
 REQUIRED_FILES = (
@@ -112,12 +113,20 @@ PLACEHOLDER_NEEDLES = (
     "TODO: describe this workstream",
     "Repos: TBD",
     "Areas: TBD",
+    "State why it matters",
+    "State what reduces or monitors the risk",
+    "Ideas postponed with the reason or trigger for reconsideration",
+    "Ideas that violate project constraints or known failure modes",
+    "List work intentionally excluded from current scope",
+    "List changes that must not be made and why",
+    "Move old decisions here when their history still matters",
+    "Move old track decisions here when their history still matters",
+    "Note whether anything should be promoted to top-level memory",
+    "Summarize meaningful memory changes",
 )
 
-FIELD_RE = re.compile(r"^[A-Z][A-Za-z ]+:\s*(.*)$")
-HEADING_RE = re.compile(r"^#{1,6}\s+")
-ACTIVE_RE = re.compile(r"^Status:\s*active\s*$", re.IGNORECASE)
-TODO_RE = re.compile(r"^Status:\s*todo\s*$", re.IGNORECASE)
+HEADING_RE = re.compile(r"^ {0,3}(#{1,6})(?:[ \t]+|$)(.*)$")
+FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 TRACK_SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 MILESTONE_HEADING_RE = re.compile(r"^###\s+(M-[0-9]{2,}):\s+\S")
 MILESTONE_STATUSES = {"pending", "in_progress", "completed", "blocked"}
@@ -129,6 +138,29 @@ MILESTONE_REQUIRED_LABELS = (
     "Validation:",
     "Completion criteria:",
     "Risks:",
+)
+CONTRACT_LABELS = MILESTONE_REQUIRED_LABELS + (
+    "Milestone:",
+    "Status:",
+    "Area:",
+    "Decision:",
+    "Rationale:",
+    "Consequences:",
+    "Completion:",
+    "Notes:",
+    "Rule:",
+    "Why:",
+    "Reason:",
+    "Keep in mind:",
+    "Condition:",
+    "Impact:",
+    "Mitigation:",
+    "Purpose:",
+    "Repos:",
+    "Areas:",
+    "Keywords:",
+    "Read:",
+    "Related:",
 )
 
 
@@ -151,16 +183,31 @@ def parse_args() -> argparse.Namespace:
         help="Project root or kiroku/ hub directory. Defaults to the current directory.",
     )
     parser.add_argument(
+        "--hub-dir",
+        action="store_true",
+        help="Treat path as the exact hub directory, including a custom name.",
+    )
+    parser.add_argument(
         "--strict-warnings",
         action="store_true",
         help="Exit with status 1 when warnings are present.",
     )
+    parser.add_argument(
+        "--allow-long-handoff",
+        action="append",
+        default=[],
+        metavar="PATH",
+        help=(
+            "Allow a user-requested extended handoff at this hub-relative path. "
+            "Repeat for each existing START_HERE.md to exempt from its length cap."
+        ),
+    )
     return parser.parse_args()
 
 
-def resolve_hub(path: Path) -> Path:
+def resolve_hub(path: Path, hub_dir: bool = False) -> Path:
     candidate = path.resolve()
-    if candidate.name == "kiroku" or (candidate / "START_HERE.md").exists():
+    if hub_dir or path.name == "kiroku" or candidate.name == "kiroku":
         return candidate
     return candidate / "kiroku"
 
@@ -180,21 +227,53 @@ def has_label_content(block: list[str], label: str) -> bool:
     return label_value(block, label) is not None
 
 
+def markdown_lines(lines: list[str]) -> list[tuple[str, bool]]:
+    """Mark fenced code without changing source offsets; omit fence delimiters."""
+    parsed: list[tuple[str, bool]] = []
+    fence_char: str | None = None
+    fence_length = 0
+    for line in lines:
+        match = FENCE_RE.match(line)
+        if fence_char is not None:
+            if (
+                match is not None
+                and match.group(1)[0] == fence_char
+                and len(match.group(1)) >= fence_length
+                and not match.group(2).strip()
+            ):
+                fence_char = None
+                parsed.append(("", True))
+            else:
+                parsed.append((line, True))
+        elif match is not None and not (
+            match.group(1)[0] == "`" and "`" in match.group(2)
+        ):
+            fence_char = match.group(1)[0]
+            fence_length = len(match.group(1))
+            parsed.append(("", True))
+        else:
+            parsed.append((line, False))
+    return parsed
+
+
 def label_value(block: list[str], label: str) -> str | None:
-    for index, line in enumerate(block):
+    parsed = markdown_lines(block)
+    for index, (line, is_code) in enumerate(parsed):
         stripped = line.strip()
-        if not stripped.startswith(label):
+        if is_code or not stripped.startswith(label):
             continue
 
         inline_value = stripped[len(label) :].strip()
         if inline_value:
             return inline_value
 
-        for following in block[index + 1 :]:
+        for following, following_is_code in parsed[index + 1 :]:
             candidate = following.strip()
             if not candidate:
                 continue
-            if HEADING_RE.match(candidate) or FIELD_RE.match(candidate):
+            if not following_is_code and (
+                HEADING_RE.match(following) or candidate.startswith(CONTRACT_LABELS)
+            ):
                 return None
             return candidate
 
@@ -203,14 +282,21 @@ def label_value(block: list[str], label: str) -> str | None:
     return None
 
 
-def heading_blocks(lines: list[str], prefix: str = "### ") -> list[tuple[int, list[str]]]:
+def heading_blocks(
+    lines: list[str], prefix: str = "### "
+) -> list[tuple[int, list[str]]]:
     blocks: list[tuple[int, list[str]]] = []
     start: int | None = None
+    level = len(prefix.strip())
 
-    for index, line in enumerate(lines):
-        if line.startswith(prefix):
-            if start is not None:
-                blocks.append((start, lines[start:index]))
+    for index, (line, is_code) in enumerate(markdown_lines(lines)):
+        match = None if is_code else HEADING_RE.match(line)
+        if match is None or len(match.group(1)) > level:
+            continue
+        if start is not None:
+            blocks.append((start, lines[start:index]))
+            start = None
+        if len(match.group(1)) == level:
             start = index
 
     if start is not None:
@@ -224,7 +310,12 @@ def check_required_files(hub: Path) -> list[Issue]:
     for name in REQUIRED_FILES:
         path = hub / name
         if not path.is_file():
-            issues.append(Issue("error", path, None, "required hub file is missing"))
+            message = (
+                "required hub path exists but is not a file"
+                if path.exists() or path.is_symlink()
+                else "required hub file is missing"
+            )
+            issues.append(Issue("error", path, None, message))
     return issues
 
 
@@ -241,7 +332,7 @@ def check_file_placeholders(path: Path, lines: list[str]) -> list[Issue]:
     needles = sorted(PLACEHOLDER_NEEDLES, key=len, reverse=True)
     for line_number, line in enumerate(lines, start=1):
         for needle in needles:
-            if needle in line:
+            if needle.casefold() in line.casefold():
                 issues.append(
                     Issue(
                         "warning",
@@ -257,12 +348,11 @@ def check_file_placeholders(path: Path, lines: list[str]) -> list[Issue]:
 def check_start_here_lines(
     path: Path,
     lines: list[str],
-    target_min: int,
-    target_max: int,
     hard_cap: int,
+    allow_long: bool = False,
 ) -> list[Issue]:
     line_count = len(lines)
-    if line_count > hard_cap:
+    if line_count > hard_cap and not allow_long:
         return [
             Issue(
                 "error",
@@ -271,29 +361,67 @@ def check_start_here_lines(
                 f"START_HERE.md has {line_count} lines; hard cap is {hard_cap}",
             )
         ]
-    if line_count < target_min or line_count > target_max:
-        return [
-            Issue(
-                "warning",
-                path,
-                None,
-                f"START_HERE.md has {line_count} lines; target is {target_min}-{target_max}",
-            )
-        ]
     return []
 
 
-def check_start_here(hub: Path, files: dict[str, list[str]]) -> list[Issue]:
+def resolve_long_handoffs(
+    hub: Path, requested_paths: list[str]
+) -> tuple[set[Path], list[Issue]]:
+    allowed: set[Path] = set()
+    issues: list[Issue] = []
+    for value in requested_paths:
+        relative = Path(value)
+        parts = relative.parts
+        is_global = parts == ("START_HERE.md",)
+        is_track = (
+            len(parts) == 3
+            and parts[0] == "tracks"
+            and TRACK_SLUG_RE.fullmatch(parts[1]) is not None
+            and parts[2] == "START_HERE.md"
+        )
+        if relative.is_absolute() or not (is_global or is_track):
+            issues.append(
+                Issue(
+                    "error",
+                    hub,
+                    None,
+                    f"--allow-long-handoff {value!r} must name START_HERE.md or "
+                    "tracks/<slug>/START_HERE.md relative to the hub",
+                )
+            )
+            continue
+        path = hub / relative
+        if not path.is_file():
+            issues.append(
+                Issue(
+                    "error",
+                    path,
+                    None,
+                    "--allow-long-handoff requires an existing handoff file",
+                )
+            )
+            continue
+        # Keep the named path distinct from aliases to other handoffs.
+        allowed.add(path)
+    return allowed, issues
+
+
+def check_start_here(
+    hub: Path,
+    files: dict[str, list[str]],
+    allowed_handoffs: set[Path] | None = None,
+) -> list[Issue]:
     lines = files.get("START_HERE.md")
     if lines is None:
         return []
-    return check_start_here_lines(hub / "START_HERE.md", lines, 25, 40, 60)
+    path = hub / "START_HERE.md"
+    return check_start_here_lines(path, lines, 60, path in (allowed_handoffs or set()))
 
 
 def check_todo_completion_file(path: Path, lines: list[str]) -> list[Issue]:
     issues: list[Issue] = []
     for start, block in heading_blocks(lines):
-        if any(TODO_RE.match(line.strip()) for line in block):
+        if (label_value(block, "Status:") or "").lower() == "todo":
             if not has_label_content(block, "Completion:"):
                 issues.append(
                     Issue(
@@ -316,7 +444,7 @@ def check_todo_completion(hub: Path, files: dict[str, list[str]]) -> list[Issue]
 def check_active_decision_rationale_file(path: Path, lines: list[str]) -> list[Issue]:
     issues: list[Issue] = []
     for start, block in heading_blocks(lines):
-        if any(ACTIVE_RE.match(line.strip()) for line in block):
+        if (label_value(block, "Status:") or "").lower() == "active":
             if not has_label_content(block, "Rationale:"):
                 issues.append(
                     Issue(
@@ -442,17 +570,23 @@ def load_existing_files(hub: Path) -> tuple[dict[str, list[str]], list[Issue]]:
             files[name] = read_lines(path)
         except UnicodeDecodeError as exc:
             issues.append(Issue("error", path, None, f"file is not valid UTF-8: {exc}"))
+        except OSError as exc:
+            issues.append(Issue("error", path, None, f"cannot read file: {exc}"))
 
     return files, issues
 
 
 def load_optional_file(path: Path) -> tuple[list[str] | None, list[Issue]]:
     if not path.is_file():
+        if path.exists() or path.is_symlink():
+            return None, [Issue("error", path, None, "expected a file at this path")]
         return None, []
     try:
         return read_lines(path), []
     except UnicodeDecodeError as exc:
         return None, [Issue("error", path, None, f"file is not valid UTF-8: {exc}")]
+    except OSError as exc:
+        return None, [Issue("error", path, None, f"cannot read file: {exc}")]
 
 
 def discover_track_dirs(hub: Path) -> list[Path]:
@@ -466,13 +600,41 @@ def discover_track_dirs(hub: Path) -> list[Path]:
     )
 
 
+def local_read_target(value: str) -> str | None:
+    """Extract a local path from a plain path, code span, or Markdown link."""
+    if value.startswith("`"):
+        match = re.fullmatch(r"(`+)(.+?)\1", value)
+        if match is None:
+            return None
+        value = match.group(2)
+    elif value.startswith("["):
+        match = re.fullmatch(
+            r"\[[^\]\n]*\]\(\s*(?:<([^>\n]+)>|([^\s()]+))"
+            r"(?:\s+(?:\"[^\"]*\"|'[^']*'))?\s*\)",
+            value,
+        )
+        if match is None:
+            return None
+        value = match.group(1) or match.group(2)
+    try:
+        parsed = urlsplit(value)
+    except ValueError:
+        return None
+    if parsed.scheme or parsed.netloc or parsed.query or not parsed.path:
+        return None
+    target = unquote(parsed.path)
+    if any(character in target for character in ("\x00", "\n", "\r")):
+        return None
+    return target
+
+
 def check_tracks_index(hub: Path, track_dirs: list[Path]) -> list[Issue]:
     path = hub / TRACK_INDEX_FILE
     lines, load_issues = load_optional_file(path)
     issues = list(load_issues)
 
     if lines is None:
-        if track_dirs:
+        if track_dirs and not load_issues:
             issues.append(
                 Issue(
                     "error",
@@ -485,17 +647,31 @@ def check_tracks_index(hub: Path, track_dirs: list[Path]) -> list[Issue]:
 
     issues.extend(check_file_placeholders(path, lines))
     blocks = heading_blocks(lines)
-    blocks_by_slug = {
-        block[0].removeprefix("### ").strip(): (start, block)
-        for start, block in blocks
-    }
+    indexed_slugs: set[str] = set()
+    directory_slugs = {track_dir.name for track_dir in track_dirs}
 
     for start, block in blocks:
-        status = label_value(block, "Status:")
-        if status is None:
+        heading = HEADING_RE.match(block[0])
+        assert heading is not None
+        slug = re.sub(r"[ \t]+#+[ \t]*$", "", heading.group(2)).strip()
+        if not TRACK_SLUG_RE.fullmatch(slug):
+            issues.append(
+                Issue("error", path, start + 1, f"invalid track slug {slug!r}")
+            )
             continue
-        normalized = status.lower()
-        if normalized not in TRACK_STATUSES:
+        if slug in indexed_slugs:
+            issues.append(
+                Issue("error", path, start + 1, f"duplicate track entry {slug!r}")
+            )
+        indexed_slugs.add(slug)
+
+        status = label_value(block, "Status:")
+        normalized = status.lower() if status is not None else None
+        if status is None:
+            issues.append(
+                Issue("error", path, start + 1, f"track {slug!r} is missing Status:")
+            )
+        elif normalized not in TRACK_STATUSES:
             issues.append(
                 Issue(
                     "error",
@@ -505,51 +681,82 @@ def check_tracks_index(hub: Path, track_dirs: list[Path]) -> list[Issue]:
                 )
             )
 
-    for track_dir in track_dirs:
-        slug = track_dir.name
-        entry = blocks_by_slug.get(slug)
-        if entry is None:
+        track_dir = hub / "tracks" / slug
+        has_directory = slug in directory_slugs
+        candidate_without_directory = normalized == "candidate" and not has_directory
+        if not has_directory and (track_dir.exists() or track_dir.is_symlink()):
             issues.append(
                 Issue(
                     "error",
-                    path,
+                    track_dir,
                     None,
-                    f"TRACKS.md is missing an entry for track {slug!r}",
+                    "expected a track directory at this path",
                 )
             )
-            continue
+        elif not has_directory and not candidate_without_directory:
+            issues.append(
+                Issue(
+                    "error", path, start + 1, f"track directory is missing for {slug!r}"
+                )
+            )
 
-        start, block = entry
         read_value = label_value(block, "Read:")
         expected = f"tracks/{slug}/START_HERE.md"
         if read_value is None:
+            if not candidate_without_directory:
+                issues.append(
+                    Issue(
+                        "error",
+                        path,
+                        start + 1,
+                        f"track {slug!r} is missing a Read: target",
+                    )
+                )
+            continue
+
+        target = local_read_target(read_value)
+        try:
+            resolved_target = (hub / target).resolve() if target is not None else None
+            expected_target = (hub / expected).resolve()
+        except (OSError, RuntimeError, ValueError) as exc:
+            issues.append(
+                Issue("error", path, start + 1, f"cannot resolve Read: target: {exc}")
+            )
+            continue
+        if resolved_target != expected_target:
             issues.append(
                 Issue(
                     "error",
                     path,
                     start + 1,
-                    f"track {slug!r} is missing a Read: target",
+                    f"track {slug!r} Read: must target the local file {expected}",
                 )
             )
-        elif expected not in read_value:
+        elif not candidate_without_directory and not resolved_target.is_file():
             issues.append(
                 Issue(
-                    "error",
-                    path,
-                    start + 1,
-                    f"track {slug!r} Read: should point to {expected}",
+                    "error", path, start + 1, f"track {slug!r} Read: target is not a file"
                 )
             )
+
+    for slug in sorted(directory_slugs - indexed_slugs):
+        issues.append(
+            Issue(
+                "error", path, None, f"TRACKS.md is missing an entry for track {slug!r}"
+            )
+        )
 
     return issues
 
 
-def check_track_dirs(track_dirs: list[Path]) -> list[Issue]:
+def check_track_dirs(
+    track_dirs: list[Path], allowed_handoffs: set[Path] | None = None
+) -> list[Issue]:
     issues: list[Issue] = []
 
     for track_dir in track_dirs:
         slug = track_dir.name
-        if not TRACK_SLUG_RE.match(slug):
+        if not TRACK_SLUG_RE.fullmatch(slug):
             issues.append(
                 Issue(
                     "error",
@@ -562,14 +769,17 @@ def check_track_dirs(track_dirs: list[Path]) -> list[Issue]:
         for name in TRACK_REQUIRED_FILES:
             path = track_dir / name
             if not path.is_file():
-                issues.append(
-                    Issue("error", path, None, "required track file is missing")
+                message = (
+                    "required track path exists but is not a file"
+                    if path.exists() or path.is_symlink()
+                    else "required track file is missing"
                 )
+                issues.append(Issue("error", path, None, message))
 
         files: dict[str, list[str]] = {}
         for name in TRACK_CHECK_FILES:
             path = track_dir / name
-            if not path.is_file():
+            if name in TRACK_REQUIRED_FILES and not path.is_file():
                 continue
             lines, load_issues = load_optional_file(path)
             issues.extend(load_issues)
@@ -579,9 +789,13 @@ def check_track_dirs(track_dirs: list[Path]) -> list[Issue]:
 
         start_here = files.get("START_HERE.md")
         if start_here is not None:
+            handoff_path = track_dir / "START_HERE.md"
             issues.extend(
                 check_start_here_lines(
-                    track_dir / "START_HERE.md", start_here, 20, 35, 50
+                    handoff_path,
+                    start_here,
+                    50,
+                    handoff_path in (allowed_handoffs or set()),
                 )
             )
 
@@ -618,18 +832,43 @@ def print_issues(title: str, issues: list[Issue]) -> None:
 
 def main() -> int:
     args = parse_args()
-    hub = resolve_hub(Path(args.path))
+    try:
+        hub = resolve_hub(Path(args.path), hub_dir=args.hub_dir)
+    except (OSError, RuntimeError) as exc:
+        print_issues(
+            "Errors",
+            [Issue("error", Path(args.path), None, f"cannot resolve hub: {exc}")],
+        )
+        return 1
+    if not hub.is_dir():
+        message = (
+            "expected a hub directory at this path"
+            if hub.exists() or hub.is_symlink()
+            else "hub directory is missing"
+        )
+        print_issues("Errors", [Issue("error", hub, None, message)])
+        return 1
 
-    issues = check_required_files(hub)
+    allowed_handoffs, issues = resolve_long_handoffs(hub, args.allow_long_handoff)
+    issues.extend(check_required_files(hub))
     files, load_issues = load_existing_files(hub)
     issues.extend(load_issues)
     issues.extend(check_placeholders(hub, files))
-    issues.extend(check_start_here(hub, files))
+    issues.extend(check_start_here(hub, files, allowed_handoffs))
     issues.extend(check_todo_completion(hub, files))
     issues.extend(check_active_decision_rationale(hub, files))
-    track_dirs = discover_track_dirs(hub)
+    tracks_path = hub / "tracks"
+    if (tracks_path.exists() or tracks_path.is_symlink()) and not tracks_path.is_dir():
+        issues.append(
+            Issue("error", tracks_path, None, "expected a tracks directory at this path")
+        )
+    try:
+        track_dirs = discover_track_dirs(hub)
+    except OSError as exc:
+        issues.append(Issue("error", tracks_path, None, f"cannot list tracks: {exc}"))
+        track_dirs = []
     issues.extend(check_tracks_index(hub, track_dirs))
-    issues.extend(check_track_dirs(track_dirs))
+    issues.extend(check_track_dirs(track_dirs, allowed_handoffs))
 
     errors = [issue for issue in issues if issue.severity == "error"]
     warnings = [issue for issue in issues if issue.severity == "warning"]

@@ -1,340 +1,90 @@
 # KirokuForge Track Contract
 
-This contract defines the optional track layer for projects where one shared
-hub covers several repositories or several parallel workstreams.
+This contract owns the track index, lifecycle, roadmaps, promotion, and closure.
+[SKILL.md](../SKILL.md) owns activation, focus selection, reading order, and the
+write workflow. The [file contract](file-contract.md) owns file responsibilities,
+required files, language, entry syntax, handoffs, and helper commands.
 
-## Contents
+A track isolates an independently resumable feature, migration, incident,
+spike, bug family, or discussion inside the shared project hub. Global files
+retain shared context; detailed local work belongs to its track.
 
-- Purpose
-- When To Use A Track
-- Layout
-- Focus Routing
-- TRACKS.md Contract
-- Track File Ownership
-- Task Workspace Workflow
-- Task Roadmap Contract
-- Lifecycle
-- Promotion Rules
-- Reading Rules
-- Update Rules
-- Compression And Closure
-- Entry Patterns
+## Track Index
 
-## Purpose
+`TRACKS.md` is a compact routing index, not a copied summary of work, decisions,
+or risks. Keep each entry's purpose to one line, add useful repository/module
+names and keywords, and link related tracks only when that relationship affects
+routing. Change entries only for routing facts or lifecycle changes.
 
-A track isolates one durable stream of work inside the same project hub.
+Each entry uses a unique lowercase hyphenated slug as its level-three heading
+and has an explicit `Status:`. Every track folder has a matching entry and
+retains the [required workspace files](file-contract.md#layout), regardless of
+lifecycle status. `_template` is a source scaffold, not an indexed track.
 
-Use tracks to keep one shared memory for cross-repository truth while avoiding
-irrelevant context when an agent is working on only one problem.
+Only a `candidate` entry may omit its folder and `Read:` until a workspace is
+created. If a candidate already has a folder, the normal file and routing
+requirements apply. Other statuses require an existing workspace.
 
-Top-level files remain the source for global project truth. Track files hold
-local state, roadmap, work, decisions, risks, and handoff context for one
-workstream.
+For an existing workspace, `Read:` must resolve to its actual local
+`tracks/<slug>/START_HERE.md` file. A similar name or a URL containing that text
+is insufficient. Accepted forms include:
 
-## When To Use A Track
-
-Create or use a track when the work:
-
-- can progress independently from other active work;
-- has enough durable context that it will likely be resumed later;
-- touches a specific feature, migration, bug family, incident, spike, or
-  discussion;
-- would pollute top-level memory if every detail were stored globally.
-
-Do not create a track for a short-lived task, generic conversation recap,
-single command result, or detail that belongs directly in a global decision,
-constraint, or architecture note.
-
-## Layout
-
-```text
-kiroku/
-  TRACKS.md
-  tracks/
-    <track-slug>/
-      START_HERE.md
-      STATE.md
-      ROADMAP.md
-      WORK.md
-      DECISIONS.md
-      RISKS.md
-      LOG.md
+```md
+Read: tracks/tax-migration/START_HERE.md
+Read: `tracks/tax-migration/START_HERE.md`
+Read: [Task handoff](tracks/tax-migration/START_HERE.md)
 ```
 
-Use lowercase hyphenated slugs. Prefer domain names that users and agents will
-recognize, for example `tax-migration`, `goal-proposal-cleanup`, or
-`auth-refresh`.
+Lifecycle section headings may use the hub language; field labels and status
+values remain invariant. See [helper commands](file-contract.md#helper-commands)
+for insertion into a translated index without creating duplicate sections.
 
-Track folders may omit optional decision, risk, or log files until they are
-useful, but every active task track must have `START_HERE.md`, `STATE.md`,
-`ROADMAP.md`, and `WORK.md`.
+Example entry:
 
-Bundled templates live under `assets/templates/kiroku/`:
+```md
+### tax-migration
 
-- `TRACKS.md` initializes the top-level track index.
-- `tracks/_template/` initializes a new track folder.
-
-Copy `_template` to a concrete lowercase hyphenated slug, add every required
-contract file, and replace all placeholder prose. Do not leave `_template`
-listed as an active track.
-Prefer `python scripts/init_hub.py <project-root-or-kiroku-dir> --track <slug>`
-when creating track files or adding missing contract files to an existing
-track. Existing track files are preserved unless overwrite is explicit.
-
-## Focus Routing
-
-Before opening detailed memory, choose one focus:
-
-- `global`: use top-level files for project-wide state, shared architecture,
-  cross-repo decisions, shared constraints, global risks, and work that affects
-  several tracks.
-- `track`: use `tracks/<slug>/` for workstream-specific state, roadmap, tasks,
-  decisions, risks, and handoff.
-
-Select a track when the user names it, `TRACKS.md` maps the request to it, or
-the prompt, branch, changed paths, issue, repository names, modules, or
-keywords clearly match it.
-
-Ask the user only when several active tracks could match and routing cannot be
-inferred safely.
-
-## TRACKS.md Contract
-
-`TRACKS.md` is a compact routing index. It should not become a summary of every
-track.
-
-Keep each entry short and readable:
-
-- status: `active`, `paused`, `closed`, or `candidate`;
-- one-line purpose;
-- repositories, modules, or areas when useful;
-- keywords that help future agents route requests;
-- path to the track handoff;
-- related tracks only when the relationship affects routing.
-
-Closed tracks should remain listed only while their outcome, replaced decision,
-or warning helps future routing. Otherwise remove or archive the entry during
-cleanup.
-
-## Track File Ownership
-
-`tracks/<slug>/START_HERE.md`
-
-- First file for the track.
-- Target 20-35 lines; tolerate up to 50 only for delicate work.
-- Use the same section meanings as the global handoff: `Mission`,
-  `Current State`, `Next Action`, `Hard Constraints`, and `Read Only If Needed`.
-- Include only what an agent needs before opening another track file.
-
-`tracks/<slug>/STATE.md`
-
-- Current state for this track only.
-- Verified facts, current scope, known incomplete work, and questions that
-  affect this track.
-
-`tracks/<slug>/ROADMAP.md`
-
-- Ordered, outcome-oriented milestones for this track.
-- Milestone status, objective, scope, expected artifacts, dependencies,
-  validation, completion criteria, and material risks.
-- At most one milestone marked `in_progress`.
-- Roadmap reassessment after every completed milestone.
-
-`tracks/<slug>/WORK.md`
-
-- Ongoing, TODO, blocked, done, and cancelled work for this track.
-- Every TODO has a `Completion:` condition.
-- Done items state outcome, not just activity.
-- Granular tasks belong here; do not duplicate milestone definitions from
-  `ROADMAP.md`.
-
-`tracks/<slug>/DECISIONS.md`
-
-- Decisions local to this track.
-- Active decisions need rationale.
-- Promote decisions to top-level `DECISIONS.md` only when they affect the wider
-  project.
-
-`tracks/<slug>/RISKS.md`
-
-- Risks local to this track.
-- Include condition, impact, mitigation, or signal to watch.
-
-`tracks/<slug>/LOG.md`
-
-- Concise history of meaningful track memory updates.
-- Do not log command chatter or every small edit.
-
-## Task Workspace Workflow
-
-Use `start-task` when KirokuForge manages a non-trivial feature, migration,
-incident, bug family, spike, or other task that needs roadmap or continuation
-state.
-
-1. Read global `START_HERE.md` and `TRACKS.md` when present.
-2. Match the request to existing entries by purpose, issue, branch,
-   repositories, modules, paths, and keywords.
-3. Reuse one clear match. Create a new lowercase hyphenated track only when no
-   existing track owns the work.
-4. Populate the required files with verified task context and add the routing
-   entry to `TRACKS.md`.
-5. Set one current milestone and one next action. Keep detailed tasks in
-   `WORK.md`, not in the routing index or handoff.
-6. Validate the task workspace before treating it as ready.
-
-Do not create a track for a trivial, self-contained operation unless the user
-explicitly asks to preserve it.
-
-## Task Roadmap Contract
-
-Use stable milestone identifiers such as `M-01`, `M-02`, and preserve them
-while the milestone remains relevant. Each milestone must state:
-
-```text
-Milestone:
-Status: pending | in_progress | completed | blocked
-Objective:
-Scope:
-Expected artifacts:
-Dependencies:
-Validation:
-Completion criteria:
-Risks:
+Status: active
+Purpose: Migrate tax calculation while preserving existing invoice behavior.
+Repos: billing-service
+Areas: tax calculation, invoicing
+Keywords: tax, migration, invoice
+Read: tracks/tax-migration/START_HERE.md
+Related: invoice-rounding
 ```
 
-Keep milestones independently verifiable. Mark a milestone completed only
-when its completion criteria are supported by current evidence. After each
-milestone, compare actual results with the roadmap and record every material
-addition, removal, reorder, or scope change. Keep only the concise current
-roadmap here; chronological detail belongs in `LOG.md`.
+Omit optional context fields when they add no routing value. The example is a
+shape to adapt, not authorization to create the named workstream.
 
 ## Lifecycle
 
-Use these statuses in `TRACKS.md`:
+Use these exact values in the index:
 
-- `candidate`: possible track, not enough durable context yet.
-- `active`: current workstream likely to be resumed.
-- `paused`: valid workstream, intentionally not current.
-- `closed`: workstream completed, cancelled, or absorbed elsewhere.
+| Status | Meaning |
+| --- | --- |
+| `candidate` | Possible workstream without enough durable context yet. |
+| `active` | Current workstream likely to be resumed. |
+| `paused` | Valid workstream intentionally not current. |
+| `closed` | Completed, cancelled, or absorbed workstream. |
 
-Close or pause stale tracks during cleanup. Do not leave old tracks active just
-because their files still exist.
+Pause or close a stale track when the authorized update or cleanup includes
+its lifecycle. Existing files alone do not make a track active. Keep a closed
+entry only while its outcome, replaced decision, or warning helps routing.
+When later removing or archiving it during cleanup, keep the index and folder
+set coherent; leaving an unindexed folder violates the contract.
 
-## Promotion Rules
+## Roadmap Contract
 
-Promote information from a track to top-level files when it:
+Every existing track has `ROADMAP.md` with at least one milestone. Use ordered,
+outcome-oriented milestones that can be verified independently. Give each a
+stable unique ID such as `M-01`, preserving it while the milestone is relevant.
+Every level-three heading in this file must follow `### M-01: Short outcome`;
+put non-milestone notes under another heading level or in the owning file.
 
-- affects multiple repositories or multiple tracks;
-- changes shared architecture, product direction, or implementation patterns;
-- creates a constraint or forbidden direction for the wider project;
-- closes a risk that future agents must know before choosing direction;
-- changes the global project state or next cross-track work.
-
-Do not promote local task progress, implementation minutiae, exploratory notes,
-or decisions that only matter inside the track.
-
-When promoting, summarize globally and keep detailed context in the track.
-
-## Reading Rules
-
-For track work:
-
-1. Read top-level `START_HERE.md`.
-2. Read `TRACKS.md` only if the target track is not explicit.
-3. Read `tracks/<slug>/START_HERE.md`.
-4. For continuation or planning, read the track `STATE.md`, `ROADMAP.md`, and
-   `WORK.md`.
-5. Read other track files only when the request needs them.
-6. Read top-level `DECISIONS.md`, `CONSTRAINTS.md`, or `ARCHITECTURE.md` only
-   when the track touches shared direction, constraints, or design.
-
-Do not read sibling tracks unless the user asks, `TRACKS.md` marks them as
-related, or evidence shows a direct dependency.
-
-## Update Rules
-
-When updating a track:
-
-- update `TRACKS.md` only for routing facts and lifecycle changes;
-- put current status in the track `STATE.md`;
-- put milestones, dependencies, validation, and completion criteria in the
-  track `ROADMAP.md`;
-- put next actions and TODOs in the track `WORK.md`;
-- put local adopted choices in the track `DECISIONS.md`;
-- put fragile areas in the track `RISKS.md`;
-- add at most one concise entry to the track `LOG.md`;
-- promote only wider conclusions to the top-level hub.
-
-If the user asks to update memory after broad project work, update both the
-track and top-level files only when both changed materially.
-
-## Compression And Closure
-
-Before finishing a track update:
-
-- remove duplicated text between global files and track files;
-- replace stale progress with current state;
-- reconcile milestone state between `ROADMAP.md`, `STATE.md`, `WORK.md`, and
-  the track handoff without repeating the full roadmap;
-- move history out of `START_HERE.md`, `STATE.md`, and `WORK.md` unless it
-  explains current action;
-- close completed TODOs with outcomes;
-- pause or close tracks that are no longer active;
-- ensure `TRACKS.md` points to the right handoff and does not copy detail.
-- run `python scripts/check_hub.py <project-root-or-kiroku-dir>` when practical.
-
-When closing a track, preserve only:
-
-- final outcome;
-- final milestone outcomes or the remaining active roadmap;
-- remaining follow-up if any;
-- decisions or constraints that still matter;
-- risks that remain open or intentionally accepted;
-- links or paths needed to understand the closure.
-
-## Entry Patterns
-
-Track index entry:
-
-```md
-### track-slug
-
-Status: active
-Purpose: One-line description of the workstream.
-Repos: repo-a, repo-b
-Areas: module-or-domain names when useful
-Keywords: short terms that help route future requests
-Read: tracks/track-slug/START_HERE.md
-Related: other-track-slug only when useful
-```
-
-Track handoff skeleton:
-
-```md
-# Start Here
-
-## Mission
-
-- State the workstream goal.
-
-## Current State
-
-- State what is true now for this track.
-
-## Next Action
-
-- Name the next concrete step.
-
-## Hard Constraints
-
-- List only constraints that affect this track.
-
-## Read Only If Needed
-
-- Point to track detail files and required global files.
-```
-
-Roadmap milestone:
+Each milestone has a non-empty `Status:` and every field shown below. Valid
+statuses are `pending`, `in_progress`, `completed`, and `blocked`. At most one
+milestone is `in_progress` in a track. Use `None` or `None known` when an absence
+of dependencies or risks is supported, rather than leaving required fields empty.
 
 ```md
 ### M-01: Short outcome
@@ -362,3 +112,34 @@ Completion criteria:
 Risks:
 - State material risks or `None known`.
 ```
+
+Change milestone status only from implementation or validation evidence. Mark
+completion only when the criteria are satisfied by current evidence. After each
+completed milestone, compare results with the roadmap, reassess remaining work,
+and record any material addition, removal, reordering, or scope change.
+
+Keep the current milestone and next action aligned with track `STATE.md`,
+`WORK.md`, and `START_HERE.md` without copying milestone definitions. The
+roadmap owns the current milestone plan; granular tasks remain in `WORK.md`
+and chronological reassessment history belongs in `LOG.md`.
+
+## Promotion And Closure
+
+Promote a local conclusion to the global owner only when it:
+
+- affects multiple repositories or tracks;
+- changes shared architecture, product direction, or implementation patterns;
+- creates a shared constraint or forbidden direction;
+- closes a risk future agents must understand before choosing direction; or
+- changes global state or the next cross-track action.
+
+Summarize the wider implication globally and keep detailed context in the
+track. Local progress, implementation minutiae, exploratory notes, and choices
+that matter only to the track do not qualify. Update both levels only when
+both changed materially.
+
+When closing a track, preserve its final outcome, final milestone outcomes or
+remaining roadmap, follow-up, still-relevant decisions and constraints, open
+or accepted risks, and the paths needed to understand closure. Resolve or
+transfer remaining work explicitly instead of hiding it behind a closed
+status. Retained track folders still follow the required-file contract.

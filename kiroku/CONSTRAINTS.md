@@ -2,114 +2,72 @@
 
 ## Active Constraints
 
-### Constraint: Markdown first
+### Constraint: Markdown remains canonical
 
 Status: active
 
 Rule:
-Project memory must live primarily in readable Markdown files.
+Keep readable Markdown as primary memory with minimal metadata. Do not introduce
+canonical JSON, databases, schemas, receipts, hashes, or generated indexes by default.
 
 Why:
-The memory has to be useful to developers and agents without requiring a parser
-or generated projection.
+A hidden machine layer would repeat the rejected compiler-style memory design
+and make direct human editing less useful.
 
-### Constraint: Minimal metadata
+### Constraint: Evidence and authorization govern memory
 
 Status: active
 
 Rule:
-Do not add frontmatter, IDs, hashes, receipts, or structured indexes by
-default.
+Current instructions and verified project evidence override memory. Read modes
+do not create, repair, or clean memory; writes require the current task's authority.
 
 Why:
-The user explicitly wants speaking project information, not a format that
-fills context with bookkeeping.
+Stale notes and historical approvals cannot authorize new actions or establish
+current runtime behavior.
 
-### Constraint: No canonical JSON by default
+### Constraint: Keep work within its owner scope
 
 Status: active
 
 Rule:
-Do not create `memory.json` or equivalent canonical JSON unless explicitly
-asked.
+Store task details in their track, promote only shared conclusions, and compress
+only changed owner files and directly affected references during a local update.
 
 Why:
-The prior JSON-centered design was judged too limiting for human-editable
-Markdown memory.
+Unrelated track reads and global progress duplication inflate context and risk
+modifying work outside the requested scope.
 
-### Constraint: Generated outputs are noncanonical
+### Constraint: Readiness requires curated content
 
 Status: active
 
 Rule:
-Generated HTML, generated project docs, query caches, tags, and generated IDs
-must not become the canonical memory store.
+Do not report initialization complete with scaffold prose or unresolved strict
+checker findings. Review translated placeholders and semantic accuracy separately.
 
 Why:
-KirokuForge has to remain useful when opened as plain Markdown by a developer
-or agent, and generated projections create drift if treated as authoritative.
+Template copies and structurally valid text are not verified project knowledge.
 
-### Constraint: Track detail stays local
+### Constraint: Derived outputs remain secondary
 
 Status: active
 
 Rule:
-Do not copy track-specific progress, local decisions, or implementation detail
-into top-level hub files unless it affects the wider project.
+Generated HTML, project documentation, tags, IDs, and caches must not become a
+competing source of memory; a first viewer should be read-only.
 
 Why:
-The track layer exists to keep unrelated parallel work out of an agent's
-context while preserving one shared project memory for cross-repo truth.
-
-### Constraint: Initialization requires verified content
-
-Status: active
-
-Rule:
-Do not report `init` complete while template placeholders, structural errors,
-or strict checker warnings remain.
-
-Why:
-A copied template is scaffolding, not durable project memory, and would give a
-future session false confidence that project context is available.
-
-### Constraint: Autonomous writes respect the task mode
-
-Status: active
-
-Rule:
-Context-driven Kiroku use may read existing memory during analysis-only work,
-but it must not initialize a hub or create a task workspace without write
-authority.
-
-Why:
-Memory automation must not override the user's analysis-only or repository
-instruction boundaries.
-
-### Constraint: No database dependency
-
-Status: active
-
-Rule:
-Do not require a database for KirokuForge memory or for the first local UI.
-
-Why:
-The current use case is local, read-mostly, and human-scale; a database adds
-schema and synchronization complexity before there is a clear repeated need.
+Parallel editable representations create drift and unnecessary synchronization.
 
 ## Out Of Scope
 
-- Rebuilding the old v3 pipeline.
-- Maintaining compatibility with the removed v3 schemas or fixtures.
-- Creating a full CLI before the Markdown format is proven useful.
-- Creating an editable local web app before a read-only semantic viewer has
-  proven useful.
+- Rebuilding the removed v3 runtime, schemas, or compiler pipeline.
+- Maintaining compatibility with removed v3 fixtures or test infrastructure.
+- Building a full CLI, database layer, or editable web app before the need is established.
 
 ## Forbidden Changes
 
-- Do not reintroduce the v3 compiler architecture under a new name.
-- Do not make generated views read-only projections of a hidden canonical
-  store.
-- Do not save generic conversation summaries as durable memory.
-- Do not replace Markdown with a canonical database and generated Markdown
-  projection.
+- Hidden canonical stores with generated Markdown projections.
+- Generic conversation recaps or command chatter preserved as project knowledge.
+- New or modified automated test artifacts without the user's required approval.
