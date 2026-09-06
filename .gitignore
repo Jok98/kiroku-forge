@@ -1,0 +1,8 @@
+__pycache__/
+.kiroku-write.*.tmp
+*.py[cod]
+# Runtime sidecars are not portable snapshots. Commit the closed memory.sqlite.
+memory.sqlite-wal
+memory.sqlite-shm
+memory.sqlite-journal
+.memory.sqlite.*.tmp*

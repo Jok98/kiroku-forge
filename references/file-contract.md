@@ -4,7 +4,12 @@ This contract owns file responsibilities, Markdown syntax, language, handoff
 limits, and helper behavior. [SKILL.md](../SKILL.md) owns operating modes,
 reading order, write scope, compression, and the final checklist. The
 [track contract](track-contract.md) owns routing entries, lifecycle, promotion,
-closure, and roadmaps.
+closure, and roadmaps. The [memory index contract](memory-index.md) owns the
+derived SQLite database, search, graph navigation, and context assembly.
+The [structured memory contract](structured-memory.md) owns machine-readable
+decision/constraint delimiters, metadata, typed fields, and stable relationships.
+The [guided writer contract](guided-writes.md) owns create/update inputs, edit
+preservation, previews, and recovery after a partial source/index publication.
 
 ## Layout
 
@@ -22,6 +27,7 @@ kiroku/
   IDEAS.md
   RISKS.md
   LOG.md
+  memory.sqlite            # derived after curation; absent in legacy hubs
   TRACKS.md                 # required when track folders exist
   tracks/
     <track-slug>/
@@ -41,6 +47,12 @@ and closed tracks. A candidate without a folder follows the
 [track template](../assets/templates/kiroku/tracks/_template) are scaffolds;
 `_template` is not an operational track.
 
+Markdown owns the durable content. Ordinary memory reads use the hub's published
+`memory.sqlite`. At a task/milestone or explicit handoff/maintenance checkpoint,
+finish all source edits and publish the derived database once. Legacy Markdown
+remains available for bootstrap and explicit recovery; it is not a parallel
+ordinary reading path. The database never becomes another editable owner.
+
 ## Language And Entry Syntax
 
 - For a new hub, use the dominant language of the project or the user's request.
@@ -58,11 +70,12 @@ and closed tracks. A candidate without a folder follows the
   fence do not create operational entries or fields.
 - Fields may contain inline text, following prose, bullets, or a non-empty
   fenced code block. Another known field or a heading ends an empty field;
-  content from the next entry cannot satisfy it.
+  content from the next entry cannot satisfy it. Explicitly tagged entries also
+  obey their stricter field and delimiter contract.
 - Use compact, project-specific prose and visible status. Prefer bullets for
   facts and short paragraphs for rationale. Include paths, commands, dates,
-  and module names when they help continuation. Avoid frontmatter unless the
-  user explicitly wants machine parsing.
+  and module names when they help continuation. Structured decisions and constraints
+  use entry-level JSON comments; other prose does not require machine metadata.
 
 ## File Ownership
 
@@ -85,6 +98,7 @@ risk, or rejected direction.
 | `LOG.md` | Concise meaningful memory-update history. Track logs cover local changes; the global log covers global memory and track lifecycle changes. |
 | `TRACKS.md` | Compact routing and lifecycle index governed by the [track contract](track-contract.md#track-index). |
 | `tracks/<slug>/ROADMAP.md` | Outcome-oriented milestones governed by the [roadmap contract](track-contract.md#roadmap-contract); granular execution work stays in `WORK.md`. |
+| `memory.sqlite` | Derived search, relationship, and context index; source selection and rebuild rules belong to the [memory index contract](memory-index.md). |
 
 Local decisions and risks may use their optional track files. Shared
 architecture, constraints, and ideas retain their global owners. Apply the
@@ -120,7 +134,10 @@ authorization.
 ## Entry Patterns
 
 Use each shape in its owner file. Replace example prose with verified context;
-translate prose and descriptive titles, keeping field labels.
+translate prose and descriptive titles, keeping field labels. The field examples
+below show legacy shapes. For new decisions and constraints wrap the entry with
+the markers in the [structured contract](structured-memory.md), assign a unique
+ID, and preserve it on later edits. The bundled templates include these markers.
 
 Decision:
 
@@ -176,7 +193,7 @@ python scripts/check_hub.py <project-root> --strict-warnings
 python scripts/check_hub.py <custom-hub> --hub-dir
 ```
 
-Without a path, both helpers use the current directory. A project-root path
+Without a path, these two helpers use the current directory. A project-root path
 selects its `kiroku/`; a path named `kiroku` selects that hub directly. Use
 `--hub-dir` to select the exact directory with a custom name; `START_HERE.md`
 alone never identifies a hub. An explicitly selected hub may itself be a
@@ -209,11 +226,25 @@ scaffolds; the agent must fill and verify them before initialization is complete
 - `--template-dir` and `--track-template-dir` select alternate templates.
   Use each helper's `--help` for its complete argument syntax.
 
+After all checkpoint curation and validation, publish the derived index once:
+
+```bash
+python scripts/memory.py checkpoint <project-root>
+```
+
+All `memory.py` commands require a path, accept `--hub-dir`, and return JSON.
+The [memory index contract](memory-index.md) documents the read commands and
+database handling. `build` remains a compatibility alias. `status` is a separate,
+explicit source/integrity audit after external changes or suspected damage;
+normal reads use only the database. Scaffolding and read modes never publish it.
+
 ## Validation Contract
 
 [The checker](../scripts/check_hub.py) checks required file shapes, recognized
 bundled placeholder prose, handoff caps, TODO completion conditions, active
 decision rationales, roadmap fields/statuses, and index-to-folder routing.
+It also validates tagged decisions and constraints, unique IDs across indexed
+Markdown, and explicit record references using the same parser as the index.
 It reads the selected hub; it does not edit memory.
 
 Treat checker errors as blocking for the affected scope and inspect warnings.
@@ -226,3 +257,9 @@ translated or rewritten placeholders, semantic accuracy, evidence freshness,
 required handoff section meanings, duplication, and cross-file consistency.
 The checker recognizes the documented entry conventions; it is not a general
 Markdown parser or proof that the project itself works.
+
+Index `status` checks whether the database matches its Markdown sources and
+supported format. It does not replace the structural checker or the agent's
+semantic review. Keep the Markdown and rebuilt database together when a Git
+action is authorized; resolve binary database conflicts by rebuilding from the
+resolved Markdown, as described in the memory index contract.

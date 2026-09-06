@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
+from structured_memory import MARKER_RE, StructuredMemoryError, parse_entries, validate_entries
+
 
 REQUIRED_FILES = (
     "START_HERE.md",
@@ -123,6 +125,7 @@ PLACEHOLDER_NEEDLES = (
     "Move old track decisions here when their history still matters",
     "Note whether anything should be promoted to top-level memory",
     "Summarize meaningful memory changes",
+    "REPLACE_WITH_UNIQUE_ID",
 )
 
 HEADING_RE = re.compile(r"^ {0,3}(#{1,6})(?:[ \t]+|$)(.*)$")
@@ -273,6 +276,7 @@ def label_value(block: list[str], label: str) -> str | None:
                 continue
             if not following_is_code and (
                 HEADING_RE.match(following) or candidate.startswith(CONTRACT_LABELS)
+                or MARKER_RE.search(following)
             ):
                 return None
             return candidate
@@ -290,6 +294,11 @@ def heading_blocks(
     level = len(prefix.strip())
 
     for index, (line, is_code) in enumerate(markdown_lines(lines)):
+        if not is_code and MARKER_RE.search(line):
+            if start is not None:
+                blocks.append((start, lines[start:index]))
+                start = None
+            continue
         match = None if is_code else HEADING_RE.match(line)
         if match is None or len(match.group(1)) > level:
             continue
@@ -818,6 +827,43 @@ def check_track_dirs(
     return issues
 
 
+def iter_hub_markdown(hub: Path):
+    """Share the same source boundary between structured checks and indexing."""
+    def visit(directory: Path):
+        for path in sorted(directory.iterdir()):
+            relative = path.relative_to(hub).as_posix()
+            if path.name.startswith(".") or relative == "tracks/_template":
+                continue
+            if path.is_symlink():
+                if path.suffix == ".md" or path.is_dir():
+                    raise ValueError(f"Markdown source symlinks are not supported: {relative}")
+                continue
+            if path.is_dir():
+                yield from visit(path)
+            elif path.suffix == ".md":
+                if not path.is_file():
+                    raise ValueError(f"Markdown source is not a regular file: {relative}")
+                yield path
+    yield from visit(hub)
+
+
+def check_structured_entries(hub: Path) -> list[Issue]:
+    entries: list[dict] = []
+    issues: list[Issue] = []
+    try:
+        for path in iter_hub_markdown(hub):
+            try:
+                text = path.read_bytes().decode("utf-8")
+                entries.extend(parse_entries(path.relative_to(hub).as_posix(), text))
+            except (OSError, UnicodeError, StructuredMemoryError) as exc:
+                issues.append(Issue("error", path, None, str(exc)))
+        if not issues:
+            validate_entries(entries)
+    except (OSError, ValueError) as exc:
+        issues.append(Issue("error", hub, None, str(exc)))
+    return issues
+
+
 def print_issues(title: str, issues: list[Issue]) -> None:
     if not issues:
         return
@@ -869,6 +915,7 @@ def main() -> int:
         track_dirs = []
     issues.extend(check_tracks_index(hub, track_dirs))
     issues.extend(check_track_dirs(track_dirs, allowed_handoffs))
+    issues.extend(check_structured_entries(hub))
 
     errors = [issue for issue in issues if issue.severity == "error"]
     warnings = [issue for issue in issues if issue.severity == "warning"]

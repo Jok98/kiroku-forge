@@ -10,6 +10,16 @@
 
 ## Closed
 
+### local-sqlite-memory
+
+Status: closed
+Purpose: Delivered portable memory, typed edits, bounded context, and database-only checkpoint reads.
+Repos: kiroku-forge
+Areas: scripts, retrieval, SQLite snapshots, skill contracts, project memory
+Keywords: sqlite, graph, index, search, context, portability
+Read: tracks/local-sqlite-memory/START_HERE.md
+Related: validation-contract-alignment
+
 ### validation-contract-alignment
 
 Status: closed

@@ -56,6 +56,11 @@ Related: invoice-rounding
 Omit optional context fields when they add no routing value. The example is a
 shape to adapt, not authorization to create the named workstream.
 
+The [derived memory graph](memory-index.md) follows explicit `Read:` targets,
+`Related:` slugs, and local Markdown links. Shared keywords do not create a
+relationship. Keep routing references accurate in Markdown; rebuilding the
+database does not decide which tracks are related.
+
 ## Lifecycle
 
 Use these exact values in the index:
@@ -122,6 +127,10 @@ Keep the current milestone and next action aligned with track `STATE.md`,
 `WORK.md`, and `START_HERE.md` without copying milestone definitions. The
 roadmap owns the current milestone plan; granular tasks remain in `WORK.md`
 and chronological reassessment history belongs in `LOG.md`.
+
+Explicit `M-xx` references in a milestone's `Dependencies:` field can be followed
+in the memory graph within that roadmap. They record the stated dependency,
+not evidence that its prerequisites or completion criteria have been satisfied.
 
 ## Promotion And Closure
 

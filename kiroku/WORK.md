@@ -39,6 +39,16 @@ Notes:
 - Helper reliability, operational contract alignment, and instruction consolidation
   are complete; `validation-contract-alignment` retains the verified outcomes.
 - Shared product decisions preserve Markdown and keep future views derived.
+- `local-sqlite-memory` delivered per-hub SQLite snapshots, focused retrieval,
+  explicit graphs, source freshness, and repository portability.
+- Its structured-entry pilot added validated decisions/constraints, stable IDs,
+  typed retrieval, and explicit record relationships without replacing Markdown.
+- Guided add/update commands save typed Markdown entries with source-preserving
+  patches and dry-run diffs; the complete checkpoint is published once afterward.
+- Context v2 bounds the complete response and retains required source content,
+  with explicit omission counts and a focused regression suite.
+- Ordinary memory reads use only the published database, with full source and
+  integrity audits reserved for explicit status checks and checkpoint publication.
 
 ## Cancelled
 

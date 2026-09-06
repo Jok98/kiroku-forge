@@ -51,22 +51,37 @@ Mitigation:
 Apply current AGENTS authority, exclude trivial work unless requested, and limit
 compression to the changed owner files and direct references.
 
-### Risk: A future viewer recreates a second source of truth
+### Risk: A derived view recreates a second source of truth
 
 Condition:
-Derived HTML or a query cache becomes independently editable or authoritative.
+Derived HTML or the SQLite index becomes independently editable or authoritative.
 
 Impact:
 Memory representations drift and the product returns to a schema-heavy design.
 
 Mitigation:
-Keep initial views read-only and derived from the existing Markdown entry patterns.
+Keep views read-only and rebuild the index from Markdown; use its fingerprints
+only to check source correspondence, never to establish semantic truth.
+
+### Risk: Versioned snapshots diverge from repository sources
+
+Condition:
+A commit or branch change combines a database with different Markdown sources.
+
+Impact:
+Retrieval could otherwise return deleted or obsolete memory, and binary changes
+can increase repository history size.
+
+Mitigation:
+Ordinary reads use the published snapshot without checking current Markdown.
+After known checkout/merge, manual memory edits, or restored sources, run status
+explicitly before relying on it for that tree. Publish from resolved Markdown
+and version both together at authorized checkpoints; unobserved drift is not detected.
 
 ## Accepted Risks
 
-- There is no persistent automated test suite. Focused behavior checks, helper
-  validation, and review must be repeated for relevant changes; adding test
-  artifacts requires separate approval under the user's policy.
+- The persistent suite covers context budgeting and checkpoint behavior. Other
+  helpers still rely on focused runtime checks, structural validation, and review.
 - Translated headings need explicit section selection when the helper cannot
   identify their lifecycle meaning from the default English name.
 

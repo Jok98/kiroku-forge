@@ -2,6 +2,7 @@
 
 ## Active Constraints
 
+<!-- kiroku:entry {"version":1,"id":"REPLACE_WITH_UNIQUE_ID","type":"constraint","status":"active"} -->
 ### Constraint: Example
 
 Status: active
@@ -11,6 +12,7 @@ State the constraint.
 
 Why:
 Explain what breaks or becomes risky if ignored.
+<!-- kiroku:end -->
 
 ## Out Of Scope
 

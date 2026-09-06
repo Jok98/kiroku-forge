@@ -23,11 +23,10 @@ commands before writing.
 
 ## Deferred Ideas
 
-- Machine-readable indexes are deferred until there is a concrete repeated
-  need.
-- A richer CLI is deferred until the Markdown workflow has survived real use.
-- SQLite or another derived query cache is deferred until the semantic HTML
-  viewer needs faster search or richer relationship queries.
+- Embedding-based retrieval remains deferred until real queries demonstrate
+  omissions that lexical search and explicit graph navigation do not resolve.
+- A graphical viewer remains a separate proposal; the approved SQLite retrieval
+  work is owned by `tracks/local-sqlite-memory/`.
 
 ## Rejected Ideas
 
